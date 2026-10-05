@@ -1,0 +1,203 @@
+/* ==========================================================================
+   COMMAND PALETTE (⌘K) - BEST PRACTICE SPOTLIGHT / RAYCAST ARCHITECTURE
+   Strict Anti-AI-Slop & Zero Harsh Outlines
+   ========================================================================== */
+
+dialog.command-dialog {
+  --palette-radius: var(--radius-xl);
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  top: 14vh;
+  width: 90vw;
+  max-width: 580px;
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--palette-radius);
+  box-shadow: var(--shadow-overlay);
+  padding: var(--space-2);
+  overflow: hidden;
+  z-index: 2000;
+  border: none;
+  animation: motion-dialog-in var(--duration-enter) var(--ease-emphasized) both;
+}
+
+dialog.command-dialog::backdrop {
+  background-color: var(--color-overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+  -webkit-backdrop-filter: blur(var(--overlay-blur));
+}
+
+dialog.command-dialog[open]::backdrop {
+  animation: motion-backdrop-in var(--duration-fast) var(--ease-out) both;
+}
+
+/* Search field as inset pill — focus ring has room inside dialog padding */
+.command-search-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-subtle);
+  border-radius: calc(var(--palette-radius) - var(--space-2));
+  position: relative;
+  transition: box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.command-search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-primary-500);
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.command-search-input {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  padding: 0 !important;
+  min-height: auto !important;
+  line-height: var(--line-height-normal);
+}
+
+.command-search-input:focus,
+.command-search-input:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.command-search-header:focus-within {
+  background-color: var(--color-bg-surface);
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+}
+
+.command-search-input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-normal);
+}
+
+/* Results List */
+.command-results-list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-1) var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: max(0px, calc(var(--palette-radius, var(--radius-xl)) - var(--space-3)));
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-instant) var(--ease-out),
+    color var(--duration-instant) var(--ease-out),
+    transform var(--duration-instant) var(--ease-out);
+  user-select: none;
+}
+
+.command-item:hover,
+.command-item.focused {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  transform: translateX(2px);
+}
+
+.command-item.focused {
+  color: var(--color-primary-600);
+  background-color: var(--color-primary-50);
+  font-weight: var(--font-weight-medium);
+}
+
+.command-shortcut-badge {
+  font-family: var(--font-family-mono);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
+
+dialog.shortcuts-help-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(420px, 92vw);
+  max-height: 80vh;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-overlay);
+  overflow: hidden;
+  z-index: 2100;
+}
+
+dialog.shortcuts-help-dialog[open] {
+  animation: motion-dialog-in var(--duration-enter) var(--ease-emphasized) both;
+}
+
+dialog.shortcuts-help-dialog::backdrop {
+  background-color: var(--color-overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+}
+
+dialog.shortcuts-help-dialog[open]::backdrop {
+  animation: motion-backdrop-in var(--duration-fast) var(--ease-out) both;
+}
+
+.shortcuts-help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.shortcuts-help-header h2 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.shortcuts-help-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.shortcuts-help-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.shortcuts-help-kbd {
+  font-family: var(--font-family-mono);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
+

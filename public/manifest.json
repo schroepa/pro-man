@@ -1,0 +1,16 @@
+{
+  "name": "ProMan - Local-First Workspace",
+  "short_name": "ProMan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#c25e1a",
+  "description": "High performance local-first project management and documentation tool",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

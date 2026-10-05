@@ -1,0 +1,106 @@
+/* ==========================================================================
+   MOTION SYSTEM — GPU-friendly (transform + opacity only)
+   Natural, snappy micro-interactions. Respects prefers-reduced-motion via reset.
+   ========================================================================== */
+
+@keyframes motion-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motion-fade-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes motion-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motion-press {
+  from { transform: scale(1); }
+  to { transform: scale(0.97); }
+}
+
+/* View switch enter — whole viewport, once per navigation */
+.view-mount--enter {
+  animation: motion-fade-up var(--duration-enter) var(--ease-emphasized) both;
+}
+
+/* Popovers / overflow / selects */
+.motion-popover-in {
+  animation: motion-slide-down var(--duration-fast) var(--ease-emphasized) both;
+  transform-origin: top center;
+}
+
+/* Pressable surfaces — tactile, not bouncy */
+.motion-pressable {
+  transition:
+    transform var(--duration-instant) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+  will-change: auto;
+}
+
+.motion-pressable:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Elevated cards — lift on hover via transform + shadow */
+.motion-lift {
+  transition:
+    transform var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.motion-lift:hover {
+  transform: translateY(-1px);
+}
+
+.motion-lift:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Dialog + backdrop */
+@keyframes motion-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes motion-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

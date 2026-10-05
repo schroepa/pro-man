@@ -1,0 +1,324 @@
+/* ==========================================================================
+   BASE & ACCESSIBILITY STYLES (BESPOKE ZERO-BORDER DESIGN SYSTEM)
+   ========================================================================== */
+
+/* Sleek Minimal Custom Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-bg-muted) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-bg-muted);
+  border-radius: var(--radius-full);
+}
+
+/* Apple Squircle Continuous Curvature (G2 Continuity) */
+@supports (corner-shape: squircle) {
+  *, *::before, *::after {
+    corner-shape: squircle;
+  }
+}
+
+/* Concentric Nesting Helper System */
+.concentric-container {
+  --outer-radius: var(--radius-xl);
+  --container-padding: var(--space-4);
+  --inner-radius: max(0px, calc(var(--outer-radius) - var(--container-padding)));
+  border-radius: var(--outer-radius);
+  padding: var(--container-padding);
+}
+
+.concentric-nested {
+  border-radius: var(--inner-radius, max(0px, calc(var(--outer-radius, var(--radius-lg)) - var(--container-padding, var(--space-3)))));
+}
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: var(--space-4);
+  background: var(--color-primary-500);
+  color: var(--color-primary-contrast);
+  padding: var(--space-2) var(--space-4);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  z-index: 9999;
+  text-decoration: none;
+  box-shadow: var(--shadow-popover);
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Accessible Focus Indicators (WCAG 2.4.7 & 2.4.11 compliant) */
+:focus {
+  outline: none;
+}
+
+/* Focused interactive elements (buttons, links, tabs) */
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="option"]:focus-visible,
+[tabindex="0"]:not(input):not(textarea):focus-visible,
+a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring) !important;
+  outline-offset: var(--focus-ring-offset) !important;
+}
+
+/* Inputs and textareas never get harsh outer rectangular outlines; they use smooth tonal elevation */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: none !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+/* Bespoke Form Controls - Zero OS Defaults */
+.input,
+.select,
+.textarea {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-subtle);
+  border: none;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+  min-height: 32px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+  background-color: var(--color-bg-muted);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  background-color: var(--color-bg-surface);
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Native date/time icons: paint via mask so they use text tokens (not OS color-scheme) */
+.input[type="date"]::-webkit-calendar-picker-indicator,
+.input[type="time"]::-webkit-calendar-picker-indicator,
+.input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.input[type="month"]::-webkit-calendar-picker-indicator,
+.input[type="week"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  width: 16px;
+  height: 16px;
+  padding: 2px;
+  margin-left: 4px;
+  border-radius: var(--radius-xs);
+  background-color: var(--color-text-secondary);
+  background-image: none;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z'/%3E%3Cpath d='M16 3v4M8 3v4M4 11h16'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z'/%3E%3Cpath d='M16 3v4M8 3v4M4 11h16'/%3E%3C/svg%3E");
+  -webkit-mask-size: 14px 14px;
+  mask-size: 14px 14px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  transition: background-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.input[type="time"]::-webkit-calendar-picker-indicator:hover,
+.input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+.input[type="month"]::-webkit-calendar-picker-indicator:hover,
+.input[type="week"]::-webkit-calendar-picker-indicator:hover {
+  background-color: var(--color-text-primary);
+  opacity: 1;
+}
+
+/* Bespoke Checkbox Component */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg-subtle);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: all var(--transition-fast);
+  margin: 0;
+}
+
+input[type="checkbox"]:hover {
+  background-color: var(--color-bg-muted);
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--color-primary-500);
+}
+
+input[type="checkbox"]:checked::before {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Button Component System - Borderless, Soft Elevation */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 5px var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  min-height: 30px;
+  border: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-instant) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background-color: var(--color-primary-500);
+  color: var(--color-primary-contrast);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-600);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-bg-muted);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+}
+
+.btn-ghost-danger {
+  background-color: transparent;
+  color: var(--danger-text);
+}
+
+.btn-ghost-danger:hover:not(:disabled) {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.btn-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+}
+
+/* Badges - Pure Borderless with Redundant Encoding (Icon + Label) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-xs);
+  line-height: 1.25;
+}
+
+.badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-urgent { background: var(--priority-urgent-bg); color: var(--priority-urgent-text); }
+.badge-high { background: var(--priority-high-bg); color: var(--priority-high-text); }
+.badge-normal { background: var(--priority-normal-bg); color: var(--priority-normal-text); }
+.badge-low { background: var(--priority-low-bg); color: var(--priority-low-text); }
+.badge-muted {
+  opacity: 0.45;
+  filter: saturate(0.55);
+}
+
+#live-announcer {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

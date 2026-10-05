@@ -1,0 +1,419 @@
+/* ==========================================================================
+   DESIGN TOKENS - WARM OBSIDIAN COLOR SYSTEM (TINTFIELD-COMPATIBLE)
+   
+   Architecture:
+   1. Primitive 12-Step Tonal Scales (--neutral-1..12, --brand-1..12)
+      -> 100% kompatibel mit Tintfield (https://tintfield.ptrckschrdtr.de/app)
+      -> Du kannst jede 12-Stufen-Skala von Tintfield hier einfach einfügen!
+   2. Semantic System Tokens (--color-bg-*, --color-text-*, --color-accent-*)
+      -> Mappen die 12 Stufen auf das gesamte UI ohne manuelle Anpassung
+   3. Strict WCAG 2.1/2.2 AAA Contrast Ratios & Zero-Border Design
+   ========================================================================== */
+
+:root {
+  /* ========================================================================
+     1. TINTFIELD PRIMITIVE SCALES - LIGHT MODE
+     Palette: Warm Stone / Sand Neutrals + Warm Copper/Terracotta Accent
+     ======================================================================== */
+  
+  /* Neutral Scale (1: Background -> 12: High-Contrast Text) */
+  --neutral-1:  #faf9f7;  /* Canvas Background */
+  --neutral-2:  #f3f1ec;  /* Sidebar & Structural Containers */
+  --neutral-3:  #eae7df;  /* Cards / Surface Elements / Input Rest */
+  --neutral-4:  #e0dcd2;  /* Hover Surfaces */
+  --neutral-5:  #d4cfc2;  /* Active Elements / Subtle Selection */
+  --neutral-6:  #c2bcad;  /* Muted Controls */
+  --neutral-7:  #948d7d;  /* Placeholder / Captions / Shortcuts */
+  --neutral-8:  #6e6757;  /* Secondary Text (WCAG 4.8:1) */
+  --neutral-9:  #474236;  /* High Hierarchy Elements */
+  --neutral-10: #332f26;  /* Deep Charcoal Text */
+  --neutral-11: #211e18;  /* Primary Body Text */
+  --neutral-12: #14120e;  /* Crisp Heading Text (WCAG AAA 16.5:1) */
+
+  /* Brand / Accent Scale (Warm Copper / Terracotta - 9: Solid Accent) */
+  --brand-1:  #fdf9f5;
+  --brand-2:  #f9f0e6;   /* Subtle Accent Tint */
+  --brand-3:  #f3dfcc;
+  --brand-4:  #eccbb0;
+  --brand-5:  #e3b591;
+  --brand-6:  #d89c6f;
+  --brand-7:  #ca814c;
+  --brand-8:  #b6672f;
+  --brand-9:  #c25e1a;   /* Solid Brand Primary CTA (High Contrast White Text) */
+  --brand-10: #aa4e11;   /* Primary Button Hover */
+  --brand-11: #823807;   /* Accent Text on Light */
+  --brand-12: #481d03;
+
+  /* Functional Status Scales */
+  --success-bg: #eaf7ed;
+  --success-text: #1b5e20;
+  --success-solid: #2e7d32;
+
+  --warning-bg: #fdf5e6;
+  --warning-text: #8a5300;
+  --warning-solid: #d97706;
+
+  --danger-bg: #fdf0f0;
+  --danger-text: #991b1b;
+  --danger-solid: #dc2626;
+
+  --info-bg: #eff6ff;
+  --info-text: #1e40af;
+  --info-solid: #2563eb;
+
+  /* ========================================================================
+     2. SEMANTIC TOKENS (Automatisch aus den Tintfield-Stufen abgeleitet)
+     ======================================================================== */
+  --color-bg-canvas: var(--neutral-1);
+  --color-bg-sidebar: var(--neutral-2);
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-raised: #ffffff;
+  --color-bg-subtle: var(--neutral-2);
+  --color-bg-muted: var(--neutral-3);
+  /* Floating UI (menus, popovers, dialogs) — distinct elevation layer */
+  --color-bg-elevated: #ffffff;
+
+  /* BORDERS: resting UI stays zero-border; elevated layers get a hairline for figure/ground */
+  --color-border-subtle: transparent;
+  --color-border-default: transparent;
+  --color-border-strong: transparent;
+  --color-border-elevated: color-mix(in srgb, var(--neutral-12) 10%, transparent);
+
+  /* Text Hierarchy */
+  --color-text-primary: var(--neutral-12);
+  --color-text-secondary: var(--neutral-8);
+  --color-text-muted: var(--neutral-7);
+  --color-text-inverse: #ffffff;
+
+  /* Brand Accent Tokens */
+  --color-primary-50: var(--brand-2);
+  --color-primary-100: var(--brand-3);
+  --color-primary-500: var(--brand-9);
+  --color-primary-600: var(--brand-10);
+  --color-primary-contrast: #ffffff;
+
+  /* Focus Ring (WCAG 2.2 Compliant) */
+  --color-focus-ring: var(--brand-9);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Modal / palette / mobile-nav scrim — warm ink (not cool slate) */
+  --overlay-ink: var(--neutral-12);
+  --color-overlay: color-mix(in srgb, var(--overlay-ink) 42%, transparent);
+  --color-overlay-strong: color-mix(in srgb, var(--overlay-ink) 58%, transparent);
+  --overlay-blur: 6px;
+
+  /* Priorities */
+  --priority-urgent-bg: var(--danger-bg);
+  --priority-urgent-text: var(--danger-text);
+
+  --priority-high-bg: var(--brand-2);
+  --priority-high-text: var(--brand-11);
+
+  --priority-normal-bg: var(--neutral-2);
+  --priority-normal-text: var(--neutral-8);
+
+  --priority-low-bg: var(--neutral-2);
+  --priority-low-text: var(--neutral-7);
+
+  /* Task Statuses */
+  --status-todo-bg: var(--neutral-2);
+  --status-todo-text: var(--neutral-8);
+  --status-todo-solid: var(--neutral-7);
+
+  --status-progress-bg: var(--info-bg);
+  --status-progress-text: var(--info-text);
+  --status-progress-solid: var(--info-solid);
+
+  --status-review-bg: var(--warning-bg);
+  --status-review-text: var(--warning-text);
+  --status-review-solid: var(--warning-solid);
+
+  --status-done-bg: var(--success-bg);
+  --status-done-text: var(--success-text);
+  --status-done-solid: var(--success-solid);
+
+  /* Spacing Scale */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ========================================================================
+     RADII & SQUIRCLE ARCHITECTURE (Apple Continuous Curvature & Concentric Radii)
+     ======================================================================== */
+  --corner-shape: squircle;
+  --corner-smoothing: 0.6; /* 60% iOS Standard G2 Continuous Curvature */
+
+  /* Master Outer Radii Scale */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  /*
+   * Concentric Nested Radii Formulas:
+   * R_inner = max(0px, R_outer - Padding)
+   * Garantiert absolut konstanten Abstand zwischen Außen- und Innenkante in den Kurven!
+   */
+  --concentric-md-p1: max(0px, calc(var(--radius-md) - var(--space-1)));  /* 10px - 4px = 6px */
+  --concentric-lg-p1: max(0px, calc(var(--radius-lg) - var(--space-1)));  /* 16px - 4px = 12px */
+  --concentric-lg-p2: max(0px, calc(var(--radius-lg) - var(--space-2)));  /* 16px - 8px = 8px */
+  --concentric-lg-p3: max(0px, calc(var(--radius-lg) - var(--space-3)));  /* 16px - 12px = 4px */
+  --concentric-lg-p4: max(0px, calc(var(--radius-lg) - var(--space-4)));  /* 16px - 16px = 0px */
+
+  --concentric-xl-p2: max(0px, calc(var(--radius-xl) - var(--space-2)));  /* 22px - 8px = 14px */
+  --concentric-xl-p3: max(0px, calc(var(--radius-xl) - var(--space-3)));  /* 22px - 12px = 10px */
+  --concentric-xl-p4: max(0px, calc(var(--radius-xl) - var(--space-4)));  /* 22px - 16px = 6px */
+
+  --concentric-2xl-p3: max(0px, calc(var(--radius-2xl) - var(--space-3))); /* 28px - 12px = 16px */
+  --concentric-2xl-p4: max(0px, calc(var(--radius-2xl) - var(--space-4))); /* 28px - 16px = 12px */
+  --concentric-2xl-p5: max(0px, calc(var(--radius-2xl) - var(--space-5))); /* 28px - 20px = 8px */
+  --concentric-2xl-p6: max(0px, calc(var(--radius-2xl) - var(--space-6))); /* 28px - 24px = 4px */
+
+  /* Elevation Shadows (Atmospheric Diffused Depth) */
+  --shadow-sm: 0 1px 3px 0 rgba(40, 35, 25, 0.04), 0 1px 2px -1px rgba(40, 35, 25, 0.04);
+  --shadow-md: 0 4px 10px -2px rgba(40, 35, 25, 0.06), 0 2px 4px -2px rgba(40, 35, 25, 0.04);
+  --shadow-card: 0 1px 3px 0 rgba(40, 35, 25, 0.04), 0 4px 14px 0 rgba(40, 35, 25, 0.03);
+  --shadow-card-hover: 0 8px 20px -3px rgba(40, 35, 25, 0.09), 0 3px 6px -2px rgba(40, 35, 25, 0.04);
+  --shadow-popover: 0 20px 32px -8px rgba(40, 35, 25, 0.14), 0 8px 16px -4px rgba(40, 35, 25, 0.08), 0 0 0 1px var(--color-border-elevated);
+  --shadow-overlay: 0 24px 48px -12px rgba(40, 35, 25, 0.22), 0 10px 20px -6px rgba(40, 35, 25, 0.12), 0 0 0 1px var(--color-border-elevated);
+
+  /* Typography — Geist self-hosted; system stack as instant fallback during swap */
+  --font-family-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.84375rem;  /* 13.5px */
+  --font-size-md: 0.9375rem;   /* 15px alias */
+  --font-size-base: 0.9375rem; /* 15px */
+  --font-size-lg: 1.0625rem;   /* 17px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+
+  --transition-fast: var(--duration-fast) var(--ease-out);
+  --transition-normal: var(--duration-normal) var(--ease-emphasized);
+  --transition-spring: var(--duration-fast) var(--ease-spring);
+  --transition-enter: var(--duration-enter) var(--ease-emphasized);
+
+  /* Motion durations — snappy, never sluggish */
+  --duration-instant: 80ms;
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --duration-enter: 220ms;
+
+  /* Easing — natural deceleration / soft spring */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+/* ==========================================================================
+   WARM OBSIDIAN DARK MODE (TINTFIELD-COMPATIBLE)
+   Authentische Obsidian-Architektur: tiefe, samtige Erdtöne, leuchtendes Kupfer
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* 1. Tintfield Primitives (Dark Mode) */
+    --neutral-1:  #11100f;  /* Deep Warm Obsidian Canvas */
+    --neutral-2:  #181615;  /* Sidebar & Columns Backdrop */
+    --neutral-3:  #201e1c;  /* Elevated Card Surfaces */
+    --neutral-4:  #292624;  /* Hover Surfaces */
+    --neutral-5:  #34312e;  /* Active Selection */
+    --neutral-6:  #44403c;  /* Controls & Icons */
+    --neutral-7:  #78716c;  /* Muted Text / Meta */
+    --neutral-8:  #a8a29e;  /* Secondary Text (WCAG 5.2:1) */
+    --neutral-9:  #d6d3d1;  /* High Contrast Elements */
+    --neutral-10: #e7e5e4;
+    --neutral-11: #f5f5f4;  /* Primary Body Text */
+    --neutral-12: #fafaf9;  /* Crisp Headings (WCAG AAA 17:1) */
+
+    /* Luminous Amber / Copper Accent */
+    --brand-1:  #1f140d;
+    --brand-2:  #2d1b0f;
+    --brand-3:  #452612;
+    --brand-4:  #5f3316;
+    --brand-5:  #7d411b;
+    --brand-6:  #9f511f;
+    --brand-7:  #c26424;
+    --brand-8:  #d9742a;
+    --brand-9:  #e07a38;   /* Luminous Copper Primary CTA */
+    --brand-10: #eb8a48;   /* Primary Hover */
+    --brand-11: #f7b483;   /* High Contrast Accent on Dark */
+    --brand-12: #fde8d7;
+
+    /* Semantic Mappings */
+    --color-bg-canvas: var(--neutral-1);
+    --color-bg-sidebar: var(--neutral-2);
+    --color-bg-surface: var(--neutral-3);
+    --color-bg-surface-raised: var(--neutral-4);
+    --color-bg-subtle: var(--neutral-2);
+    --color-bg-muted: var(--neutral-4);
+    /* Dark mode: overlays must be LIGHTER than resting surfaces (Atlassian/Material) */
+    --color-bg-elevated: var(--neutral-5);
+
+    --color-text-primary: var(--neutral-11);
+    --color-text-secondary: var(--neutral-8);
+    --color-text-muted: var(--neutral-7);
+    --color-text-inverse: var(--neutral-1);
+
+    --color-primary-50: var(--brand-3);
+    --color-primary-100: var(--brand-4);
+    --color-primary-500: var(--brand-9);
+    --color-primary-600: var(--brand-10);
+    --color-primary-contrast: #ffffff;
+
+    --color-focus-ring: var(--brand-9);
+
+    --color-border-elevated: color-mix(in srgb, var(--neutral-12) 12%, transparent);
+
+    /* Scrim stays warm-dark in dark mode (not inverted neutrals) */
+    --overlay-ink: #0c0b0a;
+    --color-overlay: color-mix(in srgb, var(--overlay-ink) 55%, transparent);
+    --color-overlay-strong: color-mix(in srgb, var(--overlay-ink) 68%, transparent);
+
+    /* Priorities - Dark */
+    --priority-urgent-bg: #3f1212;
+    --priority-urgent-text: #fca5a5;
+
+    --priority-high-bg: var(--brand-3);
+    --priority-high-text: var(--brand-11);
+
+    --priority-normal-bg: var(--neutral-2);
+    --priority-normal-text: var(--neutral-8);
+
+    --priority-low-bg: var(--neutral-2);
+    --priority-low-text: var(--neutral-7);
+
+    /* Statuses - Dark */
+    --status-todo-bg: var(--neutral-2);
+    --status-todo-text: var(--neutral-8);
+    --status-todo-solid: #78716c;
+
+    --status-progress-bg: #072a42;
+    --status-progress-text: #7dd3fc;
+    --status-progress-solid: #38bdf8;
+
+    --status-review-bg: #3b2207;
+    --status-review-text: #fde68a;
+    --status-review-solid: #fbbf24;
+
+    --status-done-bg: #072e18;
+    --status-done-text: #86efac;
+    --status-done-solid: #4ade80;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.14);
+    --shadow-card-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.32), 0 2px 6px -1px rgba(0, 0, 0, 0.18);
+    --shadow-popover: 0 12px 28px -6px rgba(0, 0, 0, 0.55), 0 4px 12px -2px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--color-border-elevated);
+    --shadow-overlay: 0 20px 40px -8px rgba(0, 0, 0, 0.65), 0 8px 16px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-border-elevated);
+  }
+}
+
+:root[data-theme="dark"] {
+  --neutral-1:  #11100f;
+  --neutral-2:  #181615;
+  --neutral-3:  #201e1c;
+  --neutral-4:  #292624;
+  --neutral-5:  #34312e;
+  --neutral-6:  #44403c;
+  --neutral-7:  #78716c;
+  --neutral-8:  #a8a29e;
+  --neutral-9:  #d6d3d1;
+  --neutral-10: #e7e5e4;
+  --neutral-11: #f5f5f4;
+  --neutral-12: #fafaf9;
+
+  --brand-1:  #1f140d;
+  --brand-2:  #2d1b0f;
+  --brand-3:  #452612;
+  --brand-4:  #5f3316;
+  --brand-5:  #7d411b;
+  --brand-6:  #9f511f;
+  --brand-7:  #c26424;
+  --brand-8:  #d9742a;
+  --brand-9:  #e07a38;
+  --brand-10: #eb8a48;
+  --brand-11: #f7b483;
+  --brand-12: #fde8d7;
+
+  --color-bg-canvas: var(--neutral-1);
+  --color-bg-sidebar: var(--neutral-2);
+  --color-bg-surface: var(--neutral-3);
+  --color-bg-surface-raised: var(--neutral-4);
+  --color-bg-subtle: var(--neutral-2);
+  --color-bg-muted: var(--neutral-4);
+  --color-bg-elevated: var(--neutral-5);
+
+  --color-text-primary: var(--neutral-11);
+  --color-text-secondary: var(--neutral-8);
+  --color-text-muted: var(--neutral-7);
+  --color-text-inverse: var(--neutral-1);
+
+  --color-primary-50: var(--brand-3);
+  --color-primary-100: var(--brand-4);
+  --color-primary-500: var(--brand-9);
+  --color-primary-600: var(--brand-10);
+  --color-primary-contrast: #ffffff;
+
+  --color-focus-ring: var(--brand-9);
+
+  --color-border-elevated: color-mix(in srgb, var(--neutral-12) 12%, transparent);
+
+  --overlay-ink: #0c0b0a;
+  --color-overlay: color-mix(in srgb, var(--overlay-ink) 55%, transparent);
+  --color-overlay-strong: color-mix(in srgb, var(--overlay-ink) 68%, transparent);
+
+  --priority-urgent-bg: #3f1212;
+  --priority-urgent-text: #fca5a5;
+
+  --priority-high-bg: var(--brand-3);
+  --priority-high-text: var(--brand-11);
+
+  --priority-normal-bg: var(--neutral-2);
+  --priority-normal-text: var(--neutral-8);
+
+  --priority-low-bg: var(--neutral-2);
+  --priority-low-text: var(--neutral-7);
+
+  --status-todo-bg: var(--neutral-2);
+  --status-todo-text: var(--neutral-8);
+  --status-todo-solid: #78716c;
+
+  --status-progress-bg: #072a42;
+  --status-progress-text: #7dd3fc;
+  --status-progress-solid: #38bdf8;
+
+  --status-review-bg: #3b2207;
+  --status-review-text: #fde68a;
+  --status-review-solid: #fbbf24;
+
+  --status-done-bg: #072e18;
+  --status-done-text: #86efac;
+  --status-done-solid: #4ade80;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.14);
+  --shadow-card-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.32), 0 2px 6px -1px rgba(0, 0, 0, 0.18);
+  --shadow-popover: 0 12px 28px -6px rgba(0, 0, 0, 0.55), 0 4px 12px -2px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--color-border-elevated);
+  --shadow-overlay: 0 20px 40px -8px rgba(0, 0, 0, 0.65), 0 8px 16px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-border-elevated);
+}

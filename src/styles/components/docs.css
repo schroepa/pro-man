@@ -1,0 +1,206 @@
+/* ==========================================================================
+   DOCS & KNOWLEDGE HUB STYLES (BORDERLESS NOTION/CLICKUP STYLE)
+   ========================================================================== */
+
+.docs-hub-container {
+  display: flex;
+  height: calc(100vh - 110px);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  margin: var(--space-4);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+/* Left: Docs Navigation List */
+.docs-list-sidebar {
+  width: 290px;
+  min-width: 260px;
+  background-color: var(--color-bg-sidebar);
+  display: flex;
+  flex-direction: column;
+}
+
+.docs-list-header {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.docs-items-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.doc-card-item {
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.doc-card-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.doc-card-item.active {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.doc-card-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-card-snippet {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: var(--line-height-tight);
+}
+
+.doc-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Right: Editor / Document Canvas */
+.doc-editor-canvas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-8);
+  background-color: var(--color-bg-surface);
+}
+
+.doc-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.doc-title-input {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  width: 100%;
+  padding: var(--space-1) 0;
+}
+
+.doc-title-input:focus {
+  outline: none;
+}
+
+.doc-title-input:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+.doc-metadata-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.doc-content-textarea {
+  flex: 1;
+  width: 100%;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  resize: none;
+  padding: var(--space-2) 0;
+  min-height: 400px;
+}
+
+.doc-content-textarea:focus {
+  outline: none;
+}
+
+.doc-content-textarea:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+.doc-card-item:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.doc-preview-pane {
+  flex: 1;
+  min-height: 400px;
+  max-height: none;
+}
+
+.md-wikilink {
+  color: var(--color-primary-600, #c25e1a);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+}
+
+.md-wikilink:hover,
+.md-wikilink:focus-visible {
+  color: var(--color-primary-700, #9a4a14);
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .docs-hub-container {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100dvh - 120px);
+  }
+
+  .docs-list-sidebar {
+    width: 100%;
+    min-width: 0;
+    max-height: 36vh;
+    border-bottom: 1px solid var(--neutral-4, rgba(0,0,0,0.08));
+  }
+
+  .doc-editor-canvas {
+    min-height: 50vh;
+  }
+
+  .doc-editor-header {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+}

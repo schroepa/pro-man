@@ -1,0 +1,212 @@
+/* ==========================================================================
+   LIST / TABLE VIEW
+   ========================================================================== */
+
+.list-view-container {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-4);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  min-height: calc(100vh - 160px);
+}
+
+.list-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-subtle);
+  gap: var(--space-3);
+}
+
+.list-view-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.list-view-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.list-view-count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.list-view-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.list-bulk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-bg-muted, var(--neutral-3));
+  border-bottom: 1px solid var(--neutral-4, rgba(0, 0, 0, 0.06));
+  flex-wrap: wrap;
+}
+
+.list-bulk-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.list-bulk-select {
+  min-height: 28px;
+  font-size: 0.75rem;
+  max-width: 160px;
+}
+
+.list-bulk-select-mount .custom-select-trigger {
+  min-height: 28px;
+  font-size: 0.75rem;
+  max-width: 180px;
+}
+
+.list-cell-check {
+  width: 36px;
+  text-align: center;
+}
+
+.list-cell-check input {
+  cursor: pointer;
+}
+
+.list-row-selected {
+  background-color: color-mix(in srgb, var(--color-primary-500) 8%, transparent);
+}
+
+.list-table-wrap {
+  overflow: auto;
+  flex: 1;
+}
+
+.list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.list-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-subtle);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.list-table th.sortable {
+  cursor: pointer;
+}
+
+.list-table th.sortable:hover,
+.list-table th.sorted {
+  color: var(--color-text-primary);
+}
+
+.list-table th .sort-indicator {
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+.list-table tbody tr {
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out), transform var(--duration-instant) var(--ease-out);
+}
+
+.list-table tbody tr:hover,
+.list-table tbody tr:focus-within {
+  background-color: var(--color-bg-subtle);
+}
+
+.list-table tbody tr:active {
+  transform: scale(0.997);
+}
+
+.list-table tbody tr:focus {
+  outline: 2px solid var(--color-focus-ring, var(--brand-9));
+  outline-offset: -2px;
+}
+
+.list-table td {
+  padding: var(--space-2-5, 10px) var(--space-3);
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--neutral-4, rgba(0, 0, 0, 0.04));
+  vertical-align: middle;
+}
+
+.list-cell-id {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.list-cell-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  max-width: 320px;
+}
+
+.list-priority-badge,
+.list-status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  background-color: var(--neutral-3, var(--color-bg-subtle));
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.list-priority-badge.badge-urgent {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.list-priority-badge.badge-high {
+  background-color: #ffedd5;
+  color: #9a3412;
+}
+
+.list-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.list-empty-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.list-empty-desc {
+  font-size: var(--font-size-sm);
+  max-width: 360px;
+}

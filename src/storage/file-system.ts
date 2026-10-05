@@ -1,0 +1,535 @@
+import { Task } from "../types/task";
+import { DocItem } from "../types/doc";
+import { taskToMarkdown, markdownToTask } from "./serializer";
+import { docToMarkdown, markdownToDoc } from "./doc-serializer";
+
+const DB_NAME = "pro_man_storage";
+const STORE_NAME = "handles";
+const HANDLE_KEY = "vault_dir_handle";
+const TASKS_DIR = "tasks";
+const DOCS_DIR = "docs";
+const ATTACHMENTS_DIR = "attachments";
+const LAST_VAULTS_KEY = "pro_man_last_vaults";
+
+export type VaultConnectionState = "connected" | "permission_needed" | "offline" | "unsupported";
+
+export function getLastVaultNames(): string[] {
+  try {
+    const raw = localStorage.getItem(LAST_VAULTS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((n): n is string => typeof n === "string").slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+export function rememberVaultName(name: string): void {
+  if (!name || name === "Local Cache") return;
+  try {
+    const prev = getLastVaultNames().filter(n => n !== name);
+    const next = [name, ...prev].slice(0, 3);
+    localStorage.setItem(LAST_VAULTS_KEY, JSON.stringify(next));
+  } catch { /* ignore */ }
+}
+
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(STORE_NAME);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveHandle(handle: FileSystemDirectoryHandle): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).put(handle, HANDLE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getSavedHandle(): Promise<FileSystemDirectoryHandle | null> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).get(HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function clearHandle(): Promise<void> {
+  const db = await openDB();
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  tx.objectStore(STORE_NAME).delete(HANDLE_KEY);
+}
+
+function isTaskFileName(name: string): boolean {
+  return /^TASK[-_]/i.test(name) && name.endsWith(".md");
+}
+
+function isDocFileName(name: string): boolean {
+  return name.endsWith(".md");
+}
+
+export class VaultStorage {
+  private dirHandle: FileSystemDirectoryHandle | null = null;
+  private pendingHandle: FileSystemDirectoryHandle | null = null;
+  private isSupported: boolean = typeof window !== "undefined" && "showDirectoryPicker" in window;
+  private lastError: string | null = null;
+
+  public get supported(): boolean {
+    return this.isSupported;
+  }
+
+  public get isConnected(): boolean {
+    return this.dirHandle !== null;
+  }
+
+  public get vaultName(): string {
+    return this.dirHandle ? this.dirHandle.name : "Local Cache";
+  }
+
+  public get connectionState(): VaultConnectionState {
+    if (!this.isSupported) return "unsupported";
+    if (this.dirHandle) return "connected";
+    if (this.pendingHandle) return "permission_needed";
+    return "offline";
+  }
+
+  public getLastError(): string | null {
+    return this.lastError;
+  }
+
+  public clearError(): void {
+    this.lastError = null;
+  }
+
+  async tryRestore(): Promise<boolean> {
+    if (!this.isSupported) return false;
+    try {
+      const saved = await getSavedHandle();
+      if (!saved) return false;
+
+      const handle = saved as any;
+      let status = await handle.queryPermission({ mode: "readwrite" });
+      if (status === "prompt") {
+        status = await handle.requestPermission({ mode: "readwrite" });
+      }
+      if (status === "granted") {
+        this.dirHandle = saved;
+        this.pendingHandle = null;
+        rememberVaultName(saved.name);
+        return true;
+      }
+      this.pendingHandle = saved;
+      this.dirHandle = null;
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  async requestPendingPermission(): Promise<boolean> {
+    if (!this.pendingHandle) return false;
+    try {
+      const status = await (this.pendingHandle as any).requestPermission({ mode: "readwrite" });
+      if (status === "granted") {
+        this.dirHandle = this.pendingHandle;
+        this.pendingHandle = null;
+        rememberVaultName(this.dirHandle.name);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  async connect(): Promise<boolean> {
+    if (!this.isSupported) {
+      throw new Error("File System Access API is not supported in this browser. Using LocalStorage fallback.");
+    }
+
+    try {
+      this.dirHandle = await (window as any).showDirectoryPicker({
+        mode: "readwrite",
+        startIn: "documents",
+      });
+      if (this.dirHandle) {
+        await saveHandle(this.dirHandle);
+        this.pendingHandle = null;
+        rememberVaultName(this.dirHandle.name);
+        await this.ensureVaultStructure();
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        return false;
+      }
+      this.lastError = err.message || String(err);
+      throw err;
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    this.dirHandle = null;
+    this.pendingHandle = null;
+    await clearHandle();
+  }
+
+  private async ensureVaultStructure(): Promise<void> {
+    if (!this.dirHandle) return;
+    try {
+      await this.dirHandle.getDirectoryHandle(TASKS_DIR, { create: true });
+      await this.dirHandle.getDirectoryHandle(DOCS_DIR, { create: true });
+      await this.dirHandle.getDirectoryHandle(ATTACHMENTS_DIR, { create: true });
+    } catch (err) {
+      console.warn("Could not ensure vault structure", err);
+    }
+  }
+
+  private async getAttachmentsDir(create = false): Promise<FileSystemDirectoryHandle | null> {
+    if (!this.dirHandle) return null;
+    try {
+      return await this.dirHandle.getDirectoryHandle(ATTACHMENTS_DIR, { create });
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Copy a File into vault `attachments/` and return the relative path.
+   * Returns null when vault is not connected.
+   */
+  async copyAttachmentFile(file: File, preferredName?: string): Promise<string | null> {
+    if (!this.dirHandle) return null;
+    try {
+      await this.ensureVaultStructure();
+      const dir = await this.getAttachmentsDir(true);
+      if (!dir) return null;
+
+      const safeBase = (preferredName || file.name || "file")
+        .replace(/[^\w.\-()+ ]+/g, "_")
+        .replace(/\s+/g, "-")
+        .slice(0, 120) || "file";
+      const stamp = Date.now().toString(36);
+      const fileName = `${stamp}-${safeBase}`;
+      const fileHandle = await dir.getFileHandle(fileName, { create: true });
+      const writable = await (fileHandle as any).createWritable();
+      await writable.write(await file.arrayBuffer());
+      await writable.close();
+      return `${ATTACHMENTS_DIR}/${fileName}`;
+    } catch (err: any) {
+      this.lastError = err.message || String(err);
+      return null;
+    }
+  }
+
+  private async getTasksDir(create = false): Promise<FileSystemDirectoryHandle | null> {
+    if (!this.dirHandle) return null;
+    try {
+      return await this.dirHandle.getDirectoryHandle(TASKS_DIR, { create });
+    } catch {
+      return null;
+    }
+  }
+
+  private async getDocsDir(create = false): Promise<FileSystemDirectoryHandle | null> {
+    if (!this.dirHandle) return null;
+    try {
+      return await this.dirHandle.getDirectoryHandle(DOCS_DIR, { create });
+    } catch {
+      return null;
+    }
+  }
+
+  async loadAllTasks(): Promise<Task[]> {
+    if (!this.dirHandle) {
+      return this.loadFallbackTasks();
+    }
+
+    const tasks: Task[] = [];
+    const seen = new Set<string>();
+
+    const tasksDir = await this.getTasksDir(false);
+    if (tasksDir) {
+      for await (const entry of (tasksDir as any).values()) {
+        if (entry.kind === "file" && entry.name.endsWith(".md")) {
+          try {
+            const file = await entry.getFile();
+            const text = await file.text();
+            const fallbackId = entry.name.replace(/\.md$/, "");
+            const task = markdownToTask(text, fallbackId);
+            if (!seen.has(task.id)) {
+              seen.add(task.id);
+              tasks.push(task);
+            }
+          } catch (err) {
+            console.warn(`Failed to parse task file ${entry.name}`, err);
+          }
+        }
+      }
+    }
+
+    // Legacy root TASK-*.md — skip Obsidian / template folders
+    for await (const entry of (this.dirHandle as any).values()) {
+      if (entry.kind === "directory") {
+        const name = String(entry.name || "").toLowerCase();
+        if (name === ".obsidian" || name === "templates") continue;
+      }
+      if (entry.kind === "file" && isTaskFileName(entry.name)) {
+        try {
+          const file = await entry.getFile();
+          const text = await file.text();
+          const fallbackId = entry.name.replace(/\.md$/, "");
+          const task = markdownToTask(text, fallbackId);
+          if (!seen.has(task.id)) {
+            seen.add(task.id);
+            tasks.push(task);
+          }
+        } catch (err) {
+          console.warn(`Failed to parse legacy task file ${entry.name}`, err);
+        }
+      }
+    }
+
+    tasks.sort((a, b) => a.order - b.order);
+    return tasks;
+  }
+
+  async saveTask(task: Task): Promise<void> {
+    if (!this.dirHandle) {
+      this.saveFallbackTask(task);
+      return;
+    }
+
+    try {
+      await this.ensureVaultStructure();
+      const tasksDir = await this.getTasksDir(true);
+      if (!tasksDir) throw new Error("tasks/ directory unavailable");
+
+      const fileName = `${task.id}.md`;
+      const markdown = taskToMarkdown(task);
+      const fileHandle = await tasksDir.getFileHandle(fileName, { create: true });
+      const writable = await (fileHandle as any).createWritable();
+      await writable.write(markdown);
+      await writable.close();
+
+      // Remove legacy root copy if present
+      try {
+        await (this.dirHandle as any).removeEntry(fileName);
+      } catch { /* ignore */ }
+    } catch (err: any) {
+      this.lastError = err.message || String(err);
+      this.saveFallbackTask(task);
+      throw err;
+    }
+  }
+
+  async deleteTask(taskId: string): Promise<void> {
+    if (!this.dirHandle) {
+      this.deleteFallbackTask(taskId);
+      return;
+    }
+
+    const fileName = `${taskId}.md`;
+    try {
+      const tasksDir = await this.getTasksDir(false);
+      if (tasksDir) {
+        await (tasksDir as any).removeEntry(fileName);
+      }
+    } catch (err) {
+      console.warn(`Could not delete task file ${fileName}`, err);
+    }
+    try {
+      await (this.dirHandle as any).removeEntry(fileName);
+    } catch { /* legacy */ }
+  }
+
+  async loadAllDocs(): Promise<DocItem[]> {
+    if (!this.dirHandle) {
+      return this.loadFallbackDocs();
+    }
+
+    const docs: DocItem[] = [];
+    const docsDir = await this.getDocsDir(false);
+    if (!docsDir) return this.loadFallbackDocs();
+
+    for await (const entry of (docsDir as any).values()) {
+      if (entry.kind === "file" && isDocFileName(entry.name)) {
+        try {
+          const file = await entry.getFile();
+          const text = await file.text();
+          const fallbackId = entry.name.replace(/\.md$/, "");
+          docs.push(markdownToDoc(text, fallbackId));
+        } catch (err) {
+          console.warn(`Failed to parse doc file ${entry.name}`, err);
+        }
+      }
+    }
+    return docs;
+  }
+
+  async saveDoc(doc: DocItem): Promise<void> {
+    if (!this.dirHandle) {
+      this.saveFallbackDoc(doc);
+      return;
+    }
+
+    try {
+      await this.ensureVaultStructure();
+      const docsDir = await this.getDocsDir(true);
+      if (!docsDir) throw new Error("docs/ directory unavailable");
+
+      const fileName = `${doc.id}.md`;
+      const markdown = docToMarkdown(doc);
+      const fileHandle = await docsDir.getFileHandle(fileName, { create: true });
+      const writable = await (fileHandle as any).createWritable();
+      await writable.write(markdown);
+      await writable.close();
+    } catch (err: any) {
+      this.lastError = err.message || String(err);
+      this.saveFallbackDoc(doc);
+      throw err;
+    }
+  }
+
+  async deleteDoc(docId: string): Promise<void> {
+    if (!this.dirHandle) {
+      this.deleteFallbackDoc(docId);
+      return;
+    }
+
+    try {
+      const docsDir = await this.getDocsDir(false);
+      if (docsDir) {
+        await (docsDir as any).removeEntry(`${docId}.md`);
+      }
+    } catch (err) {
+      console.warn(`Could not delete doc ${docId}`, err);
+    }
+  }
+
+  async saveClientsAndProjects(data: { clients: any[]; projects: any[]; members?: any[] }): Promise<void> {
+    if (!this.dirHandle) {
+      localStorage.setItem("pro_man_clients_data", JSON.stringify(data));
+      if (data.members) {
+        localStorage.setItem("pro_man_members", JSON.stringify(data.members));
+      }
+      return;
+    }
+
+    try {
+      const fileHandle = await this.dirHandle.getFileHandle("clients.json", { create: true });
+      const writable = await (fileHandle as any).createWritable();
+      await writable.write(JSON.stringify(data, null, 2));
+      await writable.close();
+      if (data.members) {
+        localStorage.setItem("pro_man_members", JSON.stringify(data.members));
+      }
+    } catch (err: any) {
+      this.lastError = err.message || String(err);
+      console.warn("Failed to write clients.json to vault", err);
+      localStorage.setItem("pro_man_clients_data", JSON.stringify(data));
+      if (data.members) {
+        localStorage.setItem("pro_man_members", JSON.stringify(data.members));
+      }
+    }
+  }
+
+  async loadClientsAndProjects(): Promise<{ clients: any[]; projects: any[]; members?: any[] } | null> {
+    if (!this.dirHandle) {
+      const raw = localStorage.getItem("pro_man_clients_data");
+      if (raw) {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+      const membersRaw = localStorage.getItem("pro_man_members");
+      if (membersRaw) {
+        try {
+          return { clients: [], projects: [], members: JSON.parse(membersRaw) };
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    try {
+      const fileHandle = await this.dirHandle.getFileHandle("clients.json");
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  }
+
+  private loadFallbackTasks(): Task[] {
+    const raw = localStorage.getItem("pro_man_fallback_tasks");
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveFallbackTask(task: Task): void {
+    const tasks = this.loadFallbackTasks();
+    const idx = tasks.findIndex(t => t.id === task.id);
+    if (idx !== -1) {
+      tasks[idx] = task;
+    } else {
+      tasks.push(task);
+    }
+    localStorage.setItem("pro_man_fallback_tasks", JSON.stringify(tasks));
+  }
+
+  private deleteFallbackTask(taskId: string): void {
+    const tasks = this.loadFallbackTasks().filter(t => t.id !== taskId);
+    localStorage.setItem("pro_man_fallback_tasks", JSON.stringify(tasks));
+  }
+
+  private loadFallbackDocs(): DocItem[] {
+    const raw = localStorage.getItem("pro_man_fallback_docs");
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveFallbackDoc(doc: DocItem): void {
+    const docs = this.loadFallbackDocs();
+    const idx = docs.findIndex(d => d.id === doc.id);
+    if (idx !== -1) {
+      docs[idx] = doc;
+    } else {
+      docs.push(doc);
+    }
+    localStorage.setItem("pro_man_fallback_docs", JSON.stringify(docs));
+  }
+
+  private deleteFallbackDoc(docId: string): void {
+    const docs = this.loadFallbackDocs().filter(d => d.id !== docId);
+    localStorage.setItem("pro_man_fallback_docs", JSON.stringify(docs));
+  }
+}

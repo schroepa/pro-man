@@ -1,0 +1,48 @@
+{
+  "clients": [
+    {
+      "id": "cli-acme",
+      "name": "Acme Corporation",
+      "color": "#3b82f6",
+      "code": "ACM",
+      "description": "Global Enterprise B2B Kunden"
+    },
+    {
+      "id": "cli-techstart",
+      "name": "TechStart Labs",
+      "color": "#10b981",
+      "code": "TSL",
+      "description": "SaaS AI Startup Projekt"
+    },
+    {
+      "id": "cli-internal",
+      "name": "Intern / ProMan Core",
+      "color": "#8b5cf6",
+      "code": "INT",
+      "description": "Interne Produktentwicklung"
+    }
+  ],
+  "projects": [
+    {
+      "id": "prj-web-redesign",
+      "clientId": "cli-acme",
+      "name": "Web-Portal Relaunch",
+      "description": "Komplettüberarbeitung Frontend & Auth",
+      "color": "#3b82f6"
+    },
+    {
+      "id": "prj-mobile-app",
+      "clientId": "cli-techstart",
+      "name": "Mobile App v2",
+      "description": "iOS / Android Feature Update",
+      "color": "#10b981"
+    },
+    {
+      "id": "prj-core-dev",
+      "clientId": "cli-internal",
+      "name": "ProMan v1.0 Release",
+      "description": "Local-First ClickUp Alternative",
+      "color": "#8b5cf6"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+/* ==========================================================================
+   BESPOKE CUSTOM SELECT & DROPDOWNS (ZERO-BORDER AESTHETIC)
+   Full visual control & WCAG compliant Listbox Pattern
+   ========================================================================== */
+
+.custom-select {
+  position: relative;
+  display: inline-block;
+  user-select: none;
+  font-family: var(--font-family-sans);
+}
+
+/* Custom Select Trigger Button */
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 5px var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  min-height: 30px;
+  min-width: 105px;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.custom-select-trigger:hover {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+.custom-select-trigger[aria-expanded="true"] {
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.custom-select-trigger:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring) !important;
+  outline-offset: var(--focus-ring-offset) !important;
+}
+
+.custom-select-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.custom-select-chevron {
+  width: 12px;
+  height: 12px;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.custom-select-trigger[aria-expanded="true"] .custom-select-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu — portaled; popover puts it in the top layer above <dialog> */
+.custom-select-menu {
+  --menu-radius: var(--radius-md);
+  --menu-padding: 4px;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 210px;
+  width: max-content;
+  max-width: 320px;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--menu-radius);
+  box-shadow: var(--shadow-popover);
+  padding: var(--menu-padding);
+  z-index: 1500;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  transform-origin: top left;
+}
+
+/* UA popover defaults center the element — undo that for anchored menus */
+.custom-select-menu[popover] {
+  inset: unset;
+  margin: 0;
+  border: none;
+  overflow: auto;
+}
+
+.custom-select.open .custom-select-menu,
+.custom-select-menu.is-open,
+.custom-select-menu:popover-open {
+  display: flex;
+  animation: motion-slide-down var(--duration-fast) var(--ease-emphasized) both;
+}
+
+/* Custom Option Item */
+.custom-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 7px var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  border-radius: max(0px, calc(var(--menu-radius) - var(--menu-padding)));
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.custom-select-option:hover,
+.custom-select-option.focused {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+}
+
+.custom-select-option.selected {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
+}
+
+.option-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.option-check {
+  width: 14px;
+  height: 14px;
+  color: var(--color-primary-500);
+}
+
+.option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
