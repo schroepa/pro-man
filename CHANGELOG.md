@@ -11,6 +11,7 @@ Alle nennenswerten Änderungen an ProMan.
 - **Issue-Keys**: `CLIENT[-PROJECT]-N` (unbounded); Re-Key bei Kunde-/Projektwechsel für neue Tasks
 - **Letzte Vaults**: die letzten 3 Vault-Namen in `localStorage` als Hinweis neben dem Connect-Button (ohne Handle-Restore)
 - **Geist + Geist Mono**: self-hosted Variable Fonts (~138 KB), Preload nur Sans, `font-display: swap`
+- **CI**: GitHub Actions auf `main` — `npm test` + `npm run build`
 
 ### Improvements
 - Elevation-System: `--color-bg-elevated`, stärkere Popover-/Overlay-Shadows, Hairline für Figure/Ground

@@ -12,6 +12,16 @@ npm run build    # tsc + vite build
 
 Chrome/Edge recommended for the File System Access API (vault).
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push/PR to `main`:
+
+1. `npm ci`
+2. `npm test` — Technik, Design, UX, A11y, i18n
+3. `npm run build` — `tsc` + Vite production build
+
+Keep these green before merging.
+
 ## Living documentation
 
 Docs are **living files** and must match `main`:

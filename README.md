@@ -199,6 +199,8 @@ Abdeckung (Auszug):
 | `npm test` | Vitest |
 | `npm run test:coverage` | Coverage (v8) |
 
+CI (GitHub Actions) läuft auf jedem Push/PR nach `main`: `npm test` + `npm run build`.
+
 ---
 
 ## Tastaturkürzel
