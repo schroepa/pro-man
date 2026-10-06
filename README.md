@@ -55,7 +55,7 @@ src/
   main.ts                 # Bootstrap, View-Routing, Shortcuts
   a11y/                   # Live-Announcer + A11y-Tests
   components/             # Topbar, Sidebar, Dialog, Select, Toast, Palette, Cards
-  views/                  # Kanban, List, Gantt, Calendar, Docs, Backoffice
+  views/                  # Kanban, List, Gantt, Calendar, Docs, Client, Backoffice
   storage/                # AppStore, Vault FS, Serializer, Theme, Sidebar-Layout
   types/                  # Task, Client, Project, Doc, Member
   styles/                 # fonts.css, tokens.css, reset, base, components/*
@@ -90,11 +90,13 @@ Datenfluss: Views/Components → `AppStore` → Serializer → `VaultStorage` (F
 | **Gantt** | Bar-Drag, Start-/End-Resize, Zoom, Today |
 | **Kalender** | Monatsraster nach `dueDate` |
 | **Docs** | Markdown, Auto-Save, Wikilinks, Parent-Hierarchie, Print-CSS |
-| **Backoffice** | Kunden/Projekte/Kürzel, Theme-Presets (Tintfield), Squircle-Tester |
+| **Kunde** | Eigene Seite pro Client: Stammdaten, Kontakte, Projekte, KPIs; CTAs zu Board/Docs |
+| **Backoffice** | Kunden anlegen/löschen, Theme-Presets (Tintfield), Squircle-Tester |
 
 Weitere Module:
 
 - **Filter:** Client, Projekt, Priorität, Schnellfilter, Status, Zuweisung, Cycle — Progressive Disclosure im Filter-Popover
+- **Kunden-Navigation:** Sidebar-Klick / Breadcrumb / ⌘K „Kunde: …“ öffnet die Kunden-Seite (nicht nur Board-Filter)
 - **⌘K Command Palette** + Shortcut-Hilfe
 - **Assignees / Members**, Favoriten-Projekte
 - **Task-Dialog:** CustomSelects (keine nativen `<select>`), Anhänge, Kommentare, Zeiterfassung, Recurrence, Git-URL, Duplizieren

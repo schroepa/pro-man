@@ -8,7 +8,7 @@ export type PaletteOpenTask = (taskId: string) => void;
 
 const SEARCH_DEBOUNCE_MS = 150;
 
-type PaletteGroup = "recent" | "actions" | "views" | "tasks" | "docs";
+type PaletteGroup = "recent" | "actions" | "views" | "tasks" | "docs" | "clients";
 
 interface PaletteItem {
   id: string;
@@ -21,7 +21,7 @@ interface PaletteItem {
 }
 
 const EMPTY_GROUP_ORDER: PaletteGroup[] = ["recent", "actions", "views"];
-const QUERY_GROUP_ORDER: PaletteGroup[] = ["tasks", "docs", "actions", "views"];
+const QUERY_GROUP_ORDER: PaletteGroup[] = ["tasks", "docs", "clients", "actions", "views"];
 
 export class CommandPalette {
   private dialog: HTMLDialogElement;
@@ -193,6 +193,7 @@ export class CommandPalette {
     if (group === "actions") return c.groupActions;
     if (group === "views") return c.groupViews;
     if (group === "tasks") return c.groupTasks;
+    if (group === "clients") return c.groupClients;
     return c.groupDocs;
   }
 
@@ -349,6 +350,21 @@ export class CommandPalette {
       },
     }));
 
+    const clients: PaletteItem[] = store.getClients().map(client => ({
+      id: `client-${client.id}`,
+      label: i18n.command.clientLabel.replace("{name}", client.name),
+      shortcut: client.code,
+      group: "clients" as const,
+      fields: [client.name, client.code, client.id, client.industry || "", client.email || ""],
+      score: 0,
+      action: () => {
+        store.selectedClientId = client.id;
+        store.selectedProjectId = null;
+        store.currentView = "client";
+        store.notify();
+      },
+    }));
+
     const recents: PaletteItem[] = [];
     for (const recent of getCommandRecents()) {
       if (recent.kind === "task") {
@@ -389,7 +405,7 @@ export class CommandPalette {
       }
     }
 
-    return [...recents, ...actions, ...views, ...tasks, ...docs];
+    return [...recents, ...actions, ...views, ...tasks, ...docs, ...clients];
   }
 
   private filter(query: string): void {

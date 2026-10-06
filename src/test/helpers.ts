@@ -96,6 +96,7 @@ export function seedClientProject(opts?: {
 export function stubVaultWrites(): void {
   const s = storeInternals();
   s.storage.saveTask = async () => {};
+  (s.storage as { saveClientsAndProjects?: () => Promise<void> }).saveClientsAndProjects = async () => {};
 }
 
 export function cssVarBlock(css: string, selector: string): string {

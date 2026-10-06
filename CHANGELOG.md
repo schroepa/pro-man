@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
+- **Kunden-Seiten**: Sidebar-/Breadcrumb-/⌘K-Klick öffnet eigene Client-Ansicht mit editierbaren Stammdaten, Kontakten, Projekten und KPIs (Board/Docs-CTAs)
 - **Mobile Bottom-Nav** (≤768px): Board · Liste · Gantt · Docs · Mehr (öffnet Drawer)
 - **Edge-Swipe Drawer**: von links öffnen, nach links schließen; Escape + Body-Scroll-Lock
 

@@ -1,0 +1,18 @@
+---
+description: Abgeschlossene Aufgaben sofort committen, dokumentieren und nach main pushen
+alwaysApply: true
+---
+
+# Ship completed work to main
+
+Wenn eine abgeschlossene Aufgabe (Epic/Iteration) fertig und verifiziert ist:
+
+1. **Dokumentation mitziehen** — je nach Änderung aktualisieren:
+   - `CHANGELOG.md` (Unreleased) bei user-facing Changes
+   - `docs/ROADMAP.md` (Done / nächste Priorität)
+   - `README.md` bei Features, Architektur, Shortcuts
+   - `docs/DESIGN.md` bei Tokens/UI/Komponenten-Verträgen
+2. **Commit** auf `main` (kurz, Fokus auf Warum; HEREDOC-Message).
+3. **Push** nach `origin/main` — nicht auf Freigabe warten, sofern Tests/Build grün sind.
+
+Nicht pushen bei WIP, fehlgeschlagenen Tests oder wenn der User explizit etwas anderes verlangt.

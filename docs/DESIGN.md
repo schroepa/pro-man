@@ -192,6 +192,14 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 - Cards: Surface + weiche Shadows (Dark abgemildert).
 - Hover-Schatten: genug Padding in Listen, damit nichts abgeschnitten wird.
 
+### 6.5 Kunden-Seite
+
+- ViewMode `client` (lazy wie Docs/Backoffice); Styles in `client.css`.
+- Layout: Header (Swatch + Name/Code + CTAs) · KPI-Zeile · Grid Stammdaten | Kontakte/Projekte.
+- Surfaces wie Backoffice: `--color-bg-surface` + `--shadow-sm`, kein Card-Rahmen-Stack.
+- Sidebar-Klick auf Kundenname → Kunden-Seite; Projektklick → Board mit Projekt-Scope.
+- Topbar: View-Switcher ausgeblendet (Label „Kunde“), Filter ausgeblendet — analog Docs/Backoffice.
+
 ---
 
 ## 7. Theme & Tintfield

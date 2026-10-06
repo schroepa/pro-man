@@ -5,6 +5,7 @@ import { ColumnDefinition } from "../types/task";
 import { themeManager, PRESET_THEMES, ThemeConfig } from "../storage/theme-manager";
 import { calculateConcentricRadius } from "../utils/squircle";
 import { showToast } from "../components/toast";
+import { t } from "../i18n";
 
 type BackofficeTab = "clients" | "theme";
 let currentTab: BackofficeTab = "clients";
@@ -242,6 +243,10 @@ function renderClientsTabHTML(
                     <span>•</span>
                     <span>${clientDocs.length} Docs</span>
                   </div>
+                  <button class="btn btn-ghost open-client-page-btn" data-client-id="${client.id}" style="padding: 4px 8px; font-size: var(--font-size-xs);" title="${escapeHtml(t().views.client)}">
+                    ${TablerIcon.externalLink({ size: 14 })}
+                    <span>${escapeHtml(t().views.client)}</span>
+                  </button>
                   <button class="btn btn-ghost edit-client-btn" data-client-id="${client.id}" style="padding: 4px 8px; font-size: var(--font-size-xs);" title="Kunde bearbeiten">
                     ${TablerIcon.pencil({ size: 14 })}
                     <span>${isEditing ? "Schließen" : "Bearbeiten"}</span>
@@ -675,6 +680,17 @@ function attachClientsEventListeners(wrapper: HTMLElement, container: HTMLElemen
       renderBackofficeView(container);
     });
   }
+
+  wrapper.querySelectorAll<HTMLButtonElement>(".open-client-page-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const cId = btn.dataset.clientId;
+      if (!cId) return;
+      store.selectedClientId = cId;
+      store.selectedProjectId = null;
+      store.currentView = "client";
+      store.notify();
+    });
+  });
 
   wrapper.querySelectorAll<HTMLButtonElement>(".edit-client-btn").forEach(btn => {
     btn.addEventListener("click", () => {

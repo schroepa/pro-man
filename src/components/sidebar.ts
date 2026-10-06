@@ -314,7 +314,9 @@ export function renderSidebar(container: HTMLElement): void {
     if (prj) {
       store.selectedClientId = prj.clientId;
       store.selectedProjectId = prj.id;
-      if (store.currentView === "backoffice") store.currentView = "kanban";
+      if (store.currentView === "backoffice" || store.currentView === "client") {
+        store.currentView = "kanban";
+      }
       closeMobileNav();
       store.notify();
     }
@@ -323,7 +325,7 @@ export function renderSidebar(container: HTMLElement): void {
   const selectClient = (clientId: string) => {
     store.selectedClientId = clientId;
     store.selectedProjectId = null;
-    if (store.currentView === "backoffice") store.currentView = "kanban";
+    store.currentView = "client";
     closeMobileNav();
     store.notify();
   };

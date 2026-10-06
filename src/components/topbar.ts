@@ -125,11 +125,15 @@ export function renderTopbar(
   const secondaryCount = countSecondaryFilters();
   const filtersOpen = isFiltersExpanded();
   const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
-  const hideFilters = store.currentView === "docs" || store.currentView === "backoffice";
+  const hideFilters = store.currentView === "docs" || store.currentView === "backoffice" || store.currentView === "client";
   const isCalendar = store.currentView === "calendar";
   const hasScope = !!(store.selectedClientId || store.selectedProjectId);
   const sidebarVisible = isSidebarVisible();
-  const showPrimaryViews = !["docs", "backoffice"].includes(store.currentView);
+  const showPrimaryViews = !["docs", "backoffice", "client"].includes(store.currentView);
+  const secondaryViewLabel =
+    store.currentView === "docs" ? t().views.docs
+      : store.currentView === "client" ? t().views.client
+        : t().views.backoffice;
 
   const quickChips = isCalendar
     ? (["overdue", "due_soon"] as QuickFilter[])
@@ -175,7 +179,7 @@ export function renderTopbar(
             `).join("")}
           </nav>
         ` : `
-          <span class="topbar-view-label">${store.currentView === "docs" ? t().views.docs : t().views.backoffice}</span>
+          <span class="topbar-view-label">${secondaryViewLabel}</span>
         `}
       </div>
 
@@ -477,11 +481,15 @@ export function renderTopbar(
   topbar.querySelector("#bc-root")?.addEventListener("click", () => {
     store.selectedClientId = null;
     store.selectedProjectId = null;
+    store.currentView = "kanban";
     store.notify();
   });
 
   topbar.querySelector("#bc-client")?.addEventListener("click", () => {
     store.selectedProjectId = null;
+    if (store.selectedClientId) {
+      store.currentView = "client";
+    }
     store.notify();
   });
 

@@ -113,6 +113,11 @@ async function mountActiveView(viewMount: HTMLElement): Promise<void> {
       if (gen !== viewRenderGen || store.currentView !== view) return;
       viewMount.innerHTML = "";
       renderBackofficeView(viewMount);
+    } else if (view === "client") {
+      const { renderClientView } = await import("./views/client-view");
+      if (gen !== viewRenderGen || store.currentView !== view) return;
+      viewMount.innerHTML = "";
+      renderClientView(viewMount);
     }
   } catch (err) {
     if (gen !== viewRenderGen) return;

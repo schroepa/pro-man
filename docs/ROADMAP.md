@@ -12,7 +12,7 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 
 | # | Thema | Warum |
 |---|---|---|
-| — | *leer — nächste Priorität wählen* | Geparkte Epics unten; oder Polish aus Alltag |
+| 1 | **Docs-Skalierung** | Flache Kartenliste skaliert schlecht — Suche, kompakter Tree, Gruppierung nach Projekt |
 
 ---
 
@@ -33,6 +33,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- Kunden-Seiten: ViewMode `client`, editierbare Stammdaten/Kontakte/Projekte/KPIs, Sidebar + Breadcrumb + ⌘K
 - ⌘K Search: Fuzzy-Score, Gruppen (Recent/Aktionen/Views bzw. Tasks/Docs), Recents, Home/End + scrollIntoView
 - Vault-Robustheit: Permission-Demote, Reload-Denied, Abort/Unsupported-UX, Code-Normalisierung beim Load
 - Performance-Pass: rAF-Notify-Coalesce, Chrome-Sparing, Lazy Views, content-visibility, Search-Debounce (Entry-JS gzip ~47 KB)

@@ -7,7 +7,7 @@ import { announcer } from "../a11y/announcer";
 import { t } from "../i18n";
 import { showToast } from "../components/toast";
 
-export type ViewMode = "kanban" | "list" | "gantt" | "calendar" | "docs" | "backoffice";
+export type ViewMode = "kanban" | "list" | "gantt" | "calendar" | "docs" | "backoffice" | "client";
 
 const FAVORITES_KEY = "pro_man_favorite_projects";
 const MEMBERS_KEY = "pro_man_members";
