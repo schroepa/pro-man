@@ -33,7 +33,8 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
-- UX-Audit A (First-time → produktiv): `docs/ux-audits/a-first-time/` (`audit.html`)
+- UX-Audit G (Full App): `docs/ux-audits/g-full-app/` (`audit.html`)
+- UX-Audit A (First-time → produktiv): `docs/ux-audits/a-first-time/` (`audit.html`) + FigJam Stickies
 - Kunden-Seiten: ViewMode `client`, editierbare Stammdaten/Kontakte/Projekte/KPIs, Sidebar + Breadcrumb + ⌘K
 - ⌘K Search: Fuzzy-Score, Gruppen (Recent/Aktionen/Views bzw. Tasks/Docs), Recents, Home/End + scrollIntoView
 - Vault-Robustheit: Permission-Demote, Reload-Denied, Abort/Unsupported-UX, Code-Normalisierung beim Load

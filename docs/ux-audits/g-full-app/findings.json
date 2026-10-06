@@ -1,0 +1,285 @@
+{
+  "audit": {
+    "title": "ProMan — Full App Journey",
+    "auditor": "Claude (ux-audit skill)",
+    "date": "2026-10-06",
+    "user_goal": "Ein Nutzer soll Aufgaben im Board steuern, Kundenstammdaten pflegen, Docs finden und bearbeiten und zwischen Views wechseln — und dabei immer wissen, wo er ist und was der nächste Schritt ist.",
+    "summary": "Die App deckt viele Hubs ab, aber die Shell bleibt überall gleich laut: Vault-CTA und „+ Neue Aufgabe“ dominieren auch in Docs, Client-Seite und Backoffice. Kunden-Seite und Docs sind nutzbar, skalieren aber in Liste/Chrome noch wie ein Single-Doc-Workspace. Mobile Bottom-Nav existiert; der Task-Dialog auf schmalen Viewports frisst den Kontext. Größter Hebel: kontextuelle Primäraktionen pro Hub und Docs-Liste für Wachstum.",
+    "things_that_work": [
+      "Sidebar → Kundenname öffnet eine echte Kunden-Seite mit KPIs, Stammdaten, Kontakten und Projekten.",
+      "Liste zeigt Issue-Key, Status, Priorität und Scope in einer scannbaren Tabelle.",
+      "Gantt visualisiert Abhängigkeiten und Today-Marker klar.",
+      "⌘K gruppiert Aktionen und Views mit Shortcuts.",
+      "Docs-Editor mit Bearbeiten/Vorschau und Client/Projekt-Zuordnung."
+    ],
+    "manual_follow_ups": [
+      "Keyboard- und Screenreader-Pass über CustomSelects in Client-Seite und Docs-Meta.",
+      "Mobile Edge-Swipe Drawer und Bottom-Nav Fokusreihenfolge.",
+      "Kontrast KPI-Labels und muted Meta-Text in Docs/Backoffice.",
+      "Vault OS-Picker und Permission-Reload-Flow (nicht im Screenshot)."
+    ],
+    "next_steps": [
+      "FigJam-Stickies für Audit G bei Bedarf analog zu Audit A.",
+      "Docs-Skalierung (Roadmap #1) gegen Findings 04-* priorisieren.",
+      "Kontextuelle Topbar-CTA (Neue Aufgabe vs. Neues Doc) prototypisieren."
+    ]
+  },
+  "screenshots": [
+    {
+      "id": "01-board",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/01-board.png",
+      "sub_task": "Board überblicken und Aufgaben steuern"
+    },
+    {
+      "id": "02-list",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/02-list.png",
+      "sub_task": "Aufgaben in der Liste finden"
+    },
+    {
+      "id": "03-client-page",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/03-client-page.png",
+      "sub_task": "Kundenstammdaten pflegen"
+    },
+    {
+      "id": "04-docs",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/04-docs.png",
+      "sub_task": "Docs finden und bearbeiten"
+    },
+    {
+      "id": "05-backoffice",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/05-backoffice.png",
+      "sub_task": "Kundenverwaltung im Backoffice"
+    },
+    {
+      "id": "06-command-palette",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/06-command-palette.png",
+      "sub_task": "Schnell navigieren mit ⌘K"
+    },
+    {
+      "id": "07-task-dialog",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/07-task-dialog.png",
+      "sub_task": "Aufgabe im Dialog bearbeiten"
+    },
+    {
+      "id": "08-calendar",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/08-calendar.png",
+      "sub_task": "Fälligkeiten im Kalender sehen"
+    },
+    {
+      "id": "09-gantt",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/09-gantt.png",
+      "sub_task": "Timeline und Abhängigkeiten lesen"
+    },
+    {
+      "id": "10-mobile-board",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/g-full-app/10-mobile-board.png",
+      "sub_task": "Board auf dem Handy nutzen"
+    }
+  ],
+  "findings": [
+    {
+      "id": "journey-global-new-task-everywhere",
+      "screenshot_id": "journey-level",
+      "sub_task": "Journey-level",
+      "title": "„+ Neue Aufgabe“ bleibt Primär-CTA in Docs, Kunde und Backoffice",
+      "heuristics": [
+        "COG.2 (Primary action count)",
+        "Nielsen #4 (Consistency and standards)",
+        "Match between system and real world (Nielsen #2)"
+      ],
+      "severity": 3,
+      "what_we_see": "In Docs, Kunden-Seite und Backoffice ist die lauteste Topbar-Aktion weiterhin „+ Neue Aufgabe“, obwohl der lokale Job ein Doc, Stammdaten oder Kundenanlage ist.",
+      "why_it_matters": "Nutzer im falschen Hub starten leicht eine Aufgabe statt der intendierten Aktion — oder die echte Hub-Aktion (neues Doc / Speichern) wirkt sekundär.",
+      "recommendation": "Topbar-Primäraktion kontextuell: Docs → „+ Neues Doc“, Backoffice → „+ Kunde“, Client → „Board öffnen“ oder „+ Aufgabe für diesen Kunden“; globale Aufgabe in Overflow/⌘K belassen.",
+      "region": { "x_pct": 0, "y_pct": 0, "w_pct": 100, "h_pct": 100 }
+    },
+    {
+      "id": "journey-vault-panel-global-noise",
+      "screenshot_id": "journey-level",
+      "sub_task": "Journey-level",
+      "title": "Vault-Panel bleibt über alle Hubs die lauteste Sidebar-Fläche",
+      "heuristics": [
+        "Nielsen #8 (Aesthetic and minimalist design)",
+        "COG.2 (Primary action count)",
+        "Gerhardt-Powals #8 (Only needed information)"
+      ],
+      "severity": 3,
+      "what_we_see": "Von Board über Liste, Kunde, Docs, Backoffice und Gantt sitzt dasselbe orange „Vault verbinden“-Panel oben in der Sidebar — auch wenn der Nutzer längst arbeitet.",
+      "why_it_matters": "Persistente Conversion-Fläche konkurriert dauerhaft mit Navigation und Scope-Wahl; der Arbeitskontext wirkt nie „settled“.",
+      "recommendation": "Nach Onboarding/Dismiss zu kompakter Statuszeile kollabieren; volle Fläche nur Offline-First-Run oder permission_needed.",
+      "region": { "x_pct": 0, "y_pct": 0, "w_pct": 100, "h_pct": 100 }
+    },
+    {
+      "id": "docs-list-does-not-scale",
+      "screenshot_id": "04-docs",
+      "sub_task": "Docs finden und bearbeiten",
+      "title": "Docs-Liste ist flache Karte mit Snippet — skaliert nicht",
+      "heuristics": [
+        "Gerhardt-Powals #6 (Group data meaningfully)",
+        "F-pattern scanning",
+        "FTU.4 (Empty states do work)"
+      ],
+      "severity": 3,
+      "what_we_see": "Die mittlere Spalte zeigt eine große Karte mit Titel, Fließtext-Snippet, Kunde und Datum — bei einem Doc ok, ohne Suche, Tree oder Projektgruppierung.",
+      "why_it_matters": "Bei wachsender Wissensbasis wird Scannen und Finden teuer; das ist das bekannte Skalierungsrisiko des Docs-Hubs.",
+      "recommendation": "Kompakte Titelliste + Suche; Gruppierung nach Projekt; Snippet nur bei Hover/aktiv; optional Scope-Filter des aktuellen Kunden klarer labeln.",
+      "region": { "x_pct": 18, "y_pct": 12, "w_pct": 22, "h_pct": 35 }
+    },
+    {
+      "id": "docs-title-triplicated",
+      "screenshot_id": "04-docs",
+      "sub_task": "Docs finden und bearbeiten",
+      "title": "Doc-Titel erscheint dreifach (Liste, Header, Markdown-H1)",
+      "heuristics": [
+        "Nielsen #8 (Aesthetic and minimalist design)",
+        "Consistent terminology (Content Design)"
+      ],
+      "severity": 1,
+      "what_we_see": "„Anforderungsspezifikation Portal“ steht in der Listenkarte, als Editor-Titel und erneut als erste Zeile `# …` im Body.",
+      "why_it_matters": "Redundanz kostet Viewport und verwischt, welches Feld die Quelle der Wahrheit ist.",
+      "recommendation": "Entweder H1 aus Body ableiten oder Body ohne doppelten Titel starten; Listenkarte nur Titel + Meta.",
+      "region": { "x_pct": 42, "y_pct": 18, "w_pct": 50, "h_pct": 22 }
+    },
+    {
+      "id": "client-page-primary-action-collision",
+      "screenshot_id": "03-client-page",
+      "sub_task": "Kundenstammdaten pflegen",
+      "title": "Kunden-Seite hat mehrere gleich laute Primärflächen",
+      "heuristics": [
+        "COG.2 (Primary action count)",
+        "Fitts's Law",
+        "Hick's Law"
+      ],
+      "severity": 2,
+      "what_we_see": "Auf einer Seite konkurrieren „Board öffnen“ (primary), „Docs öffnen“, Topbar „Neue Aufgabe“, Sidebar „Vault verbinden“ und unten „Speichern“.",
+      "why_it_matters": "Unklar, ob der Job Navigation (Board/Docs) oder Speichern der Stammdaten ist.",
+      "recommendation": "Eine Primärzone: Speichern sticky am Stammdaten-Block; Board/Docs als Secondary; Vault/Neue Aufgabe in der Shell dämpfen.",
+      "region": { "x_pct": 68, "y_pct": 10, "w_pct": 28, "h_pct": 8 }
+    },
+    {
+      "id": "client-page-primary-english-badge",
+      "screenshot_id": "03-client-page",
+      "sub_task": "Kundenstammdaten pflegen",
+      "title": "Kontakt-Badge „PRIMARY“ bricht DE-UI",
+      "heuristics": [
+        "Consistent terminology (Content Design)",
+        "Nielsen #4 (Consistency and standards)"
+      ],
+      "severity": 1,
+      "what_we_see": "Ansprechpartner zeigen das Badge „PRIMARY“ in einer sonst deutschen Oberfläche („Ansprechpartner“, „Rolle“).",
+      "why_it_matters": "Kleine Inkonsistenz signalisiert unpolierte i18n und erschwert Scanning.",
+      "recommendation": "Badge „Primär“ / i18n-Key nutzen (wie im Client-i18n bereits vorgesehen).",
+      "region": { "x_pct": 62, "y_pct": 42, "w_pct": 30, "h_pct": 8 }
+    },
+    {
+      "id": "backoffice-overlaps-client-page",
+      "screenshot_id": "05-backoffice",
+      "sub_task": "Kundenverwaltung im Backoffice",
+      "title": "Backoffice wiederholt Detailpflege der Kunden-Seite",
+      "heuristics": [
+        "Nielsen #4 (Consistency and standards)",
+        "Shneiderman #1 (Strive for consistency)",
+        "COG.3 (New concept count)"
+      ],
+      "severity": 2,
+      "what_we_see": "Backoffice zeigt für Acme Kontakte, Projekte und Status-Spalten-Editor — parallel zur neuen Kunden-Seite mit Stammdaten/Kontakten/Projekten. Zusätzlich „Kunde“-Link und Inline-Edit.",
+      "why_it_matters": "Zwei Orte für dieselbe Pflege erzeugen „wo editiere ich?“-Unsicherheit und Drift-Risiko.",
+      "recommendation": "Backoffice = Übersicht anlegen/löschen + Link zur Kunden-Seite; Detailformulare dort entfernen oder klar als „Schnellbearbeitung“ kennzeichnen.",
+      "region": { "x_pct": 20, "y_pct": 48, "w_pct": 75, "h_pct": 45 }
+    },
+    {
+      "id": "backoffice-status-columns-raw-dsl",
+      "screenshot_id": "05-backoffice",
+      "sub_task": "Kundenverwaltung im Backoffice",
+      "title": "Status-Spalten als Roh-DSL schrecken Nicht-Power-User ab",
+      "heuristics": [
+        "FTU.5 (Jargon budget)",
+        "Nielsen #2 (Match between system and real world)",
+        "Bastien & Scapin (Guidance / prompting)"
+      ],
+      "severity": 2,
+      "what_we_see": "Projektkonfiguration verlangt Textarea-Zeilen `todo|Zu erledigen|5` mit Label „id|Name|WIP“.",
+      "why_it_matters": "Fehleranfällig und weit entfernt von der sonst visuell geführten UI; hohe Cognitive Load für seltene Admin-Aufgabe.",
+      "recommendation": "Strukturierte Zeilen-UI (Name, WIP-Stepper, optional ID advanced); DSL nur als Import/Export.",
+      "region": { "x_pct": 55, "y_pct": 72, "w_pct": 40, "h_pct": 18 }
+    },
+    {
+      "id": "list-assignee-all-empty",
+      "screenshot_id": "02-list",
+      "sub_task": "Aufgaben in der Liste finden",
+      "title": "Zuweisungsspalte ist durchgehend leer (—)",
+      "heuristics": [
+        "Gerhardt-Powals #8 (Only needed information)",
+        "Nielsen #8 (Aesthetic and minimalist design)"
+      ],
+      "severity": 1,
+      "what_we_see": "Alle vier Zeilen zeigen unter „ZUWEISUNG“ einen Gedankenstrich; die Spalte belegt trotzdem Breite.",
+      "why_it_matters": "Bei ungenutztem Assignees-Feature ist die Spalte Rauschen und verdrängt nützlichere Felder (Tags/Cycle).",
+      "recommendation": "Spalte ausblenden bis Members genutzt werden, oder Default-Assignee in Demo setzen.",
+      "region": { "x_pct": 88, "y_pct": 28, "w_pct": 10, "h_pct": 40 }
+    },
+    {
+      "id": "task-dialog-density-cross-app",
+      "screenshot_id": "07-task-dialog",
+      "sub_task": "Aufgabe im Dialog bearbeiten",
+      "title": "Task-Dialog bleibt der dichteste Screen der App",
+      "heuristics": [
+        "Progressive disclosure",
+        "Hick's Law",
+        "COG.1 (Decision count)"
+      ],
+      "severity": 3,
+      "what_we_see": "Über dem Board öffnet der Dialog weiterhin die volle Feldmenge (Kunde bis Git-URL) ohne Abschnitte — gleiches Muster wie im First-time-Audit.",
+      "why_it_matters": "Jeder Hub, der in Aufgaben mündet, erbt dieselbe Friction; das bremst Tagesgeschäft und Mobile gleichermaßen.",
+      "recommendation": "Essentials-first Dialog app-weit; „Mehr Details“ für Cycle/Git/Recurrence/Dependencies.",
+      "region": { "x_pct": 28, "y_pct": 10, "w_pct": 44, "h_pct": 80 }
+    },
+    {
+      "id": "mobile-dialog-eats-board-context",
+      "screenshot_id": "10-mobile-board",
+      "sub_task": "Board auf dem Handy nutzen",
+      "title": "Mobile: Bottom-Nav und Board müssen neben Dialog-Sheet bestehen",
+      "heuristics": [
+        "Fitts's Law",
+        "Nielsen #3 (User control and freedom)",
+        "Miller's Law"
+      ],
+      "severity": 2,
+      "what_we_see": "Im schmalen Viewport (≤768px) erscheinen Bottom-Nav und einspaltiges Board; der Task-Dialog als Full-Height-Sheet bleibt der dominante Mobile-Pfad und verdeckt Board-Kontext vollständig.",
+      "why_it_matters": "Ohne sichtbaren Board-Kontext beim Editieren steigt Orientierungsverlust; Zurück/Abbrechen muss perfekt sitzen.",
+      "recommendation": "Sheet-Header mit Issue-Key + Status-Chip; nach Speichern kurzer Board-Peek; Bottom-Nav unter offenem Sheet nicht konkurrieren lassen (bereits scroll-locked — Fokus sichtbar halten).",
+      "region": { "x_pct": 0, "y_pct": 85, "w_pct": 100, "h_pct": 15 }
+    },
+    {
+      "id": "gantt-priority-legend-vs-status-colors",
+      "screenshot_id": "09-gantt",
+      "sub_task": "Timeline und Abhängigkeiten lesen",
+      "title": "Gantt-Farblegende mischt Priorität und Status",
+      "heuristics": [
+        "Gerhardt-Powals #2 (Reduce uncertainty)",
+        "Significance of codes (Bastien & Scapin)",
+        "Nielsen #4 (Consistency and standards)"
+      ],
+      "severity": 2,
+      "what_we_see": "Legende nennt „Normal / Dringend / Erledigt“ — Priorität und Done-Status in einer Farbcodierung; Balkenfarben folgen nicht klar den Board-Statusfarben.",
+      "why_it_matters": "Nutzer, die vom Board kommen, müssen Farben neu lernen und können „orange = urgent“ mit „in progress“ verwechseln.",
+      "recommendation": "Eine Codierung wählen: entweder Statusfarben wie Board oder Priorität als Stripe/Icon; Legende entsprechend umbenennen.",
+      "region": { "x_pct": 55, "y_pct": 14, "w_pct": 35, "h_pct": 6 }
+    },
+    {
+      "id": "ia-client-count-means-projects",
+      "screenshot_id": "01-board",
+      "sub_task": "Board überblicken und Aufgaben steuern",
+      "title": "Zahl neben Kundenname meint Projekte, liest sich wie Tasks",
+      "heuristics": [
+        "Nielsen #2 (Match between system and real world)",
+        "Gerhardt-Powals #5 (Names related to function)"
+      ],
+      "severity": 2,
+      "what_we_see": "Im Kundenbaum steht rechts neben „Acme Corporation“ eine „1“ — tatsächlich Projektanzahl, leicht als offene Tasks lesbar.",
+      "why_it_matters": "Falsche mentale Modelle beim Scannen der Sidebar, besonders neben KPI „Offene Aufgaben“.",
+      "recommendation": "Zahl labeln („1 Proj.“) oder durch Chevron/Collapse ersetzen; Task-Counts nur auf Projektebene.",
+      "region": { "x_pct": 1, "y_pct": 52, "w_pct": 17, "h_pct": 8 }
+    }
+  ]
+}
