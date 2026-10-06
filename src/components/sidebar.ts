@@ -77,8 +77,10 @@ export function renderSidebar(container: HTMLElement): void {
     ${collapseVault ? `
       <button type="button" id="sidebar-vault-btn" class="sidebar-vault-compact" title="${escapeHtml(vaultHint)}" aria-label="${isConnected ? escapeHtml(vaultTitle) : t().actions.connectVault}">
         <span class="vault-indicator ${indicatorClass}" aria-hidden="true"></span>
-        <span class="sidebar-vault-compact-label">${isConnected ? escapeHtml(vaultTitle) : escapeHtml(t().vault.offlineHintShort)}</span>
-        ${!isConnected && !isUnsupported ? `<span>${t().vault.connectFolder}</span>` : ""}
+        <span class="sidebar-vault-compact-text">
+          <span class="sidebar-vault-compact-label">${isConnected ? escapeHtml(vaultTitle) : escapeHtml(t().vault.offlineHintShort)}</span>
+          ${!isConnected && !isUnsupported ? `<span class="sidebar-vault-compact-cta">${t().vault.connectFolder}</span>` : ""}
+        </span>
       </button>
     ` : `
     <div class="sidebar-vault-panel" data-state="${connectionState}">

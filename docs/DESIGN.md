@@ -209,6 +209,7 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 - Banner = einzige Primär-CTA „Ordner verbinden“; Sidebar-Connect vor Dismiss ohne Primary-Gewicht.
 - Nach Onboard + Offline: kompakte Statuszeile (`sidebar-vault-compact`), volle Fläche nur bei `permission_needed` / Unsupported / vor Onboard.
+- Compact-Zeile: Label + CTA gestapelt; Label max. 2 Zeilen (`line-clamp`), CTA mit Ellipsis; Breite `calc(100% − Side-Margins)`, kein Horizontal-Overflow.
 - Topbar-Primäraktion kontextuell: Docs → Doc, Backoffice → Kunde, Client → Board, sonst Aufgabe.
 
 ### 6.7 Team & Zuweisung

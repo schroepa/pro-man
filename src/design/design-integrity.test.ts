@@ -159,3 +159,24 @@ describe("design integrity — a11y primitives present", () => {
     expect(base).toContain("var(--color-focus-ring)");
   });
 });
+
+describe("design integrity — sidebar vault compact overflow", () => {
+  it("stacks label + CTA and clamps/ellipsizes text inside the sidebar width", () => {
+    const sidebar = readSrc("components/sidebar.ts");
+    const layout = readSrc("styles/components/layout.css");
+
+    expect(sidebar).toContain("sidebar-vault-compact-text");
+    expect(sidebar).toContain("sidebar-vault-compact-label");
+    expect(sidebar).toContain("sidebar-vault-compact-cta");
+
+    expect(layout).toMatch(
+      /\.sidebar-vault-compact\s*\{[\s\S]*?width:\s*calc\(100%\s*-\s*2\s*\*\s*var\(--space-3\)\)/,
+    );
+    expect(layout).toMatch(/\.sidebar-vault-compact\s*\{[\s\S]*?overflow:\s*hidden/);
+    expect(layout).toMatch(/\.sidebar-vault-compact-text\s*\{[\s\S]*?min-width:\s*0/);
+    expect(layout).toMatch(/\.sidebar-vault-compact-label\s*\{[\s\S]*?line-clamp:\s*2/);
+    expect(layout).toMatch(
+      /\.sidebar-vault-compact-cta\s*\{[\s\S]*?text-overflow:\s*ellipsis/,
+    );
+  });
+});
