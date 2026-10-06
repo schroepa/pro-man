@@ -2,7 +2,7 @@
 
 > **Lebende Liste.** Wird bei Prioritätswechseln und abgeschlossenen Epics aktualisiert. Kein Commitment-Datum, sondern Reihenfolge nach Nutzen × Aufwand für den lokalen Kern.
 
-Stand: nach v0.3.0 (CI grün auf `main`)
+Stand: **v0.3.0 getaggt** (Smoke-Pass + CI grün)
 
 ---
 
@@ -12,12 +12,11 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 
 | # | Thema | Warum |
 |---|---|---|
-| 1 | **Smoke-Pass & Release-Tag `v0.3.0`** | CI ist grün; manueller Vault-Durchlauf + Git-Tag macht den Stand referenzierbar |
-| 2 | **Onboarding / Empty States** | Erster Vault-Connect und leere Boards klarer führen |
-| 3 | **Mobile / schmale Viewports** | Sidebar, Filter-Popover, Dialog-Selects unter 768px härten |
-| 4 | **Performance-Pass** | Lighthouse auf Cold-Load (Geist-Preload, Bundle, lange Listen) |
-| 5 | **Vault-Robustheit** | Fehlerpfade bei Denied/Permission, Reload, fehlenden Codes |
-| 6 | **Search-Qualität in ⌘K** | Fuzzy/Recent, klare Gruppen, Keyboard-only Flow |
+| 1 | **Onboarding / Empty States** | Erster Vault-Connect und leere Boards klarer führen |
+| 2 | **Mobile / schmale Viewports** | Sidebar, Filter-Popover, Dialog-Selects unter 768px härten |
+| 3 | **Performance-Pass** | Lighthouse auf Cold-Load (Geist-Preload, Bundle, lange Listen) |
+| 4 | **Vault-Robustheit** | Fehlerpfade bei Denied/Permission, Reload, fehlenden Codes |
+| 5 | **Search-Qualität in ⌘K** | Fuzzy/Recent, klare Gruppen, Keyboard-only Flow |
 
 ---
 
@@ -38,6 +37,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- Smoke-Pass Preview + Release-Tag `v0.3.0` (Demo-Daten: Board, Dialog/CustomSelect, Liste, Docs; Vault-Picker OS-nativ nicht automatisiert)
 - Warm Obsidian Elevation + CustomSelect Top-Layer
 - Geist / Geist Mono self-hosted
 - Issue-Key Re-Key bei Kunde/Projekt

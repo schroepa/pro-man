@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an ProMan.
 
-## [0.3.0] — 2026-10-05
+## [0.3.0] — 2026-10-06
 
 ### Features
 - **Anhänge (light)**: `attachments?: {id, name, relativePath}[]` am Task; Dialog-Button „Datei anhängen“ (File Picker / `<input type=file>`); bei verbundenem Vault Kopie nach `attachments/`, sonst nur Metadaten-Hinweis
