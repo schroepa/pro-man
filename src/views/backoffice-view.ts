@@ -2,16 +2,18 @@ import { store, deriveCodeFromName } from "../storage/store";
 import { TablerIcon } from "../components/icons";
 import { Client, Project, ContactPerson } from "../types/client";
 import { ColumnDefinition } from "../types/task";
+import { WorkspaceMember, DEFAULT_MEMBER_YOU_ID } from "../types/member";
 import { themeManager, PRESET_THEMES, ThemeConfig } from "../storage/theme-manager";
 import { calculateConcentricRadius } from "../utils/squircle";
 import { showToast } from "../components/toast";
 import { t } from "../i18n";
 
-type BackofficeTab = "clients" | "theme";
+type BackofficeTab = "clients" | "team" | "theme";
 let currentTab: BackofficeTab = "clients";
 let feedbackMessage: string | null = null;
 let editingClientId: string | null = null;
 let showNewClientForm = false;
+let editingMemberId: string | null = null;
 
 export function renderBackofficeView(container: HTMLElement): void {
   container.innerHTML = "";
@@ -28,6 +30,16 @@ export function renderBackofficeView(container: HTMLElement): void {
   const allTasks = store.getTasks();
   const allDocs = store.getDocs();
   const activeTheme = themeManager.getCurrentTheme();
+  const members = store.getAllMembersIncludingArchived();
+
+  const headerTitle =
+    currentTab === "clients" ? "Backoffice & Verwaltung"
+      : currentTab === "team" ? t().members.title
+        : "Farbsystem & Tintfield Manager";
+  const headerSubtitle =
+    currentTab === "clients" ? "Zentrale Kunden- & Projektorganisation (synchronisiert mit clients.json)"
+      : currentTab === "team" ? t().members.subtitle
+        : "12-stufige Farbskalen (Neutrals & Brand) mit Live-Anwendung & Tintfield-Import";
 
   const wrapper = document.createElement("div");
   wrapper.className = "backoffice-container";
@@ -39,11 +51,15 @@ export function renderBackofficeView(container: HTMLElement): void {
     <div class="backoffice-header">
       <div class="backoffice-title-group">
         <div class="backoffice-icon-badge">
-          ${currentTab === "clients" ? TablerIcon.buildingStore({ size: 22, strokeWidth: 2 }) : TablerIcon.palette({ size: 22, strokeWidth: 2 })}
+          ${currentTab === "theme"
+            ? TablerIcon.palette({ size: 22, strokeWidth: 2 })
+            : currentTab === "team"
+              ? TablerIcon.users({ size: 22, strokeWidth: 2 })
+              : TablerIcon.buildingStore({ size: 22, strokeWidth: 2 })}
         </div>
         <div>
-          <h1 class="backoffice-title">${currentTab === "clients" ? "Backoffice & Verwaltung" : "Farbsystem & Tintfield Manager"}</h1>
-          <p class="backoffice-subtitle">${currentTab === "clients" ? "Zentrale Kunden- & Projektorganisation (synchronisiert mit clients.json)" : "12-stufige Farbskalen (Neutrals & Brand) mit Live-Anwendung & Tintfield-Import"}</p>
+          <h1 class="backoffice-title">${escapeHtml(headerTitle)}</h1>
+          <p class="backoffice-subtitle">${escapeHtml(headerSubtitle)}</p>
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: var(--space-2);">
@@ -51,6 +67,11 @@ export function renderBackofficeView(container: HTMLElement): void {
           <button id="toggle-new-client-btn" class="btn btn-primary">
             ${TablerIcon.plus({ size: 14, strokeWidth: 2.5 })}
             <span>Neuen Kunden anlegen</span>
+          </button>
+        ` : currentTab === "team" ? `
+          <button id="toggle-new-member-btn" class="btn btn-primary">
+            ${TablerIcon.plus({ size: 14, strokeWidth: 2.5 })}
+            <span>${escapeHtml(t().members.addPerson)}</span>
           </button>
         ` : `
           <a href="https://tintfield.ptrckschrdtr.de/app" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="text-decoration: none;">
@@ -68,8 +89,12 @@ export function renderBackofficeView(container: HTMLElement): void {
     <!-- Sub-Navigation Tabs -->
     <div class="backoffice-tab-nav" role="tablist" aria-label="Backoffice Bereiche">
       <button class="backoffice-tab-btn ${currentTab === "clients" ? "active" : ""}" data-tab="clients" role="tab" aria-selected="${currentTab === "clients"}">
-        ${TablerIcon.users({ size: 14, strokeWidth: 2 })}
+        ${TablerIcon.buildingStore({ size: 14, strokeWidth: 2 })}
         <span>Kunden & Organisation</span>
+      </button>
+      <button class="backoffice-tab-btn ${currentTab === "team" ? "active" : ""}" data-tab="team" role="tab" aria-selected="${currentTab === "team"}">
+        ${TablerIcon.users({ size: 14, strokeWidth: 2 })}
+        <span>${escapeHtml(t().members.title)}</span>
       </button>
       <button class="backoffice-tab-btn ${currentTab === "theme" ? "active" : ""}" data-tab="theme" role="tab" aria-selected="${currentTab === "theme"}">
         ${TablerIcon.palette({ size: 14, strokeWidth: 2 })}
@@ -77,7 +102,11 @@ export function renderBackofficeView(container: HTMLElement): void {
       </button>
     </div>
 
-    ${currentTab === "clients" ? renderClientsTabHTML(clients, allProjects, allTasks, allDocs) : renderThemeTabHTML(activeTheme)}
+    ${currentTab === "clients"
+      ? renderClientsTabHTML(clients, allProjects, allTasks, allDocs)
+      : currentTab === "team"
+        ? renderTeamTabHTML(members)
+        : renderThemeTabHTML(activeTheme)}
   `;
 
   // Attach Sub-Tab Navigation
@@ -94,6 +123,8 @@ export function renderBackofficeView(container: HTMLElement): void {
 
   if (currentTab === "clients") {
     attachClientsEventListeners(wrapper, container);
+  } else if (currentTab === "team") {
+    attachTeamEventListeners(wrapper, container);
   } else {
     attachThemeEventListeners(wrapper, container);
   }
@@ -415,6 +446,222 @@ function renderClientsTabHTML(
       </div>
     </div>
   `;
+}
+
+function renderTeamTabHTML(members: WorkspaceMember[]): string {
+  const i18n = t().members;
+  return `
+    <div class="backoffice-section">
+      <div class="section-header-row">
+        <h2 class="section-heading">${escapeHtml(i18n.title)} (${members.filter(m => !m.archived).length})</h2>
+      </div>
+      <p style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin: 0 0 var(--space-4);">
+        ${escapeHtml(i18n.addPersonHint)}
+      </p>
+
+      <div id="new-member-panel" class="backoffice-card" style="display: none; margin-bottom: var(--space-4);">
+        <h3 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin: 0 0 var(--space-3);">
+          ${escapeHtml(i18n.addPerson)}
+        </h3>
+        <form id="create-member-form" class="team-member-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="bo-member-name">${escapeHtml(i18n.fieldName)}</label>
+              <input type="text" id="bo-member-name" class="input" required placeholder="${escapeHtml(i18n.namePlaceholder)}" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="bo-member-role">${escapeHtml(i18n.fieldRole)}</label>
+              <input type="text" id="bo-member-role" class="input" placeholder="${escapeHtml(i18n.rolePlaceholder)}" />
+            </div>
+          </div>
+          <div class="form-row-2" style="margin-top: var(--space-2);">
+            <div class="form-group">
+              <label class="form-label" for="bo-member-email">${escapeHtml(i18n.fieldEmail)}</label>
+              <input type="email" id="bo-member-email" class="input" />
+            </div>
+            <div class="form-group">
+              <span class="form-label">${escapeHtml(i18n.fieldKind)}</span>
+              <div class="kind-toggle" role="group" aria-label="${escapeHtml(i18n.fieldKind)}" data-kind-group="create" data-kind-value="external">
+                <button type="button" class="kind-toggle-btn is-active" data-kind="external">${escapeHtml(i18n.kindExternal)}</button>
+                <button type="button" class="kind-toggle-btn" data-kind="internal">${escapeHtml(i18n.kindInternal)}</button>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-3);">
+            <button type="button" id="cancel-new-member-btn" class="btn btn-secondary">${escapeHtml(t().actions.cancel)}</button>
+            <button type="submit" class="btn btn-primary">${escapeHtml(i18n.addPerson)}</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="team-member-list">
+        ${members.length === 0 ? `<p class="contacts-empty">${escapeHtml(i18n.empty)}</p>` : members.map(member => {
+          const isEditing = editingMemberId === member.id;
+          const kindLabel = member.kind === "internal" ? i18n.kindInternal : i18n.kindExternal;
+          return `
+            <div class="team-member-card" data-member-id="${escapeAttr(member.id)}">
+              <div class="team-member-header">
+                <div class="team-member-identity">
+                  <span class="team-member-swatch" style="background:${escapeAttr(member.color || "#948d7d")}" aria-hidden="true"></span>
+                  <div>
+                    <div class="team-member-name-row">
+                      <strong>${escapeHtml(member.name)}</strong>
+                      <span class="team-member-kind">${escapeHtml(kindLabel)}</span>
+                    </div>
+                    <div class="team-member-meta">
+                      ${member.role ? `<span>${escapeHtml(member.role)}</span>` : ""}
+                      ${member.email ? `<span>${escapeHtml(member.email)}</span>` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div class="team-member-actions">
+                  <button type="button" class="btn btn-ghost edit-member-btn" data-member-id="${escapeAttr(member.id)}" style="font-size: var(--font-size-xs);">
+                    ${isEditing ? escapeHtml(t().actions.close) : escapeHtml(t().actions.edit)}
+                  </button>
+                  <button type="button" class="btn btn-ghost-danger delete-member-btn" data-member-id="${escapeAttr(member.id)}" style="font-size: var(--font-size-xs);" ${member.id === DEFAULT_MEMBER_YOU_ID && members.length <= 1 ? "disabled" : ""}>
+                    ${escapeHtml(t().actions.delete)}
+                  </button>
+                </div>
+              </div>
+              ${isEditing ? `
+                <form class="edit-member-form team-member-form" data-member-id="${escapeAttr(member.id)}">
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label class="form-label">${escapeHtml(i18n.fieldName)}</label>
+                      <input type="text" name="name" class="input" required value="${escapeHtml(member.name)}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">${escapeHtml(i18n.fieldRole)}</label>
+                      <input type="text" name="role" class="input" value="${escapeHtml(member.role || "")}" placeholder="${escapeHtml(i18n.rolePlaceholder)}" />
+                    </div>
+                  </div>
+                  <div class="form-row-2" style="margin-top: var(--space-2);">
+                    <div class="form-group">
+                      <label class="form-label">${escapeHtml(i18n.fieldEmail)}</label>
+                      <input type="email" name="email" class="input" value="${escapeHtml(member.email || "")}" />
+                    </div>
+                    <div class="form-group">
+                      <span class="form-label">${escapeHtml(i18n.fieldKind)}</span>
+                      <div class="kind-toggle" role="group" aria-label="${escapeHtml(i18n.fieldKind)}" data-kind-value="${member.kind === "internal" ? "internal" : "external"}">
+                        <button type="button" class="kind-toggle-btn ${member.kind === "internal" ? "is-active" : ""}" data-kind="internal">${escapeHtml(i18n.kindInternal)}</button>
+                        <button type="button" class="kind-toggle-btn ${member.kind !== "internal" ? "is-active" : ""}" data-kind="external">${escapeHtml(i18n.kindExternal)}</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; margin-top: var(--space-3);">
+                    <button type="submit" class="btn btn-primary">${escapeHtml(t().actions.save)}</button>
+                  </div>
+                </form>
+              ` : ""}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function bindKindToggles(root: ParentNode): void {
+  root.querySelectorAll<HTMLElement>(".kind-toggle").forEach(group => {
+    group.querySelectorAll<HTMLButtonElement>(".kind-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const kind = btn.dataset.kind === "internal" ? "internal" : "external";
+        group.dataset.kindValue = kind;
+        group.querySelectorAll<HTMLButtonElement>(".kind-toggle-btn").forEach(b => {
+          b.classList.toggle("is-active", b === btn);
+        });
+      });
+    });
+  });
+}
+
+function attachTeamEventListeners(wrapper: HTMLElement, container: HTMLElement): void {
+  const panel = wrapper.querySelector<HTMLElement>("#new-member-panel");
+  bindKindToggles(wrapper);
+
+  wrapper.querySelector("#toggle-new-member-btn")?.addEventListener("click", () => {
+    if (!panel) return;
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+    if (panel.style.display === "block") {
+      wrapper.querySelector<HTMLInputElement>("#bo-member-name")?.focus();
+    }
+  });
+  wrapper.querySelector("#cancel-new-member-btn")?.addEventListener("click", () => {
+    if (panel) panel.style.display = "none";
+  });
+
+  wrapper.querySelector<HTMLFormElement>("#create-member-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = wrapper.querySelector<HTMLInputElement>("#bo-member-name")?.value || "";
+    const role = wrapper.querySelector<HTMLInputElement>("#bo-member-role")?.value || "";
+    const email = wrapper.querySelector<HTMLInputElement>("#bo-member-email")?.value || "";
+    const kindGroup = wrapper.querySelector<HTMLElement>('[data-kind-group="create"]');
+    const kindRaw = kindGroup?.dataset.kindValue || "external";
+    const created = await store.upsertMemberDraft({
+      name,
+      role,
+      email,
+      kind: kindRaw === "internal" ? "internal" : "external",
+    });
+    if (!created) {
+      showToast(t().members.namePlaceholder, "warning");
+      return;
+    }
+    showToast(t().members.added.replace("{name}", created.name), "success");
+    renderBackofficeView(container);
+  });
+
+  wrapper.querySelectorAll<HTMLButtonElement>(".edit-member-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.memberId || null;
+      editingMemberId = editingMemberId === id ? null : id;
+      renderBackofficeView(container);
+    });
+  });
+
+  wrapper.querySelectorAll<HTMLFormElement>(".edit-member-form").forEach(form => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = form.dataset.memberId;
+      const existing = id ? store.getMember(id) : undefined;
+      if (!existing || !id) return;
+      const fd = new FormData(form);
+      const name = String(fd.get("name") || "").trim();
+      if (!name) return;
+      const kindGroup = form.querySelector<HTMLElement>(".kind-toggle");
+      const kindRaw = kindGroup?.dataset.kindValue || existing.kind || "external";
+      await store.updateMember({
+        ...existing,
+        name,
+        role: String(fd.get("role") || "").trim() || undefined,
+        email: String(fd.get("email") || "").trim() || undefined,
+        kind: kindRaw === "internal" ? "internal" : "external",
+      });
+      editingMemberId = null;
+      showToast(t().members.saved.replace("{name}", name), "success");
+      renderBackofficeView(container);
+    });
+  });
+
+  wrapper.querySelectorAll<HTMLButtonElement>(".delete-member-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.memberId;
+      const member = id ? store.getMember(id) : undefined;
+      if (!id || !member) return;
+      if (!confirm(t().members.deleteConfirm.replace("{name}", member.name))) return;
+      const result = await store.deleteMember(id);
+      if (!result.ok) {
+        showToast(t().members.cannotDeleteLast, "warning");
+        return;
+      }
+      if (result.clearedTasks > 0) {
+        showToast(t().members.deletedWithTasks.replace("{n}", String(result.clearedTasks)), "info");
+      } else {
+        showToast(t().members.deleted, "info");
+      }
+      renderBackofficeView(container);
+    });
+  });
 }
 
 function renderThemeTabHTML(activeTheme: ThemeConfig): string {
@@ -1028,6 +1275,10 @@ function escapeHtml(text: string): string {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
+}
+
+function escapeAttr(text: string): string {
+  return escapeHtml(text).replace(/"/g, "&quot;");
 }
 
 function defaultStatusRows(): ColumnDefinition[] {

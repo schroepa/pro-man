@@ -46,6 +46,8 @@ Chrome/Edge empfohlen (File System Access API für Vault).
 
 Ordner verbinden: Sidebar → **Ordner verbinden** (nach Onboarding kompakt) → Ordner wählen (z. B. `vault-example/`). Beim ersten Start: Banner **Ordner verbinden** oder **Mit Beispieldaten starten**.
 
+**Team ≠ Kunden:** Aufgaben-Zuweisung läuft über Personen (Backoffice → Team & Personen oder „+ Person“ im Task-Dialog). Externe Entwickler/Freelancer sind Members, keine Kunden.
+
 ---
 
 ## Architektur

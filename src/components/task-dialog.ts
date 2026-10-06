@@ -9,6 +9,9 @@ import {
   markFirstTaskCelebrated,
   isSampleTaskId,
 } from "../storage/demo-mode";
+import { DEFAULT_MEMBER_YOU_ID } from "../types/member";
+
+const ADD_MEMBER_VALUE = "__add_member__";
 
 export class TaskDialog {
   private dialog: HTMLDialogElement;
@@ -24,6 +27,8 @@ export class TaskDialog {
   private selectRecurrence: CustomSelect | null = null;
   /** Persist accordion across form remounts (client/project change). */
   private moreDetailsOpen = false;
+  private showAddMemberForm = false;
+  private draftAssigneeId = "";
 
   constructor() {
     this.dialog = document.createElement("dialog");
@@ -31,8 +36,11 @@ export class TaskDialog {
     this.dialog.setAttribute("aria-labelledby", "dialog-heading");
     document.body.appendChild(this.dialog);
 
-    // Close on backdrop click
+    // Close on backdrop click — ignore CustomSelect menus (fixed/popover, often outside dialog box)
     this.dialog.addEventListener("click", (e) => {
+      const target = e.target as Element | null;
+      if (target?.closest?.(".custom-select-menu")) return;
+
       const rect = this.dialog.getBoundingClientRect();
       const isInDialog = (
         rect.top <= e.clientY &&
@@ -91,6 +99,8 @@ export class TaskDialog {
     this.currentAttachments = [...(task.attachments || [])];
     // New tasks start collapsed; edit starts open — remounts keep the user's choice.
     this.moreDetailsOpen = this.currentTaskId !== null;
+    this.showAddMemberForm = false;
+    this.draftAssigneeId = task.assigneeId || "";
     this.renderForm(task);
     this.dialog.showModal();
 
@@ -111,7 +121,7 @@ export class TaskDialog {
 
   private resolveCommentAuthor(): string {
     const members = store.getMembers();
-    const you = members.find(m => m.id === "mem-you") || members[0];
+    const you = members.find(m => m.id === DEFAULT_MEMBER_YOU_ID) || members[0];
     return you?.name || t().tasks.commentAuthorMe;
   }
 
@@ -202,6 +212,36 @@ export class TaskDialog {
               <div class="form-group">
                 <span class="form-label">${t().tasks.assignee}</span>
                 <div id="task-select-assignee-mount"></div>
+                <div id="task-add-member-panel" class="task-add-member-panel" ${this.showAddMemberForm ? "" : "hidden"}>
+                  <p class="task-essentials-hint">${t().members.addPersonHint}</p>
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label class="form-label" for="new-member-name">${t().members.fieldName}</label>
+                      <input type="text" id="new-member-name" class="input" placeholder="${escapeHtml(t().members.namePlaceholder)}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="new-member-role">${t().members.fieldRole}</label>
+                      <input type="text" id="new-member-role" class="input" placeholder="${escapeHtml(t().members.rolePlaceholder)}" />
+                    </div>
+                  </div>
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label class="form-label" for="new-member-email">${t().members.fieldEmail}</label>
+                      <input type="email" id="new-member-email" class="input" />
+                    </div>
+                    <div class="form-group">
+                      <span class="form-label">${t().members.fieldKind}</span>
+                      <div class="kind-toggle" role="group" aria-label="${t().members.fieldKind}">
+                        <button type="button" class="kind-toggle-btn is-active" data-kind="external">${t().members.kindExternal}</button>
+                        <button type="button" class="kind-toggle-btn" data-kind="internal">${t().members.kindInternal}</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="task-add-member-actions">
+                    <button type="button" id="cancel-new-member-btn" class="btn btn-secondary">${t().actions.cancel}</button>
+                    <button type="button" id="save-new-member-btn" class="btn btn-primary">${t().members.addPerson}</button>
+                  </div>
+                </div>
               </div>
 
               <div class="form-row-2">
@@ -635,14 +675,33 @@ export class TaskDialog {
       onChange: () => {},
     });
 
+    const assigneeValue = this.draftAssigneeId || task.assigneeId || "";
     this.selectAssignee = new CustomSelect({
       options: [
         { value: "", label: t().tasks.noAssignee },
-        ...members.map(m => ({ value: m.id, label: m.name })),
+        ...members.map(m => ({
+          value: m.id,
+          label: m.role ? `${m.name} · ${m.role}` : m.name,
+          color: m.color,
+          badge: m.kind === "external" ? t().members.kindExternal : undefined,
+        })),
+        { value: ADD_MEMBER_VALUE, label: t().members.addPersonShort },
       ],
-      selectedValue: task.assigneeId || "",
+      selectedValue: assigneeValue,
       ariaLabel: t().tasks.assignee,
-      onChange: () => {},
+      onChange: (val) => {
+        if (val === ADD_MEMBER_VALUE) {
+          this.showAddMemberForm = true;
+          this.selectAssignee?.setValue(this.draftAssigneeId || "");
+          const panel = this.dialog.querySelector<HTMLElement>("#task-add-member-panel");
+          if (panel) {
+            panel.hidden = false;
+            this.dialog.querySelector<HTMLInputElement>("#new-member-name")?.focus();
+          }
+          return;
+        }
+        this.draftAssigneeId = val;
+      },
     });
 
     this.selectRecurrence = new CustomSelect({
@@ -662,6 +721,44 @@ export class TaskDialog {
     priorityMount?.appendChild(this.selectPriority.getElement());
     assigneeMount?.appendChild(this.selectAssignee.getElement());
     recurrenceMount?.appendChild(this.selectRecurrence.getElement());
+
+    this.bindAddMemberPanel(task);
+  }
+
+  private bindAddMemberPanel(task: Task): void {
+    const panel = this.dialog.querySelector<HTMLElement>("#task-add-member-panel");
+    if (!panel) return;
+
+    let kind: "internal" | "external" = "external";
+    panel.querySelectorAll<HTMLButtonElement>(".kind-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        kind = btn.dataset.kind === "internal" ? "internal" : "external";
+        panel.querySelectorAll<HTMLButtonElement>(".kind-toggle-btn").forEach(b => {
+          b.classList.toggle("is-active", b === btn);
+        });
+      });
+    });
+
+    this.dialog.querySelector("#cancel-new-member-btn")?.addEventListener("click", () => {
+      this.showAddMemberForm = false;
+      panel.hidden = true;
+    });
+
+    this.dialog.querySelector("#save-new-member-btn")?.addEventListener("click", async () => {
+      const name = this.dialog.querySelector<HTMLInputElement>("#new-member-name")?.value || "";
+      const role = this.dialog.querySelector<HTMLInputElement>("#new-member-role")?.value || "";
+      const email = this.dialog.querySelector<HTMLInputElement>("#new-member-email")?.value || "";
+      const created = await store.upsertMemberDraft({ name, role, email, kind });
+      if (!created) {
+        showToast(t().members.namePlaceholder, "warning");
+        return;
+      }
+      this.draftAssigneeId = created.id;
+      this.showAddMemberForm = false;
+      showToast(t().members.added.replace("{name}", created.name), "success");
+      const draft = this.collectFormTask({ ...task, assigneeId: created.id });
+      this.renderForm(draft);
+    });
   }
 
   private collectFormTask(base: Task): Task {
@@ -670,7 +767,8 @@ export class TaskDialog {
     const projectId = this.selectProject?.getValue() || undefined;
     const status = (this.selectStatus?.getValue() || base.status) as TaskStatus;
     const priority = (this.selectPriority?.getValue() || base.priority) as TaskPriority;
-    const assigneeId = this.selectAssignee?.getValue() || undefined;
+    const assigneeRaw = this.selectAssignee?.getValue() || this.draftAssigneeId || "";
+    const assigneeId = assigneeRaw && assigneeRaw !== ADD_MEMBER_VALUE ? assigneeRaw : undefined;
     const startDate = (this.dialog.querySelector("#task-input-start") as HTMLInputElement).value;
     const dueDate = (this.dialog.querySelector("#task-input-due") as HTMLInputElement).value;
     const estimateRaw = (this.dialog.querySelector("#task-input-estimate") as HTMLInputElement).value;

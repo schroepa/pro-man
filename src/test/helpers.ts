@@ -52,6 +52,8 @@ type StoreMaps = {
   tasks: Map<string, Task>;
   clients: Map<string, Client>;
   projects: Map<string, Project>;
+  members: Map<string, { id: string; name: string }>;
+  docs: Map<string, unknown>;
   storage: { saveTask: (task: Task) => Promise<void> };
 };
 
@@ -64,6 +66,8 @@ export function resetStoreMaps(): void {
   s.tasks.clear();
   s.clients.clear();
   s.projects.clear();
+  s.members?.clear();
+  s.docs?.clear();
   store.clearFilters();
   store.currentView = "kanban";
   // clearFilters schedules a coalesced notify — flush so later tests see a clean rAF queue

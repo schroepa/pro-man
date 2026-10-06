@@ -116,6 +116,7 @@ export class CustomSelect {
         <div class="option-left">
           ${opt.iconSvg ? `<span class="option-icon" aria-hidden="true">${opt.iconSvg}</span>` : (opt.color ? `<span class="option-dot" style="background-color: ${opt.color};" aria-hidden="true"></span>` : "")}
           <span>${escapeHtml(opt.label)}</span>
+          ${opt.badge ? `<span class="option-badge">${escapeHtml(opt.badge)}</span>` : ""}
         </div>
         ${isSelected ? `
           <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">

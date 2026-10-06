@@ -33,6 +33,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- Team & Personen (Workspace-Members ≠ Kunden): CRUD, Intern/Extern, Dialog-Inline-Add, Backoffice-Tab
 - UX-Audit A/G Findings umgesetzt: Ordner-Shell, Demo-Badge/Clear, Essentials-Dialog, kontextuelle Topbar-CTA, Docs Suche/Gruppen, Empty-Chrome, Client/Backoffice, IA-Polish, First-Success
 - UX-Audit G (Full App): `docs/ux-audits/g-full-app/` (`audit.html`)
 - UX-Audit A (First-time → produktiv): `docs/ux-audits/a-first-time/` (`audit.html`) + FigJam Stickies

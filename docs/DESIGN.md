@@ -211,6 +211,13 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 - Nach Onboard + Offline: kompakte Statuszeile (`sidebar-vault-compact`), volle Fläche nur bei `permission_needed` / Unsupported / vor Onboard.
 - Topbar-Primäraktion kontextuell: Docs → Doc, Backoffice → Kunde, Client → Board, sonst Aufgabe.
 
+### 6.7 Team & Zuweisung
+
+- `WorkspaceMember` ≠ `Client`: Zuweisung geht nur über Members (intern/extern + Rolle).
+- Task-Dialog: Assignee-Select mit „+ Person“; Kind-Toggle (keine nativen `<select>`).
+- Backdrop-Close ignoriert `.custom-select-menu` (fixed/popover außerhalb der Dialog-Box).
+- Backoffice-Tab „Team & Personen“ für Anlegen/Bearbeiten/Löschen.
+
 ---
 
 ## 7. Theme & Tintfield

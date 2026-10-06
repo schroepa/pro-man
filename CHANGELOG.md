@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
+- **Team & Personen**: Workspace-Members getrennt von Kunden; Intern/Extern + Rolle; Inline „+ Person“ im Task-Dialog; Backoffice-Tab zur Verwaltung
 - **Kunden-Seiten**: Sidebar-/Breadcrumb-/⌘K-Klick öffnet eigene Client-Ansicht mit editierbaren Stammdaten, Kontakten, Projekten und KPIs (Board/Docs-CTAs)
 - **Beispieldaten-Modus**: Badge, „Beispieldaten entfernen“, Seed nur wenn nicht geklärt; First-Success-Toast nach erster eigener Aufgabe
 - **Kontextuelle Topbar-CTA**: Docs → Doc, Backoffice → Kunde, Client → Board, sonst → Aufgabe
@@ -19,6 +20,7 @@ Alle nennenswerten Änderungen an ProMan.
 ### Improvements
 - **Onboarding / Ordner-Shell**: Copy ohne Vault-Jargon; Banner = Primär-CTA; Sidebar nach Dismiss kompakt („Lokal · Ordner jederzeit“); „Mit Beispieldaten starten“ + Toast
 - **Task-Dialog Essentials-first**: Titel/Status/Priorität/Fällig sichtbar; Rest unter „Mehr Details“; Sheet-Header mit Issue-Key + Status-Chip; Accordion bleibt nach Kunde-/Projektwechsel offen
+- **Task-Dialog Select**: Klicks auf CustomSelect-Menüs (außerhalb der Dialog-Box) schließen den Dialog nicht mehr
 - **Empty Chrome**: Filterleiste bei 0 Tasks aus; KPI erst nach erster eigener Aufgabe; Demo-Banner am Board
 - **Kunden/Backoffice**: Speichern sticky; Board/Docs sekundär; Badge „Primär“; Backoffice → Kunden-Seite; Status-Spalten als Zeilen-UI
 - **IA**: Sidebar „n Proj.“; Gantt-Legende Priorität(+Erledigt); Listen-Zuweisung nur wenn genutzt

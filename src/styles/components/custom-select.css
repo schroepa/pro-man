@@ -145,6 +145,18 @@
   border-radius: var(--radius-full);
 }
 
+.option-badge {
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+}
+
 .option-check {
   width: 14px;
   height: 14px;

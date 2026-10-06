@@ -1,7 +1,7 @@
 import { Task, TaskPriority, TaskStatus, TimeEntry, DEFAULT_COLUMNS, ColumnDefinition } from "../types/task";
 import { Client, Project, ContactPerson } from "../types/client";
 import { DocItem } from "../types/doc";
-import { WorkspaceMember } from "../types/member";
+import { WorkspaceMember, DEFAULT_MEMBER_YOU_ID, MemberKind } from "../types/member";
 import { VaultStorage, getLastVaultNames, isVaultPermissionError } from "./file-system";
 import { announcer } from "../a11y/announcer";
 import { t } from "../i18n";
@@ -230,6 +230,7 @@ export class AppStore {
     this.members.clear();
     if (members?.length) {
       members.forEach(m => this.members.set(m.id, m));
+      this.ensureDefaultMembers();
       return;
     }
     try {
@@ -238,6 +239,7 @@ export class AppStore {
         const parsed = JSON.parse(raw) as WorkspaceMember[];
         if (Array.isArray(parsed) && parsed.length) {
           parsed.forEach(m => this.members.set(m.id, m));
+          this.ensureDefaultMembers();
           return;
         }
       }
@@ -246,26 +248,115 @@ export class AppStore {
   }
 
   private ensureDefaultMembers(): void {
+    this.migrateLegacyPlaceholderMembers();
     if (this.members.size > 0) return;
     const defaults: WorkspaceMember[] = [
-      { id: "mem-you", name: "You" },
-      { id: "mem-optional", name: "Optional" },
+      {
+        id: DEFAULT_MEMBER_YOU_ID,
+        name: t().members.defaultYou,
+        kind: "internal",
+        role: t().members.defaultYouRole,
+        color: "#c25e1a",
+      },
     ];
     defaults.forEach(m => this.members.set(m.id, m));
   }
 
+  /** Drop obsolete "Optional" / English "You" placeholders from early seeds. */
+  private migrateLegacyPlaceholderMembers(): void {
+    const optional = this.members.get("mem-optional");
+    if (optional && optional.name === "Optional") {
+      this.members.delete("mem-optional");
+    }
+    const you = this.members.get(DEFAULT_MEMBER_YOU_ID);
+    if (you && (you.name === "You" || you.name === "Optional")) {
+      this.members.set(DEFAULT_MEMBER_YOU_ID, {
+        ...you,
+        name: t().members.defaultYou,
+        kind: you.kind || "internal",
+        role: you.role || t().members.defaultYouRole,
+        color: you.color || "#c25e1a",
+      });
+    }
+  }
+
   getMembers(): WorkspaceMember[] {
-    return Array.from(this.members.values());
+    return Array.from(this.members.values())
+      .filter(m => !m.archived)
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  }
+
+  getAllMembersIncludingArchived(): WorkspaceMember[] {
+    return Array.from(this.members.values())
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
   }
 
   getMember(id: string): WorkspaceMember | undefined {
     return this.members.get(id);
   }
 
+  createMemberId(): string {
+    return `mem-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  }
+
   async addMember(member: WorkspaceMember): Promise<void> {
     this.members.set(member.id, member);
     await this.persistClients();
     this.notify();
+  }
+
+  async updateMember(member: WorkspaceMember): Promise<void> {
+    if (!this.members.has(member.id)) return;
+    this.members.set(member.id, member);
+    await this.persistClients();
+    this.notify();
+  }
+
+  /**
+   * Remove a person. Clears assigneeId on tasks that referenced them.
+   * Returns how many tasks were unassigned.
+   */
+  async deleteMember(memberId: string): Promise<{ ok: boolean; clearedTasks: number }> {
+    if (!this.members.has(memberId)) return { ok: false, clearedTasks: 0 };
+    if (memberId === DEFAULT_MEMBER_YOU_ID && this.members.size === 1) {
+      return { ok: false, clearedTasks: 0 };
+    }
+
+    let clearedTasks = 0;
+    for (const task of this.tasks.values()) {
+      if (task.assigneeId === memberId) {
+        const updated = { ...task, assigneeId: undefined, updatedAt: new Date().toISOString() };
+        this.tasks.set(task.id, updated);
+        await this.storage.saveTask(updated);
+        clearedTasks++;
+      }
+    }
+
+    this.members.delete(memberId);
+    await this.persistClients();
+    this.notify();
+    return { ok: true, clearedTasks };
+  }
+
+  async upsertMemberDraft(input: {
+    name: string;
+    email?: string;
+    role?: string;
+    kind?: MemberKind;
+    color?: string;
+  }): Promise<WorkspaceMember | null> {
+    const name = input.name.trim();
+    if (!name) return null;
+    const member: WorkspaceMember = {
+      id: this.createMemberId(),
+      name,
+      email: input.email?.trim() || undefined,
+      role: input.role?.trim() || undefined,
+      kind: input.kind || "external",
+      color: input.color || pickMemberColor(name),
+    };
+    await this.addMember(member);
+    return member;
   }
 
   getAllTags(): string[] {
@@ -1507,6 +1598,14 @@ export function normalizeClientProjectCodes(
       project.code = sanitizeCode(project.code);
     }
   }
+}
+
+const MEMBER_COLORS = ["#c25e1a", "#2563eb", "#059669", "#7c3aed", "#db2777", "#0d9488", "#d97706"];
+
+function pickMemberColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  return MEMBER_COLORS[Math.abs(hash) % MEMBER_COLORS.length];
 }
 
 export const store = new AppStore();
