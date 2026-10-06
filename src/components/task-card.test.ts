@@ -3,7 +3,6 @@
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTaskCard } from "./task-card";
-import { store } from "../storage/store";
 import { DEFAULT_MEMBER_YOU_ID } from "../types/member";
 import { makeTask, resetStoreMaps, stubVaultWrites, storeInternals } from "../test/helpers";
 import { t } from "../i18n";

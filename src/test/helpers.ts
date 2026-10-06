@@ -3,6 +3,7 @@ import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Task } from "../types/task";
 import type { Client, Project } from "../types/client";
+import type { WorkspaceMember } from "../types/member";
 import { store } from "../storage/store";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -52,7 +53,7 @@ type StoreMaps = {
   tasks: Map<string, Task>;
   clients: Map<string, Client>;
   projects: Map<string, Project>;
-  members: Map<string, { id: string; name: string }>;
+  members: Map<string, WorkspaceMember>;
   docs: Map<string, unknown>;
   storage: { saveTask: (task: Task) => Promise<void> };
 };
