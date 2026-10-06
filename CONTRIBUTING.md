@@ -30,6 +30,7 @@ Docs are **living files** and must match `main`:
 |---|---|
 | `README.md` | Features, architecture, scripts, high-level contracts change |
 | `docs/DESIGN.md` | Tokens, elevation, typography, component visual contracts change |
+| `docs/ROADMAP.md` | Priorities change; park/unpark epics (e.g. Multi-Device/CRDT) |
 | `CHANGELOG.md` | User-facing changes |
 | `SECURITY.md` | Threat model / permissions change |
 

@@ -23,12 +23,13 @@
 4. [Vault & Persistenz](#vault--persistenz)
 5. [Issue-Keys](#issue-keys)
 6. [Design-System](#design-system) → detailliert in [`docs/DESIGN.md`](./docs/DESIGN.md)
-7. [Accessibility](#accessibility)
-8. [Tests](#tests)
-9. [Scripts](#scripts)
-10. [Tastaturkürzel](#tastaturkürzel)
-11. [Sicherheit](#sicherheit)
-12. [Mitwirken](#mitwirken)
+7. [Roadmap](#roadmap) → [`docs/ROADMAP.md`](./docs/ROADMAP.md)
+8. [Accessibility](#accessibility)
+9. [Tests](#tests)
+10. [Scripts](#scripts)
+11. [Tastaturkürzel](#tastaturkürzel)
+12. [Sicherheit](#sicherheit)
+13. [Mitwirken](#mitwirken)
 
 ---
 
@@ -156,6 +157,12 @@ canvas (neutral-1) < surface/cards (neutral-3) < elevated/menus (neutral-5)
 ```
 
 Ruhe-UI bleibt zero-border; Popovers/Dialoge/Toasts nutzen `--color-bg-elevated` + `--shadow-popover` / `--shadow-overlay`.
+
+---
+
+## Roadmap
+
+Prioritäten und geparkte Themen (u. a. Multi-Device/CRDT): [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 
 ---
 
