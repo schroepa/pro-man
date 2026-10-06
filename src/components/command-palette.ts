@@ -1,8 +1,27 @@
 import { store } from "../storage/store";
 import { t } from "../i18n";
 import { toggleSidebar } from "../storage/sidebar-layout";
+import { bestFuzzyScore } from "../utils/fuzzy-match";
+import { getCommandRecents, pushCommandRecent } from "../storage/command-recents";
 
 export type PaletteOpenTask = (taskId: string) => void;
+
+const SEARCH_DEBOUNCE_MS = 150;
+
+type PaletteGroup = "recent" | "actions" | "views" | "tasks" | "docs";
+
+interface PaletteItem {
+  id: string;
+  label: string;
+  shortcut?: string;
+  group: PaletteGroup;
+  fields: string[];
+  action: () => void;
+  score: number;
+}
+
+const EMPTY_GROUP_ORDER: PaletteGroup[] = ["recent", "actions", "views"];
+const QUERY_GROUP_ORDER: PaletteGroup[] = ["tasks", "docs", "actions", "views"];
 
 export class CommandPalette {
   private dialog: HTMLDialogElement;
@@ -10,7 +29,8 @@ export class CommandPalette {
   private list: HTMLElement;
   private shortcutsDialog: HTMLDialogElement;
   private selectedIndex = 0;
-  private currentItems: Array<{ label: string; shortcut?: string; action: () => void }> = [];
+  private currentItems: PaletteItem[] = [];
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private onNewTask: () => void,
@@ -19,7 +39,7 @@ export class CommandPalette {
   ) {
     this.dialog = document.createElement("dialog");
     this.dialog.className = "command-dialog";
-    this.dialog.setAttribute("aria-label", "Command Palette");
+    this.dialog.setAttribute("aria-label", t().shortcuts.commandPalette);
 
     this.dialog.innerHTML = `
       <div class="command-search-header">
@@ -66,11 +86,23 @@ export class CommandPalette {
     this.input.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
+        if (this.currentItems.length === 0) return;
         this.selectedIndex = Math.min(this.selectedIndex + 1, this.currentItems.length - 1);
         this.renderItems();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
+        if (this.currentItems.length === 0) return;
         this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+        this.renderItems();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        if (this.currentItems.length === 0) return;
+        this.selectedIndex = 0;
+        this.renderItems();
+      } else if (e.key === "End") {
+        e.preventDefault();
+        if (this.currentItems.length === 0) return;
+        this.selectedIndex = this.currentItems.length - 1;
         this.renderItems();
       } else if (e.key === "Enter") {
         e.preventDefault();
@@ -95,7 +127,24 @@ export class CommandPalette {
   }
 
   public close(): void {
+    if (this.searchDebounceTimer !== null) {
+      clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = null;
+    }
     this.dialog.close();
+  }
+
+  private scheduleLiveSearch(query: string): void {
+    if (this.searchDebounceTimer !== null) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = null;
+      const next = query.trim();
+      if (store.searchQuery === next) return;
+      store.searchQuery = next;
+      store.notify();
+    }, SEARCH_DEBOUNCE_MS);
   }
 
   public openShortcutsHelp(): void {
@@ -138,115 +187,263 @@ export class CommandPalette {
     this.shortcutsDialog.showModal();
   }
 
-  private filter(query: string): void {
-    const q = query.toLowerCase().trim();
+  private groupLabel(group: PaletteGroup): string {
+    const c = t().command;
+    if (group === "recent") return c.groupRecent;
+    if (group === "actions") return c.groupActions;
+    if (group === "views") return c.groupViews;
+    if (group === "tasks") return c.groupTasks;
+    return c.groupDocs;
+  }
 
-    store.searchQuery = q;
+  private buildCatalog(): PaletteItem[] {
+    const i18n = t();
+    const show = (view: string) => i18n.command.showView.replace("{view}", view);
 
-    const baseItems: Array<{ label: string; shortcut?: string; action: () => void }> = [
+    const actions: PaletteItem[] = [
       {
-        label: t().actions.newTask,
+        id: "action-new-task",
+        label: i18n.actions.newTask,
         shortcut: "N",
+        group: "actions",
+        fields: [i18n.actions.newTask, "new task", "aufgabe"],
+        score: 0,
         action: () => this.onNewTask(),
       },
       {
-        label: t().actions.newDoc,
+        id: "action-new-doc",
+        label: i18n.actions.newDoc,
         shortcut: "D",
+        group: "actions",
+        fields: [i18n.actions.newDoc, "new doc", "dokument"],
+        score: 0,
         action: () => this.onNewDoc(),
       },
       {
-        label: t().shortcuts.show,
+        id: "action-shortcuts",
+        label: i18n.shortcuts.show,
         shortcut: "?",
+        group: "actions",
+        fields: [i18n.shortcuts.show, "shortcuts", "hilfe"],
+        score: 0,
         action: () => this.openShortcutsHelp(),
       },
       {
-        label: `${t().views.kanban} anzeigen`,
-        shortcut: "1",
-        action: () => { store.currentView = "kanban"; store.notify(); },
-      },
-      {
-        label: `${t().views.list} anzeigen`,
-        shortcut: "2",
-        action: () => { store.currentView = "list"; store.notify(); },
-      },
-      {
-        label: `${t().views.gantt} anzeigen`,
-        shortcut: "3",
-        action: () => { store.currentView = "gantt"; store.notify(); },
-      },
-      {
-        label: `${t().views.docs} anzeigen`,
-        shortcut: "4",
-        action: () => { store.currentView = "docs"; store.notify(); },
-      },
-      {
-        label: `${t().views.backoffice} anzeigen`,
-        shortcut: "5",
-        action: () => { store.currentView = "backoffice"; store.notify(); },
-      },
-      {
-        label: `${t().views.calendar} anzeigen`,
-        action: () => { store.currentView = "calendar"; store.notify(); },
-      },
-      {
-        label: t().shortcuts.toggleSidebar,
-        shortcut: "⌘\\",
-        action: () => { toggleSidebar(); store.notify(); },
-      },
-      {
-        label: t().actions.undo,
+        id: "action-undo",
+        label: i18n.actions.undo,
         shortcut: "⌘Z",
+        group: "actions",
+        fields: [i18n.actions.undo, "undo"],
+        score: 0,
         action: () => store.undo(),
       },
       {
-        label: t().actions.redo,
+        id: "action-redo",
+        label: i18n.actions.redo,
         shortcut: "⌘⇧Z",
+        group: "actions",
+        fields: [i18n.actions.redo, "redo"],
+        score: 0,
         action: () => store.redo(),
+      },
+      {
+        id: "action-sidebar",
+        label: i18n.shortcuts.toggleSidebar,
+        shortcut: "⌘\\",
+        group: "actions",
+        fields: [i18n.shortcuts.toggleSidebar, "sidebar"],
+        score: 0,
+        action: () => { toggleSidebar(); store.notify(); },
       },
     ];
 
-    if (q) {
-      baseItems.unshift({
-        label: `Suche nach „${query}“ im Board anwenden`,
-        shortcut: "Filter",
-        action: () => {
-          store.searchQuery = query.trim();
-          store.currentView = "kanban";
-          store.notify();
-        },
-      });
-    }
+    const views: PaletteItem[] = [
+      {
+        id: "view-kanban",
+        label: show(i18n.views.kanban),
+        shortcut: "1",
+        group: "views",
+        fields: [i18n.views.kanban, "board", "kanban"],
+        score: 0,
+        action: () => { store.currentView = "kanban"; store.notify(); },
+      },
+      {
+        id: "view-list",
+        label: show(i18n.views.list),
+        shortcut: "2",
+        group: "views",
+        fields: [i18n.views.list, "list", "liste"],
+        score: 0,
+        action: () => { store.currentView = "list"; store.notify(); },
+      },
+      {
+        id: "view-gantt",
+        label: show(i18n.views.gantt),
+        shortcut: "3",
+        group: "views",
+        fields: [i18n.views.gantt, "gantt", "timeline"],
+        score: 0,
+        action: () => { store.currentView = "gantt"; store.notify(); },
+      },
+      {
+        id: "view-docs",
+        label: show(i18n.views.docs),
+        shortcut: "4",
+        group: "views",
+        fields: [i18n.views.docs, "docs", "dokumente"],
+        score: 0,
+        action: () => { store.currentView = "docs"; store.notify(); },
+      },
+      {
+        id: "view-backoffice",
+        label: show(i18n.views.backoffice),
+        shortcut: "5",
+        group: "views",
+        fields: [i18n.views.backoffice, "backoffice"],
+        score: 0,
+        action: () => { store.currentView = "backoffice"; store.notify(); },
+      },
+      {
+        id: "view-calendar",
+        label: show(i18n.views.calendar),
+        group: "views",
+        fields: [i18n.views.calendar, "calendar", "kalender"],
+        score: 0,
+        action: () => { store.currentView = "calendar"; store.notify(); },
+      },
+    ];
 
-    store.getAllRawTasks().forEach(task => {
-      baseItems.push({
-        label: `Aufgabe: ${task.id} - ${task.title}`,
+    const tasks: PaletteItem[] = store.getAllRawTasks().map(task => {
+      const key = task.issueKey || task.id;
+      const label = i18n.command.taskLabel
+        .replace("{key}", key)
+        .replace("{title}", task.title);
+      return {
+        id: `task-${task.id}`,
+        label,
         shortcut: task.status,
+        group: "tasks" as const,
+        fields: [key, task.id, task.title, task.description, ...(task.tags || [])],
+        score: 0,
         action: () => {
+          pushCommandRecent({ kind: "task", id: task.id });
           store.currentView = "kanban";
           store.notify();
           this.onOpenTask?.(task.id);
         },
-      });
+      };
     });
 
-    store.getDocs().forEach(doc => {
-      baseItems.push({
-        label: `Doc: ${doc.title}`,
-        shortcut: "Doc",
-        action: () => {
-          store.selectedDocId = doc.id;
-          store.currentView = "docs";
-          store.notify();
-        },
-      });
-    });
+    const docs: PaletteItem[] = store.getDocs().map(doc => ({
+      id: `doc-${doc.id}`,
+      label: i18n.command.docLabel.replace("{title}", doc.title),
+      shortcut: "Doc",
+      group: "docs" as const,
+      fields: [doc.title, doc.id, ...(doc.tags || [])],
+      score: 0,
+      action: () => {
+        pushCommandRecent({ kind: "doc", id: doc.id });
+        store.selectedDocId = doc.id;
+        store.currentView = "docs";
+        store.notify();
+      },
+    }));
 
-    if (q) {
-      this.currentItems = baseItems.filter(item => item.label.toLowerCase().includes(q));
-    } else {
-      this.currentItems = baseItems;
+    const recents: PaletteItem[] = [];
+    for (const recent of getCommandRecents()) {
+      if (recent.kind === "task") {
+        const task = store.getTask(recent.id);
+        if (!task) continue;
+        const key = task.issueKey || task.id;
+        recents.push({
+          id: `recent-task-${task.id}`,
+          label: i18n.command.taskLabel.replace("{key}", key).replace("{title}", task.title),
+          shortcut: task.status,
+          group: "recent",
+          fields: [key, task.title],
+          score: 0,
+          action: () => {
+            pushCommandRecent({ kind: "task", id: task.id });
+            store.currentView = "kanban";
+            store.notify();
+            this.onOpenTask?.(task.id);
+          },
+        });
+      } else {
+        const doc = store.getDocs().find(d => d.id === recent.id);
+        if (!doc) continue;
+        recents.push({
+          id: `recent-doc-${doc.id}`,
+          label: i18n.command.docLabel.replace("{title}", doc.title),
+          shortcut: "Doc",
+          group: "recent",
+          fields: [doc.title],
+          score: 0,
+          action: () => {
+            pushCommandRecent({ kind: "doc", id: doc.id });
+            store.selectedDocId = doc.id;
+            store.currentView = "docs";
+            store.notify();
+          },
+        });
+      }
     }
 
+    return [...recents, ...actions, ...views, ...tasks, ...docs];
+  }
+
+  private filter(query: string): void {
+    const q = query.toLowerCase().trim();
+    this.scheduleLiveSearch(query);
+
+    const catalog = this.buildCatalog();
+    const order = q ? QUERY_GROUP_ORDER : EMPTY_GROUP_ORDER;
+
+    let items: PaletteItem[] = [];
+
+    if (!q) {
+      items = catalog.filter(item => order.includes(item.group));
+    } else {
+      const applySearch: PaletteItem = {
+        id: "action-apply-search",
+        label: t().command.applySearch.replace("{q}", query.trim()),
+        shortcut: "Filter",
+        group: "actions",
+        fields: [query, "search", "filter", "suche"],
+        score: 850,
+        action: () => {
+          if (this.searchDebounceTimer !== null) {
+            clearTimeout(this.searchDebounceTimer);
+            this.searchDebounceTimer = null;
+          }
+          store.searchQuery = query.trim();
+          store.currentView = "kanban";
+          store.notify();
+        },
+      };
+
+      const scored = catalog
+        .filter(item => item.group !== "recent")
+        .map(item => ({
+          ...item,
+          score: bestFuzzyScore(q, [...item.fields, item.label]),
+        }))
+        .filter(item => item.score > 0);
+
+      items = [applySearch, ...scored].sort((a, b) => {
+        if (a.group !== b.group) {
+          return order.indexOf(a.group) - order.indexOf(b.group);
+        }
+        return b.score - a.score;
+      });
+    }
+
+    // Stable group order for empty query
+    if (!q) {
+      items.sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group));
+    }
+
+    this.currentItems = items;
     this.selectedIndex = 0;
     this.renderItems();
   }
@@ -254,11 +451,31 @@ export class CommandPalette {
   private renderItems(): void {
     this.list.innerHTML = "";
     if (this.currentItems.length === 0) {
-      this.list.innerHTML = `<p style="font-size: var(--font-size-xs); color: var(--color-text-muted); padding: var(--space-3); text-align: center;">Keine Ergebnisse gefunden</p>`;
+      this.list.innerHTML = `<p class="command-empty">${escapeHtml(t().command.noResults)}</p>`;
+      this.input.removeAttribute("aria-activedescendant");
       return;
     }
 
+    let lastGroup: PaletteGroup | null = null;
+    let currentGroupEl: HTMLElement | null = null;
+
     this.currentItems.forEach((item, idx) => {
+      if (item.group !== lastGroup) {
+        lastGroup = item.group;
+        const header = document.createElement("div");
+        header.className = "command-group-header";
+        header.setAttribute("role", "presentation");
+        header.textContent = this.groupLabel(item.group);
+        this.list.appendChild(header);
+
+        currentGroupEl = document.createElement("div");
+        currentGroupEl.className = "command-group";
+        currentGroupEl.setAttribute("role", "group");
+        currentGroupEl.setAttribute("aria-label", this.groupLabel(item.group));
+        this.list.appendChild(currentGroupEl);
+      }
+
+      const host = currentGroupEl || this.list;
       const isFocused = idx === this.selectedIndex;
       const el = document.createElement("div");
       el.className = `command-item ${isFocused ? "focused" : ""}`;
@@ -267,7 +484,7 @@ export class CommandPalette {
       el.id = `command-option-${idx}`;
 
       el.innerHTML = `
-        <span>${escapeHtml(item.label)}</span>
+        <span class="command-item-label">${escapeHtml(item.label)}</span>
         ${item.shortcut ? `<span class="command-shortcut-badge">${escapeHtml(item.shortcut)}</span>` : ""}
       `;
 
@@ -276,10 +493,12 @@ export class CommandPalette {
         this.close();
       });
 
-      this.list.appendChild(el);
+      host.appendChild(el);
     });
 
     this.input.setAttribute("aria-activedescendant", `command-option-${this.selectedIndex}`);
+    const focused = this.list.querySelector(`#command-option-${this.selectedIndex}`);
+    focused?.scrollIntoView({ block: "nearest" });
   }
 }
 

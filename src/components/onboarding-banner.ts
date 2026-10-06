@@ -47,7 +47,15 @@ export function renderOnboardingBanner(onDismiss: () => void): HTMLElement | nul
       if (connected) {
         const { showToast } = await import("./toast");
         showToast(i18n.vault.connectedToast, "success");
-        await store.reloadAll();
+        const result = await store.reloadAll();
+        if (!result.ok && result.reason === "permission_denied") {
+          showToast(i18n.vault.permissionDeniedToast, "warning");
+        } else if (result.ok && result.warning) {
+          showToast(result.warning, "warning");
+        }
+      } else if (store.vault.consumeUserAbort()) {
+        const { showToast } = await import("./toast");
+        showToast(i18n.vault.connectAbortedToast, "info");
       }
     } catch (err: unknown) {
       const { showToast } = await import("./toast");

@@ -14,6 +14,10 @@ Alle nennenswerten Änderungen an ProMan.
 - **Task-Dialog ≤640px**: Full-Height-Sheet, scrollbarer Body, sticky Footer + Safe-Area
 - **Kanban Mobile**: eine Spalte, kein horizontales Board-Scroll (Swipe-Konflikt vermeiden)
 - **Liste ≤640px**: Header wrappt, Tabelle horizontal scrollbar
+- **Performance**: `notify()` per rAF coalesced; Chrome (Sidebar/Topbar/Nav) nur bei Nav-/Filter-/Vault-Änderungen; Lazy-Chunks für Gantt/Calendar/Docs/Backoffice; `content-visibility` auf Cards/List-Rows; ⌘K-Suche 150 ms debounced  
+  - Entry-JS: ~227 KB → ~173 KB (gzip ~59 KB → ~47 KB); Backoffice ~39 KB lazy
+- **Vault-Robustheit**: Schreib-/Reload-Fehler mit `NotAllowedError` demoten auf `permission_needed`; Abort-Toast; Unsupported-Hinweis ohne Connect; fehlende Client-/Projekt-Codes beim Load ableiten; partieller Load-Warn-Toast
+- **⌘K Search**: Fuzzy-Match (Titel/Issue-Key/Tags), Gruppen-Header, letzte 8 Recents, Home/End + Fokus-Scroll; leere Query ohne Task-Dump
 
 ## [0.3.0] — 2026-10-06
 

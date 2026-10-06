@@ -97,6 +97,11 @@
   font-size: var(--font-size-sm);
 }
 
+.list-table tbody tr {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 44px;
+}
+
 .list-table thead th {
   position: sticky;
   top: 0;

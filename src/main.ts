@@ -3,10 +3,6 @@ import { renderSidebar } from "./components/sidebar";
 import { renderTopbar } from "./components/topbar";
 import { renderKanbanBoard } from "./views/kanban-board";
 import { renderListView } from "./views/list-view";
-import { renderGanttChart } from "./views/gantt-chart";
-import { renderCalendarView } from "./views/calendar-view";
-import { renderDocsView } from "./views/docs-view";
-import { renderBackofficeView } from "./views/backoffice-view";
 import { TaskDialog } from "./components/task-dialog";
 import { CommandPalette } from "./components/command-palette";
 import { TaskStatus } from "./types/task";
@@ -17,6 +13,7 @@ import { initSidebarLayout, toggleSidebar } from "./storage/sidebar-layout";
 import { renderOnboardingBanner } from "./components/onboarding-banner";
 import { renderMobileBottomNav } from "./components/mobile-bottom-nav";
 import { initMobileGestures } from "./utils/mobile-gestures";
+import { getChromeSignature } from "./utils/chrome-signature";
 
 const sidebarContainer = document.getElementById("sidebar-container")!;
 const topbarContainer = document.getElementById("topbar-container")!;
@@ -66,23 +63,73 @@ const commandPalette = new CommandPalette(
 );
 
 let lastView: string | null = null;
+let lastChromeSig = "";
+let viewRenderGen = 0;
 
-function renderApp(): void {
-  const viewChanged = lastView !== null && lastView !== store.currentView;
-  lastView = store.currentView;
-
-  // Render Sidebar
+function renderChrome(): void {
   renderSidebar(sidebarContainer);
-
-  // Render Topbar
   renderTopbar(
     topbarContainer,
     () => createNewTask(),
     () => createNewDoc(),
     () => commandPalette.open()
   );
-
   renderMobileBottomNav(mobileNavContainer);
+}
+
+async function mountActiveView(viewMount: HTMLElement): Promise<void> {
+  const gen = ++viewRenderGen;
+  const view = store.currentView;
+
+  if (view === "kanban") {
+    renderKanbanBoard(viewMount, openTask, createNewTask);
+    return;
+  }
+  if (view === "list") {
+    renderListView(viewMount, openTask, () => createNewTask());
+    return;
+  }
+
+  viewMount.innerHTML = `<div class="app-loading view-lazy-loading" style="padding: var(--space-6); color: var(--color-text-muted); font-size: var(--font-size-sm);">${t().loading}</div>`;
+
+  try {
+    if (view === "gantt") {
+      const { renderGanttChart } = await import("./views/gantt-chart");
+      if (gen !== viewRenderGen || store.currentView !== view) return;
+      viewMount.innerHTML = "";
+      renderGanttChart(viewMount, openTask, createNewTask);
+    } else if (view === "calendar") {
+      const { renderCalendarView } = await import("./views/calendar-view");
+      if (gen !== viewRenderGen || store.currentView !== view) return;
+      viewMount.innerHTML = "";
+      renderCalendarView(viewMount, openTask);
+    } else if (view === "docs") {
+      const { renderDocsView } = await import("./views/docs-view");
+      if (gen !== viewRenderGen || store.currentView !== view) return;
+      viewMount.innerHTML = "";
+      renderDocsView(viewMount);
+    } else if (view === "backoffice") {
+      const { renderBackofficeView } = await import("./views/backoffice-view");
+      if (gen !== viewRenderGen || store.currentView !== view) return;
+      viewMount.innerHTML = "";
+      renderBackofficeView(viewMount);
+    }
+  } catch (err) {
+    if (gen !== viewRenderGen) return;
+    console.error(err);
+    viewMount.innerHTML = `<p class="app-loading" style="padding: var(--space-6); color: var(--color-text-muted);">View konnte nicht geladen werden.</p>`;
+  }
+}
+
+function renderApp(): void {
+  const viewChanged = lastView !== null && lastView !== store.currentView;
+  lastView = store.currentView;
+
+  const chromeSig = getChromeSignature();
+  if (chromeSig !== lastChromeSig) {
+    lastChromeSig = chromeSig;
+    renderChrome();
+  }
 
   // Clear viewport and optionally show onboarding
   viewContainer.innerHTML = "";
@@ -95,20 +142,7 @@ function renderApp(): void {
   viewMount.className = viewChanged ? "view-mount view-mount--enter" : "view-mount";
   viewContainer.appendChild(viewMount);
 
-  // Render Viewport
-  if (store.currentView === "kanban") {
-    renderKanbanBoard(viewMount, openTask, createNewTask);
-  } else if (store.currentView === "list") {
-    renderListView(viewMount, openTask, () => createNewTask());
-  } else if (store.currentView === "gantt") {
-    renderGanttChart(viewMount, openTask, createNewTask);
-  } else if (store.currentView === "calendar") {
-    renderCalendarView(viewMount, openTask);
-  } else if (store.currentView === "docs") {
-    renderDocsView(viewMount);
-  } else if (store.currentView === "backoffice") {
-    renderBackofficeView(viewMount);
-  }
+  void mountActiveView(viewMount);
 
   if (viewChanged) {
     mainContent.focus({ preventScroll: true });
@@ -187,6 +221,8 @@ async function start() {
   initMobileGestures();
   store.subscribe(renderApp);
   await store.init();
+  // First paint: ensure chrome mounts even if signature was empty
+  lastChromeSig = "";
   renderApp();
 
   if ("serviceWorker" in navigator) {

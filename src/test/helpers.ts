@@ -66,6 +66,8 @@ export function resetStoreMaps(): void {
   s.projects.clear();
   store.clearFilters();
   store.currentView = "kanban";
+  // clearFilters schedules a coalesced notify — flush so later tests see a clean rAF queue
+  store.notifySync();
 }
 
 export function seedClientProject(opts?: {

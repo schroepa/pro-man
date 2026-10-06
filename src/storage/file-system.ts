@@ -13,6 +13,15 @@ const LAST_VAULTS_KEY = "pro_man_last_vaults";
 
 export type VaultConnectionState = "connected" | "permission_needed" | "offline" | "unsupported";
 
+const USER_ABORT = "USER_ABORT";
+
+export function isVaultPermissionError(err: unknown): boolean {
+  const e = err as { name?: string; message?: string } | null;
+  const name = e?.name || "";
+  if (name === "NotAllowedError" || name === "SecurityError") return true;
+  return /notallowed|permission|not allowed|access denied/i.test(e?.message || "");
+}
+
 export function getLastVaultNames(): string[] {
   try {
     const raw = localStorage.getItem(LAST_VAULTS_KEY);
@@ -88,6 +97,7 @@ export class VaultStorage {
   private pendingHandle: FileSystemDirectoryHandle | null = null;
   private isSupported: boolean = typeof window !== "undefined" && "showDirectoryPicker" in window;
   private lastError: string | null = null;
+  private lastLoadWarning: string | null = null;
 
   public get supported(): boolean {
     return this.isSupported;
@@ -98,13 +108,15 @@ export class VaultStorage {
   }
 
   public get vaultName(): string {
-    return this.dirHandle ? this.dirHandle.name : "Local Cache";
+    if (this.dirHandle) return this.dirHandle.name;
+    if (this.pendingHandle) return this.pendingHandle.name;
+    return "Local Cache";
   }
 
   public get connectionState(): VaultConnectionState {
-    if (!this.isSupported) return "unsupported";
     if (this.dirHandle) return "connected";
     if (this.pendingHandle) return "permission_needed";
+    if (!this.isSupported) return "unsupported";
     return "offline";
   }
 
@@ -114,6 +126,68 @@ export class VaultStorage {
 
   public clearError(): void {
     this.lastError = null;
+  }
+
+  public getLastLoadWarning(): string | null {
+    return this.lastLoadWarning;
+  }
+
+  public clearLoadWarning(): void {
+    this.lastLoadWarning = null;
+  }
+
+  /** True if the last connect() was cancelled by the user (picker dismissed). */
+  public consumeUserAbort(): boolean {
+    if (this.lastError !== USER_ABORT) return false;
+    this.lastError = null;
+    return true;
+  }
+
+  /** Move active handle to pending so UI can prompt for permission again. */
+  demoteToPermissionNeeded(): boolean {
+    if (!this.dirHandle) return false;
+    this.pendingHandle = this.dirHandle;
+    this.dirHandle = null;
+    return true;
+  }
+
+  private noteWriteError(err: unknown): void {
+    const message = err instanceof Error ? err.message : String(err);
+    this.lastError = message;
+    if (isVaultPermissionError(err)) {
+      this.demoteToPermissionNeeded();
+    }
+  }
+
+  /**
+   * Ensure we still have readwrite access to the vault directory.
+   * Demotes to permission_needed when the browser revoked access.
+   */
+  async ensureWritableAccess(): Promise<"ok" | "denied" | "offline"> {
+    if (!this.dirHandle) {
+      return this.pendingHandle ? "denied" : "offline";
+    }
+    try {
+      const handle = this.dirHandle as FileSystemDirectoryHandle & {
+        queryPermission?: (desc: { mode: string }) => Promise<PermissionState>;
+        requestPermission?: (desc: { mode: string }) => Promise<PermissionState>;
+      };
+      if (typeof handle.queryPermission !== "function") {
+        return "ok";
+      }
+      let status = await handle.queryPermission({ mode: "readwrite" });
+      if (status === "prompt" && typeof handle.requestPermission === "function") {
+        status = await handle.requestPermission({ mode: "readwrite" });
+      }
+      if (status === "granted") return "ok";
+      this.demoteToPermissionNeeded();
+      this.lastError = "PERMISSION_DENIED";
+      return "denied";
+    } catch (err) {
+      this.noteWriteError(err);
+      if (!this.dirHandle) return "denied";
+      return "denied";
+    }
   }
 
   async tryRestore(): Promise<boolean> {
@@ -159,6 +233,7 @@ export class VaultStorage {
 
   async connect(): Promise<boolean> {
     if (!this.isSupported) {
+      this.lastError = "UNSUPPORTED";
       throw new Error("File System Access API is not supported in this browser. Using LocalStorage fallback.");
     }
 
@@ -175,11 +250,13 @@ export class VaultStorage {
         return true;
       }
       return false;
-    } catch (err: any) {
-      if (err.name === "AbortError") {
+    } catch (err: unknown) {
+      const name = err && typeof err === "object" && "name" in err ? String((err as { name: string }).name) : "";
+      if (name === "AbortError") {
+        this.lastError = USER_ABORT;
         return false;
       }
-      this.lastError = err.message || String(err);
+      this.noteWriteError(err);
       throw err;
     }
   }
@@ -232,8 +309,8 @@ export class VaultStorage {
       await writable.write(await file.arrayBuffer());
       await writable.close();
       return `${ATTACHMENTS_DIR}/${fileName}`;
-    } catch (err: any) {
-      this.lastError = err.message || String(err);
+    } catch (err: unknown) {
+      this.noteWriteError(err);
       return null;
     }
   }
@@ -257,17 +334,48 @@ export class VaultStorage {
   }
 
   async loadAllTasks(): Promise<Task[]> {
+    this.lastLoadWarning = null;
     if (!this.dirHandle) {
       return this.loadFallbackTasks();
     }
 
     const tasks: Task[] = [];
     const seen = new Set<string>();
+    let failed = 0;
 
-    const tasksDir = await this.getTasksDir(false);
-    if (tasksDir) {
-      for await (const entry of (tasksDir as any).values()) {
-        if (entry.kind === "file" && entry.name.endsWith(".md")) {
+    try {
+      const tasksDir = await this.getTasksDir(false);
+      if (tasksDir) {
+        for await (const entry of (tasksDir as any).values()) {
+          if (entry.kind === "file" && entry.name.endsWith(".md")) {
+            try {
+              const file = await entry.getFile();
+              const text = await file.text();
+              const fallbackId = entry.name.replace(/\.md$/, "");
+              const task = markdownToTask(text, fallbackId);
+              if (!seen.has(task.id)) {
+                seen.add(task.id);
+                tasks.push(task);
+              }
+            } catch (err) {
+              if (isVaultPermissionError(err)) {
+                this.noteWriteError(err);
+                throw err;
+              }
+              failed += 1;
+              console.warn(`Failed to parse task file ${entry.name}`, err);
+            }
+          }
+        }
+      }
+
+      // Legacy root TASK-*.md — skip Obsidian / template folders
+      for await (const entry of (this.dirHandle as any).values()) {
+        if (entry.kind === "directory") {
+          const name = String(entry.name || "").toLowerCase();
+          if (name === ".obsidian" || name === "templates") continue;
+        }
+        if (entry.kind === "file" && isTaskFileName(entry.name)) {
           try {
             const file = await entry.getFile();
             const text = await file.text();
@@ -278,32 +386,25 @@ export class VaultStorage {
               tasks.push(task);
             }
           } catch (err) {
-            console.warn(`Failed to parse task file ${entry.name}`, err);
+            if (isVaultPermissionError(err)) {
+              this.noteWriteError(err);
+              throw err;
+            }
+            failed += 1;
+            console.warn(`Failed to parse legacy task file ${entry.name}`, err);
           }
         }
       }
+    } catch (err) {
+      this.noteWriteError(err);
+      if (isVaultPermissionError(err)) {
+        return this.loadFallbackTasks();
+      }
+      throw err;
     }
 
-    // Legacy root TASK-*.md — skip Obsidian / template folders
-    for await (const entry of (this.dirHandle as any).values()) {
-      if (entry.kind === "directory") {
-        const name = String(entry.name || "").toLowerCase();
-        if (name === ".obsidian" || name === "templates") continue;
-      }
-      if (entry.kind === "file" && isTaskFileName(entry.name)) {
-        try {
-          const file = await entry.getFile();
-          const text = await file.text();
-          const fallbackId = entry.name.replace(/\.md$/, "");
-          const task = markdownToTask(text, fallbackId);
-          if (!seen.has(task.id)) {
-            seen.add(task.id);
-            tasks.push(task);
-          }
-        } catch (err) {
-          console.warn(`Failed to parse legacy task file ${entry.name}`, err);
-        }
-      }
+    if (failed > 0) {
+      this.lastLoadWarning = `LOAD_PARTIAL:${failed}`;
     }
 
     tasks.sort((a, b) => a.order - b.order);
@@ -332,8 +433,8 @@ export class VaultStorage {
       try {
         await (this.dirHandle as any).removeEntry(fileName);
       } catch { /* ignore */ }
-    } catch (err: any) {
-      this.lastError = err.message || String(err);
+    } catch (err: unknown) {
+      this.noteWriteError(err);
       this.saveFallbackTask(task);
       throw err;
     }
@@ -400,8 +501,8 @@ export class VaultStorage {
       const writable = await (fileHandle as any).createWritable();
       await writable.write(markdown);
       await writable.close();
-    } catch (err: any) {
-      this.lastError = err.message || String(err);
+    } catch (err: unknown) {
+      this.noteWriteError(err);
       this.saveFallbackDoc(doc);
       throw err;
     }
@@ -440,8 +541,8 @@ export class VaultStorage {
       if (data.members) {
         localStorage.setItem("pro_man_members", JSON.stringify(data.members));
       }
-    } catch (err: any) {
-      this.lastError = err.message || String(err);
+    } catch (err: unknown) {
+      this.noteWriteError(err);
       console.warn("Failed to write clients.json to vault", err);
       localStorage.setItem("pro_man_clients_data", JSON.stringify(data));
       if (data.members) {

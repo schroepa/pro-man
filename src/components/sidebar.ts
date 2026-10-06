@@ -13,6 +13,7 @@ export function renderSidebar(container: HTMLElement): void {
   const connectionState = store.vault.connectionState;
   const isConnected = connectionState === "connected";
   const needsPermission = connectionState === "permission_needed";
+  const isUnsupported = connectionState === "unsupported";
   const lastVaults = getLastVaultNames();
   const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
   const lang = getLanguage();
@@ -20,7 +21,11 @@ export function renderSidebar(container: HTMLElement): void {
   let vaultTitle = t().actions.connectVault;
   let vaultHint = t().vault.offlineHint;
   let indicatorClass = "offline";
-  if (isConnected) {
+  if (isUnsupported) {
+    vaultTitle = t().vault.unsupportedTitle;
+    vaultHint = t().vault.unsupportedHint;
+    indicatorClass = "unsupported";
+  } else if (isConnected) {
     vaultTitle = store.vault.vaultName;
     vaultHint = t().vault.connectedHint.replace("{name}", store.vault.vaultName);
     indicatorClass = "connected";
@@ -69,7 +74,7 @@ export function renderSidebar(container: HTMLElement): void {
         <span>${escapeHtml(vaultTitle)}</span>
       </div>
       <p class="sidebar-vault-panel-hint">${escapeHtml(vaultHint)}</p>
-      ${!isConnected && lastVaults.length > 0 ? `
+      ${!isConnected && !isUnsupported && lastVaults.length > 0 ? `
         <div class="sidebar-vault-history" title="${t().actions.lastVaultsHint}">
           <span class="sidebar-vault-history-label">${t().actions.lastVaults}</span>
           ${lastVaults.map(n => `<span class="sidebar-vault-history-item">${escapeHtml(n)}</span>`).join("")}
@@ -89,6 +94,10 @@ export function renderSidebar(container: HTMLElement): void {
           <button id="sidebar-vault-disconnect" class="sidebar-vault-action" type="button">
             ${t().actions.disconnectVault}
           </button>
+          <button id="sidebar-vault-btn" class="sidebar-vault-action" type="button">
+            ${t().actions.changeVault}
+          </button>
+        ` : isUnsupported ? `` : needsPermission ? `
           <button id="sidebar-vault-btn" class="sidebar-vault-action" type="button">
             ${t().actions.changeVault}
           </button>
@@ -221,10 +230,18 @@ export function renderSidebar(container: HTMLElement): void {
         announcer.announce(t().announcements.folderConnected);
         showToast(t().vault.connectedToast, "success");
         try { localStorage.setItem("proman_onboarded", "1"); } catch { /* ignore */ }
-        await store.reloadAll();
+        const result = await store.reloadAll();
+        if (!result.ok && result.reason === "permission_denied") {
+          showToast(t().vault.permissionDeniedToast, "warning");
+        } else if (result.ok && result.warning) {
+          showToast(result.warning, "warning");
+        }
+      } else if (store.vault.consumeUserAbort()) {
+        showToast(t().vault.connectAbortedToast, "info");
       }
-    } catch (err: any) {
-      showToast(err.message || "Fehler beim Verbinden.", "error");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Fehler beim Verbinden.";
+      showToast(message, "error");
     }
   });
 
@@ -235,11 +252,13 @@ export function renderSidebar(container: HTMLElement): void {
   });
 
   sidebar.querySelector("#sidebar-vault-reload")?.addEventListener("click", async () => {
-    try {
-      await store.reloadAll();
-      showToast(t().vault.reloadedToast, "success");
-    } catch (err: any) {
-      showToast(err.message || "Reload fehlgeschlagen.", "error");
+    const result = await store.reloadAll();
+    if (result.ok) {
+      showToast(result.warning || t().vault.reloadedToast, result.warning ? "warning" : "success");
+    } else if (result.reason === "permission_denied") {
+      showToast(t().vault.permissionDeniedToast, "warning");
+    } else {
+      showToast(result.message || t().vault.reloadFailedToast, "error");
     }
   });
 
@@ -248,9 +267,15 @@ export function renderSidebar(container: HTMLElement): void {
     if (granted) {
       announcer.announce(t().announcements.folderConnected);
       showToast(t().vault.connectedToast, "success");
-      await store.reloadAll();
+      const result = await store.reloadAll();
+      if (!result.ok && result.reason === "permission_denied") {
+        showToast(t().vault.permissionDeniedToast, "warning");
+      } else if (result.ok && result.warning) {
+        showToast(result.warning, "warning");
+      }
     } else {
       showToast(t().vault.permissionDeniedToast, "warning");
+      store.notify();
     }
   });
 

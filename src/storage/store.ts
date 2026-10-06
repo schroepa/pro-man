@@ -2,7 +2,7 @@ import { Task, TaskPriority, TaskStatus, TimeEntry, DEFAULT_COLUMNS, ColumnDefin
 import { Client, Project, ContactPerson } from "../types/client";
 import { DocItem } from "../types/doc";
 import { WorkspaceMember } from "../types/member";
-import { VaultStorage, getLastVaultNames } from "./file-system";
+import { VaultStorage, getLastVaultNames, isVaultPermissionError } from "./file-system";
 import { announcer } from "../a11y/announcer";
 import { t } from "../i18n";
 import { showToast } from "../components/toast";
@@ -38,12 +38,25 @@ function shiftDate(iso: string, recurrence: "weekly" | "monthly"): string {
 export { getLastVaultNames };
 
 function reportVaultError(storage: VaultStorage): void {
+  if (storage.connectionState === "permission_needed") {
+    showToast(t().vault.permissionLostToast, "warning");
+    storage.clearError();
+    // connectionState changed — chrome must remount
+    store.notify();
+    return;
+  }
   const err = storage.getLastError();
-  if (err) {
+  if (err && err !== "USER_ABORT" && err !== "UNSUPPORTED" && err !== "PERMISSION_DENIED") {
     showToast(`${t().announcements.vaultWriteError}: ${err}`, "error");
+    storage.clearError();
+  } else if (err) {
     storage.clearError();
   }
 }
+
+export type ReloadResult =
+  | { ok: true; warning?: string }
+  | { ok: false; reason: "permission_denied" | "error"; message?: string };
 export type QuickFilter = "all" | "overdue" | "due_soon" | "has_blocker" | "no_date";
 
 interface Command {
@@ -61,7 +74,8 @@ export class AppStore {
 
   private storage: VaultStorage;
   private listeners: Set<() => void> = new Set();
-  
+  private notifyFrame: number | null = null;
+
   // Undo/Redo Stacks
   private undoStack: Command[] = [];
   private redoStack: Command[] = [];
@@ -95,7 +109,28 @@ export class AppStore {
     return () => this.listeners.delete(listener);
   }
 
+  /**
+   * Coalesce rapid notifies into one paint frame (typing, batch writes).
+   * Use notifySync() only when a listener must run before the next line (tests/tools).
+   */
   public notify(): void {
+    if (this.notifyFrame !== null) return;
+    this.notifyFrame = requestAnimationFrame(() => {
+      this.notifyFrame = null;
+      this.flushListeners();
+    });
+  }
+
+  /** Flush pending coalesced notify and invoke listeners immediately. */
+  public notifySync(): void {
+    if (this.notifyFrame !== null) {
+      cancelAnimationFrame(this.notifyFrame);
+      this.notifyFrame = null;
+    }
+    this.flushListeners();
+  }
+
+  private flushListeners(): void {
     this.listeners.forEach(fn => fn());
   }
 
@@ -109,6 +144,7 @@ export class AppStore {
     const clientsData = await this.storage.loadClientsAndProjects();
     if (clientsData?.clients?.length) {
       this.clients.clear();
+      normalizeClientProjectCodes(clientsData.clients, clientsData.projects || []);
       clientsData.clients.forEach(c => this.clients.set(c.id, c));
       this.projects.clear();
       (clientsData.projects || []).forEach(p => this.projects.set(p.id, p));
@@ -117,6 +153,10 @@ export class AppStore {
       this.initDefaultClientsAndProjects();
       this.ensureDefaultMembers();
     }
+    normalizeClientProjectCodes(
+      Array.from(this.clients.values()),
+      Array.from(this.projects.values())
+    );
 
     const loaded = await this.storage.loadAllTasks();
     if (loaded.length === 0) {
@@ -433,46 +473,84 @@ export class AppStore {
     });
   }
 
-  async reloadTasks(): Promise<void> {
-    await this.reloadAll();
+  async reloadTasks(): Promise<ReloadResult> {
+    return this.reloadAll();
   }
 
-  async reloadAll(): Promise<void> {
-    const clientsData = await this.storage.loadClientsAndProjects();
-    if (clientsData?.clients?.length) {
-      this.clients.clear();
-      clientsData.clients.forEach(c => this.clients.set(c.id, c));
-      this.projects.clear();
-      (clientsData.projects || []).forEach(p => this.projects.set(p.id, p));
-      this.loadMembersFromData(clientsData.members);
-    } else if (this.clients.size === 0) {
-      this.initDefaultClientsAndProjects();
-      this.ensureDefaultMembers();
-    } else {
-      this.loadMembersFromData(clientsData?.members);
-    }
-
-    const list = await this.storage.loadAllTasks();
-    this.tasks.clear();
-    if (list.length === 0 && !this.storage.isConnected) {
-      this.createSampleTasks();
-    } else {
-      list.forEach(t => this.tasks.set(t.id, t));
-      this.normalizeStatusesToColumns(this.getActiveColumns());
-    }
-
-    const docs = await this.storage.loadAllDocs();
-    this.docs.clear();
-    if (docs.length === 0 && !this.storage.isConnected) {
-      this.initDefaultDocs();
-      for (const doc of this.docs.values()) {
-        await this.storage.saveDoc(doc);
+  async reloadAll(): Promise<ReloadResult> {
+    if (this.storage.isConnected || this.storage.connectionState === "permission_needed") {
+      const access = await this.storage.ensureWritableAccess();
+      if (access === "denied") {
+        this.notify();
+        return { ok: false, reason: "permission_denied" };
       }
-    } else {
-      docs.forEach(d => this.docs.set(d.id, d));
     }
 
-    this.notify();
+    try {
+      const clientsData = await this.storage.loadClientsAndProjects();
+      if (clientsData?.clients?.length) {
+        this.clients.clear();
+        normalizeClientProjectCodes(clientsData.clients, clientsData.projects || []);
+        clientsData.clients.forEach(c => this.clients.set(c.id, c));
+        this.projects.clear();
+        (clientsData.projects || []).forEach(p => this.projects.set(p.id, p));
+        this.loadMembersFromData(clientsData.members);
+      } else if (this.clients.size === 0) {
+        this.initDefaultClientsAndProjects();
+        this.ensureDefaultMembers();
+      } else {
+        this.loadMembersFromData(clientsData?.members);
+      }
+
+      // Keep in-memory codes healthy even when clients.json was partial
+      normalizeClientProjectCodes(
+        Array.from(this.clients.values()),
+        Array.from(this.projects.values())
+      );
+
+      const list = await this.storage.loadAllTasks();
+      if (this.storage.connectionState === "permission_needed") {
+        this.notify();
+        return { ok: false, reason: "permission_denied" };
+      }
+
+      this.tasks.clear();
+      if (list.length === 0 && !this.storage.isConnected) {
+        this.createSampleTasks();
+      } else {
+        list.forEach(t => this.tasks.set(t.id, t));
+        this.normalizeStatusesToColumns(this.getActiveColumns());
+      }
+
+      const docs = await this.storage.loadAllDocs();
+      this.docs.clear();
+      if (docs.length === 0 && !this.storage.isConnected) {
+        this.initDefaultDocs();
+        for (const doc of this.docs.values()) {
+          await this.storage.saveDoc(doc);
+        }
+      } else {
+        docs.forEach(d => this.docs.set(d.id, d));
+      }
+
+      const loadWarn = this.storage.getLastLoadWarning();
+      this.storage.clearLoadWarning();
+      this.notify();
+
+      if (loadWarn?.startsWith("LOAD_PARTIAL:")) {
+        const n = loadWarn.split(":")[1] || "?";
+        return { ok: true, warning: t().vault.partialLoadWarning.replace("{n}", n) };
+      }
+      return { ok: true };
+    } catch (err: unknown) {
+      if (isVaultPermissionError(err) || this.storage.connectionState === "permission_needed") {
+        this.notify();
+        return { ok: false, reason: "permission_denied" };
+      }
+      const message = err instanceof Error ? err.message : String(err);
+      this.notify();
+      return { ok: false, reason: "error", message };
+    }
   }
 
   // --- Clients & Projects Queries ---
@@ -1335,7 +1413,7 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function sanitizeCode(raw?: string): string {
+export function sanitizeCode(raw?: string): string {
   if (!raw) return "";
   return raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
 }
@@ -1348,6 +1426,27 @@ export function deriveCodeFromName(name?: string): string {
     return words.map(w => w[0]).join("").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
   }
   return name.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
+}
+
+/** Fill missing client/project codes so issue-key assignment stays stable after vault load. */
+export function normalizeClientProjectCodes(
+  clients: Array<{ name?: string; code?: string }>,
+  projects: Array<{ name?: string; code?: string }>
+): void {
+  for (const client of clients) {
+    if (!sanitizeCode(client.code)) {
+      client.code = sanitizeCode(deriveCodeFromName(client.name)) || "CLI";
+    } else {
+      client.code = sanitizeCode(client.code);
+    }
+  }
+  for (const project of projects) {
+    if (!sanitizeCode(project.code)) {
+      project.code = sanitizeCode(deriveCodeFromName(project.name)) || "PRJ";
+    } else {
+      project.code = sanitizeCode(project.code);
+    }
+  }
 }
 
 export const store = new AppStore();

@@ -116,6 +116,9 @@
     background-color var(--duration-fast) var(--ease-out);
   position: relative;
   border: none;
+  /* Skip layout/paint for off-screen cards in long boards */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 140px;
 }
 
 .task-card:hover {

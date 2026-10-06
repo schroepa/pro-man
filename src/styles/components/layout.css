@@ -176,6 +176,11 @@
   background-color: #94a3b8;
 }
 
+.vault-indicator.unsupported {
+  background-color: #a8a29e;
+  box-shadow: 0 0 0 2px rgba(168, 162, 158, 0.3);
+}
+
 .sidebar-vault-actions {
   display: flex;
   flex-wrap: wrap;
