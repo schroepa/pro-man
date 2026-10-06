@@ -42,8 +42,16 @@ dialog.task-dialog[open]::backdrop {
 
 .dialog-title-group {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.dialog-sheet-meta {
+  display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .dialog-id {
@@ -54,6 +62,57 @@ dialog.task-dialog[open]::backdrop {
   background-color: var(--color-bg-surface);
   padding: 2px 6px;
   border-radius: var(--radius-xs);
+}
+
+.dialog-status-chip {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.task-more-details {
+  border-top: 1px solid var(--neutral-4, rgba(0, 0, 0, 0.08));
+  padding-top: var(--space-3);
+}
+
+.task-more-details-summary {
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  list-style: none;
+  user-select: none;
+}
+
+.task-more-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.task-more-details-summary::before {
+  content: "▸ ";
+  color: var(--color-text-muted);
+}
+
+.task-more-details[open] > .task-more-details-summary::before {
+  content: "▾ ";
+}
+
+.task-more-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.task-essentials-hint {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
 }
 
 .dialog-body {

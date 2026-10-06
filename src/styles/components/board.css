@@ -560,3 +560,23 @@
   max-width: 360px;
 }
 
+.board-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.board-demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+}
+

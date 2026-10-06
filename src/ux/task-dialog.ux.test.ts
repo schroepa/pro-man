@@ -19,6 +19,14 @@ describe("UX — task dialog select mounts", () => {
     }
   });
 
+  it("uses essentials-first layout with more-details accordion", () => {
+    const src = readSrc("components/task-dialog.ts");
+    expect(src).toContain("task-more-details");
+    expect(src).toContain("titlePlaceholder");
+    expect(src).toContain("dialog-status-chip");
+    expect(src).toContain("firstTaskToast");
+  });
+
   it("wires CustomSelect values into collectFormTask", () => {
     const src = readSrc("components/task-dialog.ts");
     expect(src).toMatch(/selectClient\?\.getValue\(\)/);

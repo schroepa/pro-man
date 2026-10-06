@@ -181,7 +181,8 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 ### 6.3 Dialog / Forms
 
-- Task-Dialog: Elevated + Overlay-Shadow.
+- Task-Dialog: Elevated + Overlay-Shadow; Essentials zuerst (Titel, Status, Priorität, Fällig), Rest in `<details class="task-more-details">`.
+- Sheet-Header: Issue-Key + Status-Chip (mobil sichtbar halten).
 - Inputs: `min-height: 32px`, Subtle-Hintergrund.
 - Milestone-Switch: **gleiche** Höhe/Padding/Radius wie `.input`.
 - Date-Picker-Icons: Mask + `--color-text-secondary` (nicht OS-`color-scheme`-Ghosts).
@@ -191,14 +192,24 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 - Cards: Surface + weiche Shadows (Dark abgemildert).
 - Hover-Schatten: genug Padding in Listen, damit nichts abgeschnitten wird.
+- KPI-Bar erst nach erster **eigener** (nicht Sample-) Aufgabe; Demo-Banner mit Clear-CTA solange Sample-Daten existieren.
+- Filterleiste ausblenden bei `getAllRawTasks().length === 0`.
 
 ### 6.5 Kunden-Seite
 
 - ViewMode `client` (lazy wie Docs/Backoffice); Styles in `client.css`.
-- Layout: Header (Swatch + Name/Code + CTAs) · KPI-Zeile · Grid Stammdaten | Kontakte/Projekte.
+- Layout: Header (Swatch + Name/Code + sekundäre Board/Docs-CTAs) · KPI-Zeile · Grid Stammdaten | Kontakte/Projekte.
+- Primäraktion auf der Seite: sticky Speichern am Stammdaten-Block; Topbar-CTA = „Board öffnen“.
 - Surfaces wie Backoffice: `--color-bg-surface` + `--shadow-sm`, kein Card-Rahmen-Stack.
 - Sidebar-Klick auf Kundenname → Kunden-Seite; Projektklick → Board mit Projekt-Scope.
 - Topbar: View-Switcher ausgeblendet (Label „Kunde“), Filter ausgeblendet — analog Docs/Backoffice.
+- Kontakt-Badge: i18n `client.primary` („Primär“ / „Primary“).
+
+### 6.6 Shell / Onboarding
+
+- Banner = einzige Primär-CTA „Ordner verbinden“; Sidebar-Connect vor Dismiss ohne Primary-Gewicht.
+- Nach Onboard + Offline: kompakte Statuszeile (`sidebar-vault-compact`), volle Fläche nur bei `permission_needed` / Unsupported / vor Onboard.
+- Topbar-Primäraktion kontextuell: Docs → Doc, Backoffice → Kunde, Client → Board, sonst Aufgabe.
 
 ---
 

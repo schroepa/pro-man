@@ -6,6 +6,9 @@ Alle nennenswerten Änderungen an ProMan.
 
 ### Features
 - **Kunden-Seiten**: Sidebar-/Breadcrumb-/⌘K-Klick öffnet eigene Client-Ansicht mit editierbaren Stammdaten, Kontakten, Projekten und KPIs (Board/Docs-CTAs)
+- **Beispieldaten-Modus**: Badge, „Beispieldaten entfernen“, Seed nur wenn nicht geklärt; First-Success-Toast nach erster eigener Aufgabe
+- **Kontextuelle Topbar-CTA**: Docs → Doc, Backoffice → Kunde, Client → Board, sonst → Aufgabe
+- **Docs-Liste**: Suche, Projekt-Gruppen, kompakte Titelzeilen; neue Docs ohne doppelten H1-Body
 
 ### Docs
 - **UX-Audit A** (First-time → produktiv): `docs/ux-audits/a-first-time/` — findings, Report, interaktives `audit.html`; FigJam-Stickies
@@ -14,7 +17,11 @@ Alle nennenswerten Änderungen an ProMan.
 - **Edge-Swipe Drawer**: von links öffnen, nach links schließen; Escape + Body-Scroll-Lock
 
 ### Improvements
-- **Onboarding**: Banner mit Vault als Primär-CTA und „Loslegen“; klarerer Tip zu Vault vs. Browser-Daten
+- **Onboarding / Ordner-Shell**: Copy ohne Vault-Jargon; Banner = Primär-CTA; Sidebar nach Dismiss kompakt („Lokal · Ordner jederzeit“); „Mit Beispieldaten starten“ + Toast
+- **Task-Dialog Essentials-first**: Titel/Status/Priorität/Fällig sichtbar; Rest unter „Mehr Details“; Sheet-Header mit Issue-Key + Status-Chip
+- **Empty Chrome**: Filterleiste bei 0 Tasks aus; KPI erst nach erster eigener Aufgabe; Demo-Banner am Board
+- **Kunden/Backoffice**: Speichern sticky; Board/Docs sekundär; Badge „Primär“; Backoffice → Kunden-Seite; Status-Spalten als Zeilen-UI
+- **IA**: Sidebar „n Proj.“; Gantt-Legende Priorität(+Erledigt); Listen-Zuweisung nur wenn genutzt
 - **Empty States**: echter Leerstand (Board/Liste) mit „Erste Aufgabe anlegen“; Filter-Empty unverändert; Gantt-Empty i18n + CTA
 - **Task-Dialog ≤640px**: Full-Height-Sheet, scrollbarer Body, sticky Footer + Safe-Area
 - **Kanban Mobile**: eine Spalte, kein horizontales Board-Scroll (Swipe-Konflikt vermeiden)

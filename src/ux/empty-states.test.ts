@@ -21,7 +21,7 @@ describe("Onboarding banner", () => {
     document.body.innerHTML = "";
   });
 
-  it("renders vault as primary and Loslegen as secondary", () => {
+  it("renders folder connect as primary and sample-data start as secondary", () => {
     const banner = renderOnboardingBanner(() => {});
     expect(banner).not.toBeNull();
     const connect = banner!.querySelector("#onboard-connect") as HTMLButtonElement;
@@ -30,6 +30,7 @@ describe("Onboarding banner", () => {
     expect(dismiss.classList.contains("btn-secondary")).toBe(true);
     expect(connect.textContent).toBe(t().actions.connectVault);
     expect(dismiss.textContent).toBe(t().onboarding.dismiss);
+    expect(banner!.textContent).toContain(t().empty.demoBadge);
   });
 
   it("dismiss marks onboarded and calls callback", () => {

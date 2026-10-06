@@ -99,7 +99,9 @@ export function renderTopbar(
   container: HTMLElement,
   onNewTask: () => void,
   onNewDoc: () => void,
-  onOpenCommandPalette: () => void
+  onOpenCommandPalette: () => void,
+  onNewClient: () => void = () => {},
+  onOpenBoard: () => void = () => {},
 ): void {
   clearFilterPopoverListeners();
   // Close any portaled select menus before tearing down the previous topbar
@@ -125,7 +127,12 @@ export function renderTopbar(
   const secondaryCount = countSecondaryFilters();
   const filtersOpen = isFiltersExpanded();
   const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
-  const hideFilters = store.currentView === "docs" || store.currentView === "backoffice" || store.currentView === "client";
+  const taskCount = store.getAllRawTasks().length;
+  const hideFilters =
+    taskCount === 0 ||
+    store.currentView === "docs" ||
+    store.currentView === "backoffice" ||
+    store.currentView === "client";
   const isCalendar = store.currentView === "calendar";
   const hasScope = !!(store.selectedClientId || store.selectedProjectId);
   const sidebarVisible = isSidebarVisible();
@@ -134,6 +141,34 @@ export function renderTopbar(
     store.currentView === "docs" ? t().views.docs
       : store.currentView === "client" ? t().views.client
         : t().views.backoffice;
+
+  type PrimaryCta = { id: string; label: string; icon: string };
+  let primaryCta: PrimaryCta = {
+    id: "topbar-new-task-btn",
+    label: t().actions.newTask,
+    icon: TablerIcon.plus({ size: 14, strokeWidth: 2.5 }),
+  };
+  if (store.currentView === "docs") {
+    primaryCta = {
+      id: "topbar-primary-new-doc",
+      label: t().actions.newDoc,
+      icon: TablerIcon.plus({ size: 14, strokeWidth: 2.5 }),
+    };
+  } else if (store.currentView === "backoffice") {
+    primaryCta = {
+      id: "topbar-primary-new-client",
+      label: t().actions.newClient,
+      icon: TablerIcon.plus({ size: 14, strokeWidth: 2.5 }),
+    };
+  } else if (store.currentView === "client") {
+    primaryCta = {
+      id: "topbar-primary-open-board",
+      label: t().actions.openBoard,
+      icon: TablerIcon.layoutKanban({ size: 14, strokeWidth: 2 }),
+    };
+  }
+  const showNewTaskInOverflow = store.currentView === "docs" || store.currentView === "backoffice" || store.currentView === "client";
+  const showNewDocInOverflow = store.currentView !== "docs";
 
   const quickChips = isCalendar
     ? (["overdue", "due_soon"] as QuickFilter[])
@@ -195,11 +230,20 @@ export function renderTopbar(
             ${TablerIcon.dotsVertical({ size: 16 })}
           </button>
           <div id="topbar-overflow-menu" class="topbar-overflow-menu" role="menu" hidden>
+            ${showNewTaskInOverflow ? `
+            <button type="button" class="topbar-overflow-item" role="menuitem" id="topbar-overflow-new-task">
+              ${TablerIcon.plus({ size: 14 })}
+              <span>${t().actions.newTask}</span>
+              <kbd>N</kbd>
+            </button>
+            ` : ""}
+            ${showNewDocInOverflow ? `
             <button type="button" class="topbar-overflow-item" role="menuitem" id="topbar-new-doc-btn">
               ${TablerIcon.fileText({ size: 14 })}
               <span>${t().actions.newDoc}</span>
               <kbd>D</kbd>
             </button>
+            ` : ""}
             <button type="button" class="topbar-overflow-item" role="menuitem" id="topbar-undo">
               ${TablerIcon.arrowBackUp({ size: 14 })}
               <span>${t().actions.undo}</span>
@@ -222,9 +266,9 @@ export function renderTopbar(
           </div>
         </div>
 
-        <button id="topbar-new-task-btn" class="btn btn-primary topbar-primary-cta" title="${t().actions.newTask}" aria-label="${t().actions.newTask}">
-          ${TablerIcon.plus({ size: 14, strokeWidth: 2.5 })}
-          <span>${t().actions.newTask}</span>
+        <button id="${primaryCta.id}" class="btn btn-primary topbar-primary-cta" title="${escapeHtml(primaryCta.label)}" aria-label="${escapeHtml(primaryCta.label)}">
+          ${primaryCta.icon}
+          <span>${escapeHtml(primaryCta.label)}</span>
         </button>
       </div>
     </div>
@@ -468,7 +512,7 @@ export function renderTopbar(
 
   topbar.querySelector("#topbar-sidebar-toggle")?.addEventListener("click", () => {
     toggleSidebar();
-    renderTopbar(container, onNewTask, onNewDoc, onOpenCommandPalette);
+    renderTopbar(container, onNewTask, onNewDoc, onOpenCommandPalette, onNewClient, onOpenBoard);
   });
 
   topbar.querySelectorAll<HTMLButtonElement>(".view-btn").forEach(btn => {
@@ -556,11 +600,15 @@ export function renderTopbar(
     try {
       localStorage.setItem("proman_theme_mode", nextTheme);
     } catch {}
-    renderTopbar(container, onNewTask, onNewDoc, onOpenCommandPalette);
+    renderTopbar(container, onNewTask, onNewDoc, onOpenCommandPalette, onNewClient, onOpenBoard);
   });
 
   topbar.querySelector("#topbar-new-task-btn")?.addEventListener("click", onNewTask);
+  topbar.querySelector("#topbar-overflow-new-task")?.addEventListener("click", onNewTask);
   topbar.querySelector("#topbar-new-doc-btn")?.addEventListener("click", onNewDoc);
+  topbar.querySelector("#topbar-primary-new-doc")?.addEventListener("click", onNewDoc);
+  topbar.querySelector("#topbar-primary-new-client")?.addEventListener("click", onNewClient);
+  topbar.querySelector("#topbar-primary-open-board")?.addEventListener("click", onOpenBoard);
 
   container.innerHTML = "";
   container.appendChild(topbar);

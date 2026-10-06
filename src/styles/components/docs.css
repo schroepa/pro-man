@@ -28,13 +28,37 @@
   justify-content: space-between;
 }
 
+.docs-list-search {
+  padding: 0 var(--space-3) var(--space-2);
+}
+
+.docs-list-search .input {
+  min-height: 32px;
+  font-size: var(--font-size-xs);
+}
+
 .docs-items-scroll {
   flex: 1;
   overflow-y: auto;
   padding: var(--space-2) var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--space-3);
+}
+
+.docs-project-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.docs-project-group-label {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  padding: 0 var(--space-2) var(--space-1);
 }
 
 .doc-card-item {
@@ -47,6 +71,33 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+}
+
+.doc-card-item.doc-card-compact {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 6px var(--space-2-5);
+  box-shadow: none;
+  background: transparent;
+}
+
+.doc-card-item.doc-card-compact:hover {
+  transform: none;
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.doc-card-item.doc-card-compact .doc-card-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.doc-card-meta-date {
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 .doc-card-item:hover {

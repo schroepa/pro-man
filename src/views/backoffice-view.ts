@@ -11,9 +11,17 @@ type BackofficeTab = "clients" | "theme";
 let currentTab: BackofficeTab = "clients";
 let feedbackMessage: string | null = null;
 let editingClientId: string | null = null;
+let showNewClientForm = false;
 
 export function renderBackofficeView(container: HTMLElement): void {
   container.innerHTML = "";
+
+  try {
+    if (sessionStorage.getItem("proman_backoffice_new_client") === "1") {
+      showNewClientForm = true;
+      sessionStorage.removeItem("proman_backoffice_new_client");
+    }
+  } catch { /* ignore */ }
 
   const clients = store.getClients();
   const allProjects = store.getProjects();
@@ -137,7 +145,7 @@ function renderClientsTabHTML(
     </div>
 
     <!-- New Client Collapsible Card -->
-    <div id="new-client-panel" class="backoffice-card" style="display: none;">
+    <div id="new-client-panel" class="backoffice-card" style="display: ${showNewClientForm ? "block" : "none"};">
       <h2 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">
         Neuen Kunden erfassen
       </h2>
@@ -243,13 +251,13 @@ function renderClientsTabHTML(
                     <span>•</span>
                     <span>${clientDocs.length} Docs</span>
                   </div>
-                  <button class="btn btn-ghost open-client-page-btn" data-client-id="${client.id}" style="padding: 4px 8px; font-size: var(--font-size-xs);" title="${escapeHtml(t().views.client)}">
+                  <button class="btn btn-secondary open-client-page-btn" data-client-id="${client.id}" style="padding: 4px 8px; font-size: var(--font-size-xs);" title="${escapeHtml(t().client.openClientPage)}">
                     ${TablerIcon.externalLink({ size: 14 })}
-                    <span>${escapeHtml(t().views.client)}</span>
+                    <span>${escapeHtml(t().client.openClientPage)}</span>
                   </button>
-                  <button class="btn btn-ghost edit-client-btn" data-client-id="${client.id}" style="padding: 4px 8px; font-size: var(--font-size-xs);" title="Kunde bearbeiten">
+                  <button class="btn btn-ghost edit-client-btn" data-client-id="${client.id}" style="padding: 4px 8px; font-size: var(--font-size-xs);" title="${escapeHtml(t().client.quickEdit)}">
                     ${TablerIcon.pencil({ size: 14 })}
-                    <span>${isEditing ? "Schließen" : "Bearbeiten"}</span>
+                    <span>${isEditing ? "Schließen" : escapeHtml(t().client.quickEdit)}</span>
                   </button>
                   <button class="btn btn-ghost-danger delete-client-btn" data-client-id="${client.id}" style="padding: 4px 8px; font-size: var(--font-size-xs);" title="Kunde löschen">
                     ${TablerIcon.trash({ size: 14 })}
@@ -330,7 +338,7 @@ function renderClientsTabHTML(
                     <div class="contact-row" data-contact-id="${contact.id}">
                       <div class="contact-info">
                         <strong>${escapeHtml(contact.name)}</strong>
-                        ${contact.isPrimary ? `<span class="contact-primary-badge">Primary</span>` : ""}
+                        ${contact.isPrimary ? `<span class="contact-primary-badge">${escapeHtml(t().client.primary)}</span>` : ""}
                         ${contact.role ? `<span class="contact-meta">${escapeHtml(contact.role)}</span>` : ""}
                         ${contact.email ? `<span class="contact-meta">${escapeHtml(contact.email)}</span>` : ""}
                         ${contact.phone ? `<span class="contact-meta">${escapeHtml(contact.phone)}</span>` : ""}
@@ -346,9 +354,9 @@ function renderClientsTabHTML(
                   <input type="text" name="role" class="input" placeholder="Rolle" style="max-width: 120px;" />
                   <input type="email" name="email" class="input" placeholder="E-Mail" style="max-width: 160px;" />
                   <input type="tel" name="phone" class="input" placeholder="Telefon" style="max-width: 120px;" />
-                  <label class="contact-primary-check" title="Primary">
+                  <label class="contact-primary-check" title="${escapeHtml(t().client.primary)}">
                     <input type="checkbox" name="isPrimary" />
-                    <span>Primary</span>
+                    <span>${escapeHtml(t().client.primary)}</span>
                   </label>
                   <button type="submit" class="btn btn-secondary" style="font-size: var(--font-size-xs);">
                     ${TablerIcon.plus({ size: 12 })}
@@ -378,8 +386,13 @@ function renderClientsTabHTML(
                       </button>
                     </div>
                     <div class="project-statuses-editor" data-project-id="${prj.id}">
-                      <label class="form-label" style="font-size: 0.6875rem;">Status-Spalten (eine Zeile: id|Name|WIP)</label>
-                      <textarea class="textarea project-statuses-textarea" rows="3" placeholder="todo|Zu erledigen|5&#10;in-progress|In Bearbeitung|3&#10;done|Erledigt">${escapeHtml(formatProjectStatuses(prj))}</textarea>
+                      <label class="form-label" style="font-size: 0.6875rem;">Status-Spalten</label>
+                      <div class="project-status-rows">
+                        ${statusRowsHtml(prj)}
+                      </div>
+                      <button type="button" class="btn btn-ghost add-status-row-btn" data-project-id="${prj.id}" style="font-size: var(--font-size-xs); align-self: flex-start;">
+                        ${TablerIcon.plus({ size: 12 })} Status
+                      </button>
                       <button type="button" class="btn btn-secondary save-project-statuses-btn" data-project-id="${prj.id}" style="font-size: var(--font-size-xs); align-self: flex-start;">
                         Status speichern
                       </button>
@@ -628,8 +641,10 @@ function attachClientsEventListeners(wrapper: HTMLElement, container: HTMLElemen
 
   if (toggleBtn && newClientPanel) {
     toggleBtn.addEventListener("click", () => {
-      newClientPanel.style.display = newClientPanel.style.display === "none" ? "block" : "none";
-      if (newClientPanel.style.display === "block") {
+      const next = newClientPanel.style.display === "none" ? "block" : "none";
+      newClientPanel.style.display = next;
+      showNewClientForm = next === "block";
+      if (showNewClientForm) {
         (wrapper.querySelector("#bo-client-name") as HTMLInputElement)?.focus();
       }
     });
@@ -638,8 +653,40 @@ function attachClientsEventListeners(wrapper: HTMLElement, container: HTMLElemen
   if (cancelBtn && newClientPanel) {
     cancelBtn.addEventListener("click", () => {
       newClientPanel.style.display = "none";
+      showNewClientForm = false;
     });
   }
+
+  if (showNewClientForm) {
+    (wrapper.querySelector("#bo-client-name") as HTMLInputElement)?.focus();
+  }
+
+  wrapper.querySelectorAll<HTMLButtonElement>(".add-status-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const projectId = btn.dataset.projectId;
+      const editor = projectId
+        ? wrapper.querySelector<HTMLElement>(`.project-statuses-editor[data-project-id="${projectId}"]`)
+        : null;
+      const rows = editor?.querySelector(".project-status-rows");
+      if (!rows) return;
+      const row = document.createElement("div");
+      row.className = "project-status-row";
+      row.innerHTML = `
+        <input type="text" class="input status-id-input" placeholder="id" value="" style="max-width: 100px;" />
+        <input type="text" class="input status-name-input" placeholder="Name" value="" />
+        <input type="number" class="input status-wip-input" placeholder="WIP" min="0" value="" style="max-width: 72px;" title="WIP-Limit (optional)" />
+        <button type="button" class="btn btn-ghost remove-status-row-btn" title="Entfernen">${TablerIcon.x({ size: 12 })}</button>
+      `;
+      rows.appendChild(row);
+      row.querySelector(".remove-status-row-btn")?.addEventListener("click", () => row.remove());
+    });
+  });
+
+  wrapper.querySelectorAll<HTMLButtonElement>(".remove-status-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.closest(".project-status-row")?.remove();
+    });
+  });
 
   const createForm = wrapper.querySelector<HTMLFormElement>("#create-client-form");
   if (createForm) {
@@ -852,8 +899,7 @@ function attachClientsEventListeners(wrapper: HTMLElement, container: HTMLElemen
       const existing = projectId ? store.getProject(projectId) : undefined;
       if (!existing || !projectId) return;
       const editor = wrapper.querySelector<HTMLElement>(`.project-statuses-editor[data-project-id="${projectId}"]`);
-      const textarea = editor?.querySelector<HTMLTextAreaElement>(".project-statuses-textarea");
-      const statuses = parseProjectStatuses(textarea?.value || "");
+      const statuses = collectStatusRows(editor);
       await store.updateProject({
         ...existing,
         statuses: statuses.length > 0 ? statuses : undefined,
@@ -984,30 +1030,38 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-function formatProjectStatuses(project: Project): string {
-  if (!project.statuses?.length) return "";
-  return [...project.statuses]
-    .sort((a, b) => a.order - b.order)
-    .map(s => {
-      const wip = typeof s.wipLimit === "number" ? `|${s.wipLimit}` : "";
-      return `${s.id}|${s.name}${wip}`;
-    })
-    .join("\n");
+function defaultStatusRows(): ColumnDefinition[] {
+  return [
+    { id: "todo", name: t().statuses.todo, color: "var(--color-text-muted)", order: 0 },
+    { id: "in-progress", name: t().statuses["in-progress"], color: "var(--color-text-muted)", order: 1 },
+    { id: "in-review", name: t().statuses["in-review"], color: "var(--color-text-muted)", order: 2 },
+    { id: "done", name: t().statuses.done, color: "var(--color-text-muted)", order: 3 },
+  ];
 }
 
-/** Parse lines like `id|Name|WIP` into ColumnDefinition[]. Empty → []. */
-function parseProjectStatuses(raw: string): ColumnDefinition[] {
-  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
+function statusRowsHtml(project: Project): string {
+  const rows = project.statuses?.length
+    ? [...project.statuses].sort((a, b) => a.order - b.order)
+    : defaultStatusRows();
+  return rows.map(s => `
+    <div class="project-status-row">
+      <input type="text" class="input status-id-input" placeholder="id" value="${escapeHtml(s.id)}" style="max-width: 100px;" />
+      <input type="text" class="input status-name-input" placeholder="Name" value="${escapeHtml(s.name)}" />
+      <input type="number" class="input status-wip-input" placeholder="WIP" min="0" value="${typeof s.wipLimit === "number" ? s.wipLimit : ""}" style="max-width: 72px;" title="WIP-Limit (optional)" />
+      <button type="button" class="btn btn-ghost remove-status-row-btn" title="Entfernen">${TablerIcon.x({ size: 12 })}</button>
+    </div>
+  `).join("");
+}
+
+function collectStatusRows(editor: HTMLElement | null | undefined): ColumnDefinition[] {
+  if (!editor) return [];
   const result: ColumnDefinition[] = [];
-  lines.forEach((line, index) => {
-    const parts = line.split("|").map(p => p.trim());
-    const id = parts[0];
+  editor.querySelectorAll<HTMLElement>(".project-status-row").forEach((row, index) => {
+    const id = row.querySelector<HTMLInputElement>(".status-id-input")?.value.trim() || "";
     if (!id) return;
-    const name = parts[1] || id;
-    const wipRaw = parts[2];
-    const wipLimit = wipRaw !== undefined && wipRaw !== "" && Number.isFinite(Number(wipRaw))
-      ? Number(wipRaw)
-      : undefined;
+    const name = row.querySelector<HTMLInputElement>(".status-name-input")?.value.trim() || id;
+    const wipRaw = row.querySelector<HTMLInputElement>(".status-wip-input")?.value.trim() || "";
+    const wipLimit = wipRaw !== "" && Number.isFinite(Number(wipRaw)) ? Number(wipRaw) : undefined;
     result.push({
       id,
       name,

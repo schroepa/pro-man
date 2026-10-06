@@ -3,6 +3,7 @@ import { store } from "../storage/store";
 import { createTaskCard } from "../components/task-card";
 import { TablerIcon } from "../components/icons";
 import { t } from "../i18n";
+import { SAMPLE_CLIENT_IDS } from "../storage/demo-mode";
 
 function dotClassForStatus(id: string): string {
   if (id === "todo") return "column-dot-todo";
@@ -168,13 +169,25 @@ export function renderKanbanBoard(
       </div>
       <h3 class="board-empty-title">${i18n.empty.workspaceTitle}</h3>
       <p class="board-empty-desc">${i18n.empty.workspaceDesc}</p>
-      <button id="empty-workspace-new-task" class="btn btn-primary" style="margin-top: var(--space-2);">
-        ${TablerIcon.plus({ size: 14 })}
-        <span>${i18n.empty.workspaceAction}</span>
-      </button>
+      <div class="board-empty-actions">
+        <button id="empty-workspace-new-task" class="btn btn-primary">
+          ${TablerIcon.plus({ size: 14 })}
+          <span>${i18n.empty.workspaceAction}</span>
+        </button>
+        ${store.hasSampleData() || (store.getClients().length > 0 && store.getClients().every(c => SAMPLE_CLIENT_IDS.has(c.id))) ? `
+          <button type="button" id="empty-clear-demo" class="btn btn-secondary">
+            ${i18n.empty.clearDemo}
+          </button>
+        ` : ""}
+      </div>
     `;
     emptyBoard.querySelector("#empty-workspace-new-task")?.addEventListener("click", () => {
       onNewTask("todo");
+    });
+    emptyBoard.querySelector("#empty-clear-demo")?.addEventListener("click", async () => {
+      await store.clearDemoData();
+      const { showToast } = await import("../components/toast");
+      showToast(i18n.empty.clearDemoToast, "info");
     });
     board.appendChild(emptyBoard);
     viewWrapper.appendChild(board);
@@ -182,7 +195,27 @@ export function renderKanbanBoard(
     return;
   }
 
-  viewWrapper.appendChild(kpiBar);
+  // KPI only after the first own (non-sample) task — quieter first-run with demo data
+  if (store.hasOwnTasks()) {
+    viewWrapper.appendChild(kpiBar);
+  }
+
+  if (store.hasSampleData()) {
+    const demoBar = document.createElement("div");
+    demoBar.className = "board-demo-banner";
+    demoBar.innerHTML = `
+      <span class="demo-chip">${i18n.empty.demoBadge}</span>
+      <button type="button" id="board-clear-demo" class="btn btn-ghost" style="font-size: var(--font-size-xs);">
+        ${i18n.empty.clearDemo}
+      </button>
+    `;
+    demoBar.querySelector("#board-clear-demo")?.addEventListener("click", async () => {
+      await store.clearDemoData();
+      const { showToast } = await import("../components/toast");
+      showToast(i18n.empty.clearDemoToast, "info");
+    });
+    viewWrapper.appendChild(demoBar);
+  }
 
   // Filtered empty — reset filters
   if (tasks.length === 0) {

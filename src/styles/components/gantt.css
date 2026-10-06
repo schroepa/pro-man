@@ -227,6 +227,32 @@
 .gantt-bar.priority-low { background-color: var(--gantt-bar-low, #64748b); }
 .gantt-bar.status-done { background-color: var(--gantt-bar-done, #16a34a); }
 
+.gantt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: 0.6875rem;
+  color: var(--color-text-secondary);
+}
+
+.gantt-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gantt-legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.gantt-legend-swatch.priority-urgent { background-color: var(--gantt-bar-urgent, #ef4444); }
+.gantt-legend-swatch.priority-high { background-color: var(--gantt-bar-high, #f97316); }
+.gantt-legend-swatch.priority-normal { background-color: var(--gantt-bar-normal, #4f46e5); }
+.gantt-legend-swatch.status-done { background-color: var(--gantt-bar-done, #16a34a); }
+
 .gantt-empty-state {
   display: flex;
   flex-direction: column;

@@ -4,6 +4,7 @@ import { announcer } from "../a11y/announcer";
 import { TablerIcon } from "./icons";
 import { showToast } from "./toast";
 import { closeMobileSidebar, toggleSidebar } from "../storage/sidebar-layout";
+import { isOnboarded } from "./onboarding-banner";
 
 export function renderSidebar(container: HTMLElement): void {
   const sidebar = document.createElement("aside");
@@ -17,8 +18,12 @@ export function renderSidebar(container: HTMLElement): void {
   const lastVaults = getLastVaultNames();
   const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
   const lang = getLanguage();
+  const onboarded = isOnboarded();
+  const showDemoBadge = store.hasSampleData() && !isConnected;
+  /** Full panel only before onboard, when permission needed, or unsupported. */
+  const collapseVault = onboarded && !needsPermission && !isUnsupported;
 
-  let vaultTitle = t().actions.connectVault;
+  let vaultTitle = t().vault.offlineTitle;
   let vaultHint = t().vault.offlineHint;
   let indicatorClass = "offline";
   if (isUnsupported) {
@@ -62,12 +67,20 @@ export function renderSidebar(container: HTMLElement): void {
           ${TablerIcon.briefcase({ size: 20, strokeWidth: 2.2 })}
         </span>
         <span>${t().appName}</span>
+        ${showDemoBadge ? `<span class="demo-chip sidebar-demo-chip">${t().empty.demoBadge}</span>` : ""}
       </div>
       <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" data-sidebar-toggle aria-label="${t().actions.collapseSidebar}" title="${t().actions.collapseSidebar} (⌘\\)">
         ${TablerIcon.layoutSidebarLeftCollapse({ size: 16 })}
       </button>
     </div>
 
+    ${collapseVault ? `
+      <button type="button" id="sidebar-vault-btn" class="sidebar-vault-compact" title="${escapeHtml(vaultHint)}" aria-label="${isConnected ? escapeHtml(vaultTitle) : t().actions.connectVault}">
+        <span class="vault-indicator ${indicatorClass}" aria-hidden="true"></span>
+        <span class="sidebar-vault-compact-label">${isConnected ? escapeHtml(vaultTitle) : escapeHtml(t().vault.offlineHintShort)}</span>
+        ${!isConnected && !isUnsupported ? `<span>${t().vault.connectFolder}</span>` : ""}
+      </button>
+    ` : `
     <div class="sidebar-vault-panel" data-state="${connectionState}">
       <div class="sidebar-vault-panel-title">
         <span class="vault-indicator ${indicatorClass}" aria-hidden="true"></span>
@@ -102,12 +115,13 @@ export function renderSidebar(container: HTMLElement): void {
             ${t().actions.changeVault}
           </button>
         ` : `
-          <button id="sidebar-vault-btn" class="sidebar-vault-action sidebar-vault-action-primary" type="button">
+          <button id="sidebar-vault-btn" class="sidebar-vault-action ${onboarded ? "sidebar-vault-action-primary" : ""}" type="button">
             ${t().actions.connectVault}
           </button>
         `}
       </div>
     </div>
+    `}
 
     <div class="sidebar-nav-scroll">
       <!-- Views / Spaces -->
@@ -177,7 +191,7 @@ export function renderSidebar(container: HTMLElement): void {
                     <span class="client-dot" style="background-color: ${client.color};"></span>
                     <span style="font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);">${escapeHtml(client.name)}</span>
                   </div>
-                  <span style="font-size: 0.625rem; color: var(--color-text-muted);">${projects.length}</span>
+                  <span style="font-size: 0.625rem; color: var(--color-text-muted);">${t().sections.projectCountShort.replace("{n}", String(projects.length))}</span>
                 </div>
                 <div class="project-tree-list">
                   ${projects.map(prj => {

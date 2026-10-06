@@ -46,13 +46,26 @@ function createNewDoc(): void {
     id: newId,
     clientId: defaultClient,
     projectId: defaultProject,
-    title: "Neues Dokument",
-    content: "# Neues Dokument\n\nSchreibe Notizen und Spezifikationen...",
+    title: t().docs.untitled,
+    content: "",
     tags: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
   store.selectedDocId = newId;
+  store.notify();
+}
+
+function createNewClient(): void {
+  store.currentView = "backoffice";
+  try {
+    sessionStorage.setItem("proman_backoffice_new_client", "1");
+  } catch { /* ignore */ }
+  store.notify();
+}
+
+function openClientBoard(): void {
+  store.currentView = "kanban";
   store.notify();
 }
 
@@ -72,7 +85,9 @@ function renderChrome(): void {
     topbarContainer,
     () => createNewTask(),
     () => createNewDoc(),
-    () => commandPalette.open()
+    () => commandPalette.open(),
+    () => createNewClient(),
+    () => openClientBoard(),
   );
   renderMobileBottomNav(mobileNavContainer);
 }

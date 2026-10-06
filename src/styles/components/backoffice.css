@@ -633,6 +633,20 @@
 }
 
 
+.project-status-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin-bottom: var(--space-2);
+}
+
+.project-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
 .project-statuses-editor {
   display: flex;
   flex-direction: column;

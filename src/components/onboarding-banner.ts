@@ -20,7 +20,7 @@ export function markOnboarded(): void {
 }
 
 /**
- * First-run banner: connect vault (primary) or start without vault (secondary).
+ * First-run banner: connect folder (primary) or start with sample data (secondary).
  */
 export function renderOnboardingBanner(onDismiss: () => void): HTMLElement | null {
   if (isOnboarded()) return null;
@@ -32,8 +32,12 @@ export function renderOnboardingBanner(onDismiss: () => void): HTMLElement | nul
   banner.setAttribute("aria-label", i18n.onboarding.title);
   banner.innerHTML = `
     <div class="onboarding-banner-body">
-      <strong class="onboarding-banner-title">${i18n.onboarding.title}</strong>
+      <div class="onboarding-banner-title-row">
+        <strong class="onboarding-banner-title">${i18n.onboarding.title}</strong>
+        <span class="demo-chip">${i18n.empty.demoBadge}</span>
+      </div>
       <p class="onboarding-banner-tip">${i18n.onboarding.tip}</p>
+      <p class="onboarding-banner-tip-secondary">${i18n.onboarding.tipSecondary}</p>
     </div>
     <div class="onboarding-banner-actions">
       <button type="button" id="onboard-connect" class="btn btn-primary">${i18n.actions.connectVault}</button>
@@ -69,6 +73,9 @@ export function renderOnboardingBanner(onDismiss: () => void): HTMLElement | nul
   banner.querySelector("#onboard-dismiss")?.addEventListener("click", () => {
     markOnboarded();
     onDismiss();
+    void import("./toast").then(({ showToast }) => {
+      showToast(i18n.vault.localModeToast, "info");
+    });
   });
 
   return banner;

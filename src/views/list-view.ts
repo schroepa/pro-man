@@ -187,6 +187,7 @@ export function renderListView(
   wrap.className = "list-table-wrap";
 
   const allSelected = tasks.length > 0 && tasks.every(t => selectedIds.has(t.id));
+  const showAssignee = store.getAllRawTasks().some(task => !!task.assigneeId);
 
   const table = document.createElement("table");
   table.className = "list-table";
@@ -203,11 +204,11 @@ export function renderListView(
         ${sortableTh("dueDate", t().tasks.dueDate)}
         <th scope="col">${t().filters.client}</th>
         <th scope="col">${t().filters.project}</th>
-        <th scope="col">${t().filters.assignee}</th>
+        ${showAssignee ? `<th scope="col">${t().filters.assignee}</th>` : ""}
       </tr>
     </thead>
     <tbody>
-      ${tasks.map(task => renderRow(task)).join("")}
+      ${tasks.map(task => renderRow(task, showAssignee)).join("")}
     </tbody>
   `;
 
@@ -387,7 +388,7 @@ function sortableTh(key: SortKey, label: string): string {
   `;
 }
 
-function renderRow(task: Task): string {
+function renderRow(task: Task, showAssignee: boolean): string {
   const client = task.clientId ? store.getClient(task.clientId) : null;
   const project = task.projectId ? store.getProject(task.projectId) : null;
   const assignee = task.assigneeId ? store.getMember(task.assigneeId) : null;
@@ -407,7 +408,7 @@ function renderRow(task: Task): string {
       <td>${escapeHtml(formatDate(task.dueDate))}</td>
       <td>${escapeHtml(client?.name || "—")}</td>
       <td>${escapeHtml(project?.name || "—")}</td>
-      <td>${escapeHtml(assignee?.name || "—")}</td>
+      ${showAssignee ? `<td>${escapeHtml(assignee?.name || "—")}</td>` : ""}
     </tr>
   `;
 }

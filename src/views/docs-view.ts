@@ -43,12 +43,22 @@ function buildDocTree(docs: DocItem[]): DocTreeNode[] {
   return result;
 }
 
+let docsListQuery = "";
+
 export function renderDocsView(container: HTMLElement, onSelectDoc?: (docId: string) => void): void {
   container.innerHTML = "";
 
   const docs = store.getDocs(store.selectedClientId, store.selectedProjectId);
-  const tree = buildDocTree(docs);
-  const activeDocId = store.selectedDocId || (docs.length > 0 ? docs[0].id : null);
+  const q = docsListQuery.trim().toLowerCase();
+  const filtered = q
+    ? docs.filter(d =>
+        d.title.toLowerCase().includes(q) ||
+        d.content.toLowerCase().includes(q) ||
+        d.tags.some(tag => tag.toLowerCase().includes(q))
+      )
+    : docs;
+  const tree = buildDocTree(filtered);
+  const activeDocId = store.selectedDocId || (filtered.length > 0 ? filtered[0].id : null);
   const activeDoc = activeDocId ? store.getDoc(activeDocId) : null;
 
   const wrapper = document.createElement("div");
@@ -56,39 +66,56 @@ export function renderDocsView(container: HTMLElement, onSelectDoc?: (docId: str
   wrapper.setAttribute("role", "region");
   wrapper.setAttribute("aria-label", t().views.docs);
 
-  // Left: Docs List
+  // Left: Docs List — compact titles grouped by project
   const sidebar = document.createElement("div");
   sidebar.className = "docs-list-sidebar";
+
+  const groups = new Map<string, typeof tree>();
+  for (const node of tree) {
+    const key = node.doc.projectId || "__none__";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(node);
+  }
+
+  const groupHtml = [...groups.entries()].map(([projectId, nodes]) => {
+    const project = projectId === "__none__" ? null : store.getProject(projectId);
+    const label = project?.name || t().docs.noProject;
+    return `
+      <div class="docs-project-group">
+        <div class="docs-project-group-label">${escapeHtml(label)}</div>
+        ${nodes.map(({ doc, depth }) => {
+          const isActive = doc.id === activeDocId;
+          return `
+            <div class="doc-card-item doc-card-compact ${isActive ? "active" : ""}" role="button" tabindex="0" data-doc-id="${doc.id}" style="padding-left: calc(var(--space-3) + ${depth * 12}px);">
+              <span class="doc-card-title">${escapeHtml(doc.title || t().docs.untitled)}</span>
+              <span class="doc-card-meta-date">${formatDate(doc.updatedAt)}</span>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }).join("");
 
   sidebar.innerHTML = `
     <div class="docs-list-header">
       <span style="font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); color: var(--color-text-secondary); text-transform: uppercase;">
-        ${t().views.docs} (${docs.length})
+        ${t().views.docs} (${filtered.length})
       </span>
       <button id="add-doc-btn" class="btn btn-ghost btn-icon" title="${t().actions.newDoc}" aria-label="${t().actions.newDoc}">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
       </button>
     </div>
 
+    <div class="docs-list-search">
+      <input type="search" id="docs-search-input" class="input" value="${escapeHtml(docsListQuery)}" placeholder="${escapeHtml(t().docs.searchPlaceholder)}" aria-label="${escapeHtml(t().docs.searchPlaceholder)}" />
+    </div>
+
     <div class="docs-items-scroll">
-      ${docs.length === 0 ? `
+      ${filtered.length === 0 ? `
         <p style="font-size: var(--font-size-xs); color: var(--color-text-muted); padding: var(--space-4); text-align: center;">
           ${t().docs.noDocs}
         </p>
-      ` : tree.map(({ doc, depth }) => {
-        const isActive = doc.id === activeDocId;
-        const client = store.getClient(doc.clientId);
-        return `
-          <div class="doc-card-item ${isActive ? "active" : ""}" role="button" tabindex="0" data-doc-id="${doc.id}" style="padding-left: calc(var(--space-3) + ${depth * 14}px);">
-            <span class="doc-card-title">${escapeHtml(doc.title || "Unbenanntes Dokument")}</span>
-            <span class="doc-card-snippet">${escapeHtml(doc.content.replace(/^#+ /gm, ""))}</span>
-            <div class="doc-card-meta">
-              <span>${client ? escapeHtml(client.name) : ""}</span>
-              <span>${formatDate(doc.updatedAt)}</span>
-            </div>
-          </div>
-        `;
-      }).join("")}
+      ` : groupHtml}
     </div>
   `;
 
@@ -283,6 +310,18 @@ export function renderDocsView(container: HTMLElement, onSelectDoc?: (docId: str
     createNewDoc();
   });
 
+  const searchInput = sidebar.querySelector<HTMLInputElement>("#docs-search-input");
+  searchInput?.addEventListener("input", () => {
+    docsListQuery = searchInput.value;
+    renderDocsView(container, onSelectDoc);
+    const again = container.querySelector<HTMLInputElement>("#docs-search-input");
+    if (again) {
+      again.focus();
+      const len = again.value.length;
+      again.setSelectionRange(len, len);
+    }
+  });
+
   wrapper.appendChild(sidebar);
   wrapper.appendChild(canvas);
   container.appendChild(wrapper);
@@ -328,8 +367,8 @@ function createNewDoc(): void {
     id: newId,
     clientId: defaultClient,
     projectId: defaultProject,
-    title: "Neues Dokument",
-    content: "# Neues Dokument\n\nBeginne hier mit deinen Notizen...",
+    title: t().docs.untitled,
+    content: "",
     tags: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

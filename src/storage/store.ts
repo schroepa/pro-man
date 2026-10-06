@@ -6,6 +6,16 @@ import { VaultStorage, getLastVaultNames, isVaultPermissionError } from "./file-
 import { announcer } from "../a11y/announcer";
 import { t } from "../i18n";
 import { showToast } from "../components/toast";
+import {
+  isDemoCleared,
+  markDemoCleared,
+  isSampleTaskId,
+  isSampleDocId,
+  isSampleClientId,
+  isSampleProjectId,
+  hasSampleWorkspaceData,
+  hasOwnTasks,
+} from "./demo-mode";
 
 export type ViewMode = "kanban" | "list" | "gantt" | "calendar" | "docs" | "backoffice" | "client";
 
@@ -149,8 +159,10 @@ export class AppStore {
       this.projects.clear();
       (clientsData.projects || []).forEach(p => this.projects.set(p.id, p));
       this.loadMembersFromData(clientsData.members);
-    } else {
+    } else if (!isDemoCleared()) {
       this.initDefaultClientsAndProjects();
+      this.ensureDefaultMembers();
+    } else {
       this.ensureDefaultMembers();
     }
     normalizeClientProjectCodes(
@@ -159,7 +171,7 @@ export class AppStore {
     );
 
     const loaded = await this.storage.loadAllTasks();
-    if (loaded.length === 0) {
+    if (loaded.length === 0 && !isDemoCleared()) {
       this.createSampleTasks();
     } else {
       loaded.forEach(t => this.tasks.set(t.id, t));
@@ -167,7 +179,7 @@ export class AppStore {
     }
 
     const docs = await this.storage.loadAllDocs();
-    if (docs.length === 0) {
+    if (docs.length === 0 && !isDemoCleared()) {
       this.initDefaultDocs();
       for (const doc of this.docs.values()) {
         await this.storage.saveDoc(doc);
@@ -495,7 +507,7 @@ export class AppStore {
         this.projects.clear();
         (clientsData.projects || []).forEach(p => this.projects.set(p.id, p));
         this.loadMembersFromData(clientsData.members);
-      } else if (this.clients.size === 0) {
+      } else if (this.clients.size === 0 && !isDemoCleared()) {
         this.initDefaultClientsAndProjects();
         this.ensureDefaultMembers();
       } else {
@@ -515,7 +527,7 @@ export class AppStore {
       }
 
       this.tasks.clear();
-      if (list.length === 0 && !this.storage.isConnected) {
+      if (list.length === 0 && !this.storage.isConnected && !isDemoCleared()) {
         this.createSampleTasks();
       } else {
         list.forEach(t => this.tasks.set(t.id, t));
@@ -524,7 +536,7 @@ export class AppStore {
 
       const docs = await this.storage.loadAllDocs();
       this.docs.clear();
-      if (docs.length === 0 && !this.storage.isConnected) {
+      if (docs.length === 0 && !this.storage.isConnected && !isDemoCleared()) {
         this.initDefaultDocs();
         for (const doc of this.docs.values()) {
           await this.storage.saveDoc(doc);
@@ -1240,6 +1252,54 @@ export class AppStore {
       this.filterQuick !== "all" ||
       this.searchQuery.trim()
     );
+  }
+
+  hasSampleData(): boolean {
+    return hasSampleWorkspaceData(this.tasks.keys(), this.docs.keys());
+  }
+
+  hasOwnTasks(): boolean {
+    return hasOwnTasks(this.tasks.keys());
+  }
+
+  /** Remove seeded sample tasks/docs/clients and keep an empty local workspace. */
+  async clearDemoData(): Promise<void> {
+    const taskIds = [...this.tasks.keys()].filter(isSampleTaskId);
+    for (const id of taskIds) {
+      this.tasks.delete(id);
+      await this.storage.deleteTask(id);
+    }
+
+    const docIds = [...this.docs.keys()].filter(isSampleDocId);
+    for (const id of docIds) {
+      this.docs.delete(id);
+      await this.storage.deleteDoc(id);
+    }
+
+    const remainingTasks = [...this.tasks.values()];
+    const remainingDocs = [...this.docs.values()];
+    for (const id of [...this.projects.keys()].filter(isSampleProjectId)) {
+      const inUse =
+        remainingTasks.some(t => t.projectId === id) ||
+        remainingDocs.some(d => d.projectId === id);
+      if (!inUse) this.projects.delete(id);
+    }
+    for (const id of [...this.clients.keys()].filter(isSampleClientId)) {
+      const inUse =
+        remainingTasks.some(t => t.clientId === id) ||
+        remainingDocs.some(d => d.clientId === id) ||
+        [...this.projects.values()].some(p => p.clientId === id);
+      if (!inUse) this.clients.delete(id);
+    }
+    await this.persistClients();
+
+    this.favoriteProjectIds = this.favoriteProjectIds.filter(id => !isSampleProjectId(id));
+    this.persistFavorites();
+    this.selectedClientId = null;
+    this.selectedProjectId = null;
+    this.selectedDocId = null;
+    markDemoCleared();
+    this.notify();
   }
 
   /**

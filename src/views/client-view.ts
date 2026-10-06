@@ -58,7 +58,7 @@ export function renderClientView(container: HTMLElement): void {
         </div>
       </div>
       <div class="client-page-actions">
-        <button type="button" class="btn btn-primary" id="client-open-board">
+        <button type="button" class="btn btn-secondary" id="client-open-board">
           ${TablerIcon.layoutKanban({ size: 14 })}
           <span>${escapeHtml(i18n.openBoard)}</span>
         </button>

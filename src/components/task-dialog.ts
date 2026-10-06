@@ -4,6 +4,11 @@ import { t } from "../i18n";
 import { TablerIcon } from "./icons";
 import { showToast } from "./toast";
 import { CustomSelect } from "./custom-select";
+import {
+  hasCelebratedFirstTask,
+  markFirstTaskCelebrated,
+  isSampleTaskId,
+} from "../storage/demo-mode";
 
 export class TaskDialog {
   private dialog: HTMLDialogElement;
@@ -125,11 +130,16 @@ export class TaskDialog {
     const timeSpent = task.timeSpentHours || timeLogs.reduce((sum, e) => sum + e.hours, 0);
     const statusOptions = this.getStatusOptions(task);
 
+    const statusLabel = (t().statuses as Record<string, string>)[task.status] || task.status;
+
     this.dialog.innerHTML = `
       <form method="dialog" id="task-dialog-form">
         <div class="dialog-header">
           <div class="dialog-title-group">
-            <span class="dialog-id">${escapeHtml(task.issueKey || task.id)}</span>
+            <div class="dialog-sheet-meta">
+              <span class="dialog-id">${escapeHtml(task.issueKey || task.id)}</span>
+              <span class="dialog-status-chip" data-status="${escapeHtml(task.status)}">${escapeHtml(statusLabel)}</span>
+            </div>
             <h2 id="dialog-heading" style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold);">
               ${isNew ? t().actions.newTask : t().tasks.editTask}
             </h2>
@@ -140,21 +150,9 @@ export class TaskDialog {
         </div>
 
         <div class="dialog-body">
-          <div class="form-row-2">
-            <div class="form-group">
-              <span class="form-label">${t().filters.client}</span>
-              <div id="task-select-client-mount"></div>
-            </div>
-
-            <div class="form-group">
-              <span class="form-label">${t().filters.project}</span>
-              <div id="task-select-project-mount"></div>
-            </div>
-          </div>
-
           <div class="form-group">
             <label class="form-label" for="task-input-title">${t().tasks.title}</label>
-            <input type="text" id="task-input-title" class="input" required value="${escapeHtml(task.title)}" placeholder="…" />
+            <input type="text" id="task-input-title" class="input" required value="${escapeHtml(task.title)}" placeholder="${escapeHtml(t().tasks.titlePlaceholder)}" />
           </div>
 
           <div class="form-row-2">
@@ -170,129 +168,146 @@ export class TaskDialog {
           </div>
 
           <div class="form-group">
-            <span class="form-label">${t().tasks.assignee}</span>
-            <div id="task-select-assignee-mount"></div>
+            <label class="form-label" for="task-input-due">${t().tasks.dueDate}</label>
+            <input type="date" id="task-input-due" class="input" value="${task.dueDate}" />
           </div>
 
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label" for="task-input-start">${t().tasks.startDate}</label>
-              <input type="date" id="task-input-start" class="input" value="${task.startDate}" />
-            </div>
+          <details class="task-more-details" ${isNew ? "" : "open"}>
+            <summary class="task-more-details-summary">${t().tasks.moreDetails}</summary>
+            <div class="task-more-details-body">
+              <p class="task-essentials-hint">${t().tasks.essentialsHint}</p>
 
-            <div class="form-group">
-              <label class="form-label" for="task-input-due">${t().tasks.dueDate}</label>
-              <input type="date" id="task-input-due" class="input" value="${task.dueDate}" />
-            </div>
-          </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <span class="form-label">${t().filters.client}</span>
+                  <div id="task-select-client-mount"></div>
+                </div>
 
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label" for="task-input-estimate">${t().tasks.estimateHours}</label>
-              <input type="number" id="task-input-estimate" class="input" min="0" step="0.25" value="${task.estimateHours ?? ""}" placeholder="2" />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="task-input-milestone">${t().tasks.milestone}</label>
-              <label class="milestone-switch-card" for="task-input-milestone">
-                <span class="milestone-switch-label">${t().tasks.markMilestone}</span>
-                <input type="checkbox" id="task-input-milestone" ${task.isMilestone ? "checked" : ""} />
-              </label>
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label" for="task-input-cycle">${t().tasks.cycle}</label>
-              <input type="text" id="task-input-cycle" class="input" value="${escapeHtml(task.cycle || "")}" placeholder="${t().tasks.cyclePlaceholder}" />
-            </div>
-
-            <div class="form-group">
-              <span class="form-label">${t().tasks.recurrence}</span>
-              <div id="task-select-recurrence-mount"></div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="task-input-giturl">${t().tasks.gitUrl}</label>
-            <input type="url" id="task-input-giturl" class="input" value="${escapeHtml(task.gitUrl || "")}" placeholder="${t().tasks.gitUrlPlaceholder}" />
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label" for="task-input-tags">${t().tasks.tags}</label>
-              <input type="text" id="task-input-tags" class="input" list="task-tags-datalist" value="${task.tags.join(", ")}" placeholder="frontend, ui" />
-              <datalist id="task-tags-datalist">
-                ${allTags.map(tag => `<option value="${escapeHtml(tag)}"></option>`).join("")}
-              </datalist>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="task-input-deps">${t().tasks.dependencies}</label>
-              <input type="text" id="task-input-deps" class="input" list="task-deps-datalist" value="${task.dependencies.join(", ")}" placeholder="ACM-WEB-1, ACM-WEB-2" />
-              <datalist id="task-deps-datalist">
-                ${allTasks.map(tItem => `<option value="${escapeHtml(tItem.id)}">${escapeHtml(tItem.id)} — ${escapeHtml(tItem.title)}</option>`).join("")}
-              </datalist>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="task-textarea-desc">${t().tasks.description}</label>
-            <textarea id="task-textarea-desc" class="textarea" rows="4">${escapeHtml(task.description)}</textarea>
-          </div>
-
-          <div class="attachments-section">
-            <label class="form-label">${t().tasks.attachments}</label>
-            <div id="attachments-list-container">
-              ${this.renderAttachmentsHtml()}
-            </div>
-            ${!store.vault.isConnected ? `<p class="attachments-meta-note">${t().tasks.attachmentsMetaOnly}</p>` : ""}
-            <div class="add-attachment-row">
-              <button type="button" id="attach-file-btn" class="btn btn-secondary">${t().tasks.attachFile}</button>
-              <input type="file" id="attach-file-input" hidden multiple />
-            </div>
-          </div>
-
-          <div class="subtasks-section">
-            <label class="form-label">${t().tasks.subtasks}</label>
-            <div id="subtasks-list-container">
-              ${this.renderSubtasksHtml()}
-            </div>
-            <div class="add-subtask-row">
-              <input type="text" id="new-subtask-input" class="input" placeholder="${t().tasks.addSubtask}" />
-              <button type="button" id="add-subtask-btn" class="btn btn-secondary">${t().actions.add}</button>
-            </div>
-          </div>
-
-          <div class="comments-section">
-            <label class="form-label">${t().tasks.comments}</label>
-            <div id="comments-list-container">
-              ${this.renderCommentsHtml()}
-            </div>
-            <div class="add-comment-row">
-              <input type="text" id="new-comment-input" class="input" placeholder="${t().tasks.addComment}" />
-              <button type="button" id="add-comment-btn" class="btn btn-secondary">${t().actions.add}</button>
-            </div>
-          </div>
-
-          ${!isNew ? `
-            <div class="time-logs-section">
-              <label class="form-label">
-                ${t().tasks.timeLogs}
-                <span style="font-weight: var(--font-weight-normal); color: var(--color-text-muted);">
-                  ${timeSpent}h / ${task.estimateHours ?? "—"}h
-                </span>
-              </label>
-              <div id="time-logs-list" class="time-logs-list">
-                ${this.renderTimeLogsHtml(timeLogs)}
+                <div class="form-group">
+                  <span class="form-label">${t().filters.project}</span>
+                  <div id="task-select-project-mount"></div>
+                </div>
               </div>
-              <div class="time-log-form">
-                <input type="number" id="time-log-hours" class="input" min="0.25" step="0.25" placeholder="${t().tasks.timeHours}" style="max-width: 100px;" />
-                <input type="text" id="time-log-desc" class="input" placeholder="${t().tasks.timeDescription}" />
-                <button type="button" id="time-log-btn" class="btn btn-secondary">${t().actions.logTime}</button>
+
+              <div class="form-group">
+                <span class="form-label">${t().tasks.assignee}</span>
+                <div id="task-select-assignee-mount"></div>
               </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="task-input-start">${t().tasks.startDate}</label>
+                  <input type="date" id="task-input-start" class="input" value="${task.startDate}" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="task-input-estimate">${t().tasks.estimateHours}</label>
+                  <input type="number" id="task-input-estimate" class="input" min="0" step="0.25" value="${task.estimateHours ?? ""}" placeholder="2" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="task-input-milestone">${t().tasks.milestone}</label>
+                <label class="milestone-switch-card" for="task-input-milestone">
+                  <span class="milestone-switch-label">${t().tasks.markMilestone}</span>
+                  <input type="checkbox" id="task-input-milestone" ${task.isMilestone ? "checked" : ""} />
+                </label>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="task-input-cycle">${t().tasks.cycle}</label>
+                  <input type="text" id="task-input-cycle" class="input" value="${escapeHtml(task.cycle || "")}" placeholder="${t().tasks.cyclePlaceholder}" />
+                </div>
+
+                <div class="form-group">
+                  <span class="form-label">${t().tasks.recurrence}</span>
+                  <div id="task-select-recurrence-mount"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="task-input-giturl">${t().tasks.gitUrl}</label>
+                <input type="url" id="task-input-giturl" class="input" value="${escapeHtml(task.gitUrl || "")}" placeholder="${t().tasks.gitUrlPlaceholder}" />
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="task-input-tags">${t().tasks.tags}</label>
+                  <input type="text" id="task-input-tags" class="input" list="task-tags-datalist" value="${task.tags.join(", ")}" placeholder="frontend, ui" />
+                  <datalist id="task-tags-datalist">
+                    ${allTags.map(tag => `<option value="${escapeHtml(tag)}"></option>`).join("")}
+                  </datalist>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="task-input-deps">${t().tasks.dependencies}</label>
+                  <input type="text" id="task-input-deps" class="input" list="task-deps-datalist" value="${task.dependencies.join(", ")}" placeholder="ACM-WEB-1, ACM-WEB-2" />
+                  <datalist id="task-deps-datalist">
+                    ${allTasks.map(tItem => `<option value="${escapeHtml(tItem.id)}">${escapeHtml(tItem.id)} — ${escapeHtml(tItem.title)}</option>`).join("")}
+                  </datalist>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="task-textarea-desc">${t().tasks.description}</label>
+                <textarea id="task-textarea-desc" class="textarea" rows="4">${escapeHtml(task.description)}</textarea>
+              </div>
+
+              <div class="attachments-section">
+                <label class="form-label">${t().tasks.attachments}</label>
+                <div id="attachments-list-container">
+                  ${this.renderAttachmentsHtml()}
+                </div>
+                ${!store.vault.isConnected ? `<p class="attachments-meta-note">${t().tasks.attachmentsMetaOnly}</p>` : ""}
+                <div class="add-attachment-row">
+                  <button type="button" id="attach-file-btn" class="btn btn-secondary">${t().tasks.attachFile}</button>
+                  <input type="file" id="attach-file-input" hidden multiple />
+                </div>
+              </div>
+
+              <div class="subtasks-section">
+                <label class="form-label">${t().tasks.subtasks}</label>
+                <div id="subtasks-list-container">
+                  ${this.renderSubtasksHtml()}
+                </div>
+                <div class="add-subtask-row">
+                  <input type="text" id="new-subtask-input" class="input" placeholder="${t().tasks.addSubtask}" />
+                  <button type="button" id="add-subtask-btn" class="btn btn-secondary">${t().actions.add}</button>
+                </div>
+              </div>
+
+              <div class="comments-section">
+                <label class="form-label">${t().tasks.comments}</label>
+                <div id="comments-list-container">
+                  ${this.renderCommentsHtml()}
+                </div>
+                <div class="add-comment-row">
+                  <input type="text" id="new-comment-input" class="input" placeholder="${t().tasks.addComment}" />
+                  <button type="button" id="add-comment-btn" class="btn btn-secondary">${t().actions.add}</button>
+                </div>
+              </div>
+
+              ${!isNew ? `
+                <div class="time-logs-section">
+                  <label class="form-label">
+                    ${t().tasks.timeLogs}
+                    <span style="font-weight: var(--font-weight-normal); color: var(--color-text-muted);">
+                      ${timeSpent}h / ${task.estimateHours ?? "—"}h
+                    </span>
+                  </label>
+                  <div id="time-logs-list" class="time-logs-list">
+                    ${this.renderTimeLogsHtml(timeLogs)}
+                  </div>
+                  <div class="time-log-form">
+                    <input type="number" id="time-log-hours" class="input" min="0.25" step="0.25" placeholder="${t().tasks.timeHours}" style="max-width: 100px;" />
+                    <input type="text" id="time-log-desc" class="input" placeholder="${t().tasks.timeDescription}" />
+                    <button type="button" id="time-log-btn" class="btn btn-secondary">${t().actions.logTime}</button>
+                  </div>
+                </div>
+              ` : ""}
             </div>
-          ` : ""}
+          </details>
         </div>
 
         <div class="dialog-footer">
@@ -506,7 +521,16 @@ export class TaskDialog {
         return;
       }
 
+      const wasNew = this.currentTaskId === null;
       await store.saveOrUpdateTask(updatedTask);
+      if (
+        wasNew &&
+        !isSampleTaskId(updatedTask.id) &&
+        !hasCelebratedFirstTask()
+      ) {
+        markFirstTaskCelebrated();
+        showToast(t().tasks.firstTaskToast, "success");
+      }
       this.dialog.close();
     });
   }

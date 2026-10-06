@@ -91,15 +91,18 @@ export function renderGanttChart(
         </button>
       </div>
     </div>
-    <div style="font-size: 0.6875rem; color: var(--color-text-secondary); display: flex; gap: var(--space-3);">
-      <span style="display: flex; align-items: center; gap: 4px;">
-        <span style="width: 8px; height: 8px; background: var(--gantt-bar-normal, #4f46e5); border-radius: 2px;"></span> Normal
+    <div class="gantt-legend" aria-label="${t().filters.priority}">
+      <span class="gantt-legend-item">
+        <span class="gantt-legend-swatch priority-urgent" aria-hidden="true"></span>${t().gantt.legendUrgent}
       </span>
-      <span style="display: flex; align-items: center; gap: 4px;">
-        <span style="width: 8px; height: 8px; background: var(--gantt-bar-urgent, #ef4444); border-radius: 2px;"></span> Dringend
+      <span class="gantt-legend-item">
+        <span class="gantt-legend-swatch priority-high" aria-hidden="true"></span>${t().gantt.legendHigh}
       </span>
-      <span style="display: flex; align-items: center; gap: 4px;">
-        <span style="width: 8px; height: 8px; background: var(--gantt-bar-done, #16a34a); border-radius: 2px;"></span> Erledigt
+      <span class="gantt-legend-item">
+        <span class="gantt-legend-swatch priority-normal" aria-hidden="true"></span>${t().gantt.legendNormal}
+      </span>
+      <span class="gantt-legend-item">
+        <span class="gantt-legend-swatch status-done" aria-hidden="true"></span>${t().gantt.legendDone}
       </span>
     </div>
   `;

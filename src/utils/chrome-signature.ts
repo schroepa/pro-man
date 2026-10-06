@@ -1,5 +1,6 @@
 import { store } from "../storage/store";
 import { getLanguage } from "../i18n";
+import { isOnboarded } from "../components/onboarding-banner";
 
 /** Signature of chrome that must remount when these change (not task body data). */
 export function getChromeSignature(): string {
@@ -21,5 +22,8 @@ export function getChromeSignature(): string {
     store.favoriteProjectIds.join(","),
     store.getClients().map(c => c.id).join(","),
     store.getProjects().map(p => `${p.id}:${p.clientId}`).join(","),
+    String(store.getAllRawTasks().length === 0),
+    String(store.hasSampleData()),
+    String(isOnboarded()),
   ].join("|");
 }
