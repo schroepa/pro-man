@@ -515,6 +515,7 @@ export class AppStore {
         startDate: "2026-10-04",
         dueDate: "2026-10-08",
         estimateHours: 12,
+        assigneeId: DEFAULT_MEMBER_YOU_ID,
         tags: ["kanban", "core"],
         dependencies: ["TASK-001"],
         subtasks: [
@@ -537,6 +538,7 @@ export class AppStore {
         startDate: "2026-10-07",
         dueDate: "2026-10-14",
         estimateHours: 16,
+        assigneeId: DEFAULT_MEMBER_YOU_ID,
         tags: ["gantt", "timeline", "portal"],
         dependencies: ["TASK-002"],
         subtasks: [

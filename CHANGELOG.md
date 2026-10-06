@@ -6,6 +6,7 @@ Alle nennenswerten Änderungen an ProMan.
 
 ### Features
 - **Team & Personen**: Workspace-Members getrennt von Kunden; Intern/Extern + Rolle; Inline „+ Person“ im Task-Dialog; Backoffice-Tab zur Verwaltung
+- **Kanban-Karten**: Zuweisung als Chip (Avatar-Initialen + Name) in der Meta-Zeile
 - **Kunden-Seiten**: Sidebar-/Breadcrumb-/⌘K-Klick öffnet eigene Client-Ansicht mit editierbaren Stammdaten, Kontakten, Projekten und KPIs (Board/Docs-CTAs)
 - **Beispieldaten-Modus**: Badge, „Beispieldaten entfernen“, Seed nur wenn nicht geklärt; First-Success-Toast nach erster eigener Aufgabe
 - **Kontextuelle Topbar-CTA**: Docs → Doc, Backoffice → Kunde, Client → Board, sonst → Aufgabe

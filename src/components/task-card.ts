@@ -22,7 +22,6 @@ export function createTaskCard(
   card.setAttribute("aria-grabbed", "false");
 
   const priorityLabel = t().priorities[task.priority] || task.priority;
-  card.setAttribute("aria-label", `${task.id}: ${task.title}, ${priorityLabel}`);
 
   // Schema.org Microdata
   card.setAttribute("itemscope", "");
@@ -46,18 +45,22 @@ export function createTaskCard(
     low: TablerIcon.arrowDown({ size: 10, strokeWidth: 2.5 })
   }[task.priority] || "";
 
-  // Client badge / issue key
+  // Client badge / issue key / assignee
   const client = task.clientId ? store.getClient(task.clientId) : null;
   const assignee = task.assigneeId ? store.getMember(task.assigneeId) : null;
-  const assigneeInitial = assignee ? assignee.name.trim().charAt(0).toUpperCase() : "";
+  const assigneeInitials = assignee ? initialsFromName(assignee.name) : "";
+  const assigneeColor = assignee?.color || "var(--color-primary-500)";
   const displayKey = task.issueKey || task.id;
+
+  const ariaParts = [`${displayKey}: ${task.title}`, priorityLabel];
+  if (assignee) ariaParts.push(`${t().tasks.assignee}: ${assignee.name}`);
+  card.setAttribute("aria-label", ariaParts.join(", "));
 
   card.innerHTML = `
     <div class="task-card-header">
       <div class="task-id-group">
         <span class="task-id" itemprop="identifier">${escapeHtml(displayKey)}</span>
         ${client && !task.issueKey ? `<span class="task-client-badge" title="${escapeHtml(client.name)}">${escapeHtml(client.code)}</span>` : ""}
-        ${assignee ? `<span class="task-assignee-badge" title="${escapeHtml(assignee.name)}">${escapeHtml(assigneeInitial)}</span>` : ""}
       </div>
       <span class="badge badge-${task.priority}${task.status === "done" ? " badge-muted" : ""}" itemprop="priority">
         <span class="badge-icon" aria-hidden="true">${priorityIcon}</span>
@@ -90,10 +93,18 @@ export function createTaskCard(
       </div>
     ` : ""}
     <div class="task-card-meta">
-      <div class="task-tags">
-        ${task.tags.map(tag => `<span class="task-tag" itemprop="keywords">${escapeHtml(tag)}</span>`).join("")}
+      <div class="task-card-meta-left">
+        ${assignee ? `
+          <span class="task-assignee-chip" title="${escapeHtml(assignee.name)}${assignee.role ? ` · ${escapeHtml(assignee.role)}` : ""}" itemprop="agent">
+            <span class="task-assignee-avatar" style="--assignee-color: ${escapeHtml(assigneeColor)}" aria-hidden="true">${escapeHtml(assigneeInitials)}</span>
+            <span class="task-assignee-name">${escapeHtml(assignee.name)}</span>
+          </span>
+        ` : ""}
+        <div class="task-tags">
+          ${task.tags.map(tag => `<span class="task-tag" itemprop="keywords">${escapeHtml(tag)}</span>`).join("")}
+        </div>
       </div>
-      <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
+      <div class="task-card-meta-right">
         ${task.isMilestone ? `
           <span class="milestone-badge" title="${t().tasks.milestone}">
             ${TablerIcon.diamond({ size: 10, strokeWidth: 2.5 })}
@@ -189,6 +200,14 @@ function escapeHtml(text: string): string {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
+}
+
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return (parts[0] || "?").slice(0, 2).toUpperCase();
 }
 
 function formatDate(dateStr: string): string {
