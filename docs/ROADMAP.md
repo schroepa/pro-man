@@ -2,7 +2,7 @@
 
 > **Lebende Liste.** Wird bei Prioritätswechseln und abgeschlossenen Epics aktualisiert. Kein Commitment-Datum, sondern Reihenfolge nach Nutzen × Aufwand für den lokalen Kern.
 
-Stand: **v0.3.0 getaggt** (Smoke-Pass + CI grün)
+Stand: nach Mobile App-Shell (auf `v0.3.0`)
 
 ---
 
@@ -12,11 +12,9 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 
 | # | Thema | Warum |
 |---|---|---|
-| 1 | **Onboarding / Empty States** | Erster Vault-Connect und leere Boards klarer führen |
-| 2 | **Mobile / schmale Viewports** | Sidebar, Filter-Popover, Dialog-Selects unter 768px härten |
-| 3 | **Performance-Pass** | Lighthouse auf Cold-Load (Geist-Preload, Bundle, lange Listen) |
-| 4 | **Vault-Robustheit** | Fehlerpfade bei Denied/Permission, Reload, fehlenden Codes |
-| 5 | **Search-Qualität in ⌘K** | Fuzzy/Recent, klare Gruppen, Keyboard-only Flow |
+| 1 | **Performance-Pass** | Lighthouse auf Cold-Load (Geist-Preload, Bundle, lange Listen) |
+| 2 | **Vault-Robustheit** | Fehlerpfade bei Denied/Permission, Reload, fehlenden Codes |
+| 3 | **Search-Qualität in ⌘K** | Fuzzy/Recent, klare Gruppen, Keyboard-only Flow |
 
 ---
 
@@ -37,6 +35,8 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- Mobile App-Shell: Dialog-Sheet, Bottom-Nav, Edge-Swipe Drawer, Scroll-Lock, Kanban vertikal ≤768px
+- Onboarding-Banner (Vault primär / Loslegen) + Empty States: Workspace leer vs. Filter leer (Board, Liste, Gantt i18n)
 - Smoke-Pass Preview + Release-Tag `v0.3.0` (Demo-Daten: Board, Dialog/CustomSelect, Liste, Docs; Vault-Picker OS-nativ nicht automatisiert)
 - Warm Obsidian Elevation + CustomSelect Top-Layer
 - Geist / Geist Mono self-hosted

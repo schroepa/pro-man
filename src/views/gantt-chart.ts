@@ -12,25 +12,39 @@ function dayWidthForZoom(zoom: GanttZoom): number {
   return zoom === "week" ? 22 : 44;
 }
 
-export function renderGanttChart(container: HTMLElement, onOpenTask: (taskId: string) => void): void {
+export function renderGanttChart(
+  container: HTMLElement,
+  onOpenTask: (taskId: string) => void,
+  onNewTask?: () => void
+): void {
   container.innerHTML = "";
 
   const tasks = store.getTasks().filter(t => t.startDate && t.dueDate);
   const DAY_WIDTH = dayWidthForZoom(ganttZoom);
+  const i18n = t();
 
   const wrapper = document.createElement("div");
   wrapper.className = "gantt-container";
   wrapper.setAttribute("role", "region");
-  wrapper.setAttribute("aria-label", t().views.gantt);
+  wrapper.setAttribute("aria-label", i18n.views.gantt);
 
   if (tasks.length === 0) {
     wrapper.innerHTML = `
       <div class="gantt-empty-state">
         <div class="gantt-empty-icon" aria-hidden="true">${TablerIcon.timeline({ size: 28 })}</div>
-        <h3 class="gantt-empty-title">Keine datierten Aufgaben</h3>
-        <p class="gantt-empty-desc">Aufgaben mit Start- und Fälligkeitsdatum erscheinen hier in der Timeline.</p>
+        <h3 class="gantt-empty-title">${i18n.gantt.emptyTitle}</h3>
+        <p class="gantt-empty-desc">${i18n.gantt.emptyDesc}</p>
+        ${onNewTask ? `
+          <button id="gantt-empty-new-task" class="btn btn-primary" style="margin-top: var(--space-2);">
+            ${TablerIcon.plus({ size: 14 })}
+            <span>${i18n.gantt.emptyAction}</span>
+          </button>
+        ` : ""}
       </div>
     `;
+    wrapper.querySelector("#gantt-empty-new-task")?.addEventListener("click", () => {
+      onNewTask?.();
+    });
     container.appendChild(wrapper);
     return;
   }

@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an ProMan.
 
+## [Unreleased]
+
+### Features
+- **Mobile Bottom-Nav** (≤768px): Board · Liste · Gantt · Docs · Mehr (öffnet Drawer)
+- **Edge-Swipe Drawer**: von links öffnen, nach links schließen; Escape + Body-Scroll-Lock
+
+### Improvements
+- **Onboarding**: Banner mit Vault als Primär-CTA und „Loslegen“; klarerer Tip zu Vault vs. Browser-Daten
+- **Empty States**: echter Leerstand (Board/Liste) mit „Erste Aufgabe anlegen“; Filter-Empty unverändert; Gantt-Empty i18n + CTA
+- **Task-Dialog ≤640px**: Full-Height-Sheet, scrollbarer Body, sticky Footer + Safe-Area
+- **Kanban Mobile**: eine Spalte, kein horizontales Board-Scroll (Swipe-Konflikt vermeiden)
+- **Liste ≤640px**: Header wrappt, Tabelle horizontal scrollbar
+
 ## [0.3.0] — 2026-10-06
 
 ### Features

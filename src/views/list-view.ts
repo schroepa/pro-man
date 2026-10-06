@@ -28,7 +28,8 @@ const PRIORITY_ORDER: Record<TaskPriority, number> = {
 
 export function renderListView(
   container: HTMLElement,
-  onOpenTask: (taskId: string) => void
+  onOpenTask: (taskId: string) => void,
+  onNewTask?: () => void
 ): void {
   container.innerHTML = "";
 
@@ -91,20 +92,36 @@ export function renderListView(
   wrapper.appendChild(header);
 
   if (tasks.length === 0) {
+    const rawCount = store.getAllRawTasks().length;
     const empty = document.createElement("div");
     empty.className = "list-empty-state";
-    empty.innerHTML = `
-      <div aria-hidden="true">${TablerIcon.listDetails({ size: 28 })}</div>
-      <h3 class="list-empty-title">${t().list.emptyTitle}</h3>
-      <p class="list-empty-desc">${t().list.emptyDesc}</p>
-      <button id="list-reset-filters" class="btn btn-primary" style="margin-top: var(--space-2);">
-        ${TablerIcon.refresh({ size: 14 })}
-        <span>${t().filters.clearFilters}</span>
-      </button>
-    `;
-    empty.querySelector("#list-reset-filters")?.addEventListener("click", () => {
-      store.clearFilters();
-    });
+    if (rawCount === 0) {
+      empty.innerHTML = `
+        <div aria-hidden="true">${TablerIcon.listDetails({ size: 28 })}</div>
+        <h3 class="list-empty-title">${t().empty.workspaceTitle}</h3>
+        <p class="list-empty-desc">${t().empty.workspaceDesc}</p>
+        <button id="list-empty-new-task" class="btn btn-primary" style="margin-top: var(--space-2);">
+          ${TablerIcon.plus({ size: 14 })}
+          <span>${t().empty.workspaceAction}</span>
+        </button>
+      `;
+      empty.querySelector("#list-empty-new-task")?.addEventListener("click", () => {
+        onNewTask?.();
+      });
+    } else {
+      empty.innerHTML = `
+        <div aria-hidden="true">${TablerIcon.listDetails({ size: 28 })}</div>
+        <h3 class="list-empty-title">${t().list.emptyTitle}</h3>
+        <p class="list-empty-desc">${t().list.emptyDesc}</p>
+        <button id="list-reset-filters" class="btn btn-primary" style="margin-top: var(--space-2);">
+          ${TablerIcon.refresh({ size: 14 })}
+          <span>${t().filters.clearFilters}</span>
+        </button>
+      `;
+      empty.querySelector("#list-reset-filters")?.addEventListener("click", () => {
+        store.clearFilters();
+      });
+    }
     wrapper.appendChild(empty);
     container.appendChild(wrapper);
     return;

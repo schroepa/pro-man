@@ -151,8 +151,6 @@ export function renderKanbanBoard(
     });
   });
 
-  viewWrapper.appendChild(kpiBar);
-
   // 2. Kanban Board
   const board = document.createElement("div");
   board.className = "kanban-board";
@@ -160,8 +158,34 @@ export function renderKanbanBoard(
   board.setAttribute("role", "region");
   board.setAttribute("aria-label", i18n.kanban.ariaBoard);
 
-  // Check if entire board is empty due to filtering
-  if (tasks.length === 0 && totalTasks > 0) {
+  // Truly empty workspace — guide to first task (skip KPI noise)
+  if (totalTasks === 0) {
+    const emptyBoard = document.createElement("div");
+    emptyBoard.className = "board-empty-state";
+    emptyBoard.innerHTML = `
+      <div class="board-empty-icon" aria-hidden="true">
+        ${TablerIcon.layoutKanban({ size: 24 })}
+      </div>
+      <h3 class="board-empty-title">${i18n.empty.workspaceTitle}</h3>
+      <p class="board-empty-desc">${i18n.empty.workspaceDesc}</p>
+      <button id="empty-workspace-new-task" class="btn btn-primary" style="margin-top: var(--space-2);">
+        ${TablerIcon.plus({ size: 14 })}
+        <span>${i18n.empty.workspaceAction}</span>
+      </button>
+    `;
+    emptyBoard.querySelector("#empty-workspace-new-task")?.addEventListener("click", () => {
+      onNewTask("todo");
+    });
+    board.appendChild(emptyBoard);
+    viewWrapper.appendChild(board);
+    container.appendChild(viewWrapper);
+    return;
+  }
+
+  viewWrapper.appendChild(kpiBar);
+
+  // Filtered empty — reset filters
+  if (tasks.length === 0) {
     const emptyBoard = document.createElement("div");
     emptyBoard.className = "board-empty-state";
     emptyBoard.innerHTML = `

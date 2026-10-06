@@ -30,6 +30,12 @@ export function isSidebarVisible(): boolean {
   return root.classList.contains("sidebar-open");
 }
 
+function syncBodyScrollLock(): void {
+  const locked = !isDesktopLayout() && isSidebarVisible();
+  document.documentElement.classList.toggle("mobile-nav-scroll-lock", locked);
+  document.body.style.overflow = locked ? "hidden" : "";
+}
+
 export function applySidebarLayout(): void {
   const root = document.querySelector(".app-root");
   if (!root) return;
@@ -42,6 +48,7 @@ export function applySidebarLayout(): void {
   }
 
   syncToggleButtons();
+  syncBodyScrollLock();
 }
 
 export function toggleSidebar(): void {
@@ -53,12 +60,14 @@ export function toggleSidebar(): void {
   } else {
     root.classList.toggle("sidebar-open");
     syncToggleButtons();
+    syncBodyScrollLock();
   }
 }
 
 export function closeMobileSidebar(): void {
   document.querySelector(".app-root")?.classList.remove("sidebar-open");
   syncToggleButtons();
+  syncBodyScrollLock();
 }
 
 export function openSidebar(): void {
@@ -69,6 +78,7 @@ export function openSidebar(): void {
   } else {
     root.classList.add("sidebar-open");
     syncToggleButtons();
+    syncBodyScrollLock();
   }
 }
 
@@ -81,17 +91,31 @@ function syncToggleButtons(): void {
 }
 
 let mqBound = false;
+let escapeBound = false;
 
 export function initSidebarLayout(): void {
   applySidebarLayout();
-  if (mqBound) return;
-  mqBound = true;
-  const mq = window.matchMedia(DESKTOP_MQ);
-  const onChange = () => applySidebarLayout();
-  if (typeof mq.addEventListener === "function") {
-    mq.addEventListener("change", onChange);
-  } else {
-    // Safari < 14
-    (mq as any).addListener?.(onChange);
+  if (!mqBound) {
+    mqBound = true;
+    const mq = window.matchMedia(DESKTOP_MQ);
+    const onChange = () => applySidebarLayout();
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", onChange);
+    } else {
+      // Safari < 14
+      (mq as any).addListener?.(onChange);
+    }
+  }
+  if (!escapeBound) {
+    escapeBound = true;
+    window.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (isDesktopLayout()) return;
+      if (!isSidebarVisible()) return;
+      // Don't steal Escape from open dialogs / command palette
+      if (document.querySelector("dialog[open]")) return;
+      e.preventDefault();
+      closeMobileSidebar();
+    });
   }
 }

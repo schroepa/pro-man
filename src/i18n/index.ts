@@ -160,10 +160,21 @@ export const translations = {
       selected: "ausgewählt",
       bulkUpdated: "Aufgaben aktualisiert",
     },
+    empty: {
+      workspaceTitle: "Noch keine Aufgaben",
+      workspaceDesc: "Lege die erste Aufgabe an — oder verbinde einen Vault mit bestehenden Obsidian-.md-Dateien.",
+      workspaceAction: "Erste Aufgabe anlegen",
+    },
+    nav: {
+      primary: "Hauptnavigation",
+      more: "Mehr",
+      docsShort: "Docs",
+      ganttShort: "Gantt",
+    },
     onboarding: {
       title: "Willkommen bei ProMan",
-      tip: "Verbinde einen lokalen Vault-Ordner in der Sidebar — oder starte einfach mit den Demo-Daten.",
-      dismiss: "Verstanden",
+      tip: "Verbinde einen lokalen Ordner für Obsidian-kompatible .md-Dateien. Ohne Vault bleiben die Daten im Browser (inkl. Demo).",
+      dismiss: "Loslegen",
     },
     calendar: {
       today: "Heute",
@@ -176,6 +187,9 @@ export const translations = {
       zoomDay: "Tag",
       zoomWeek: "Woche",
       zoom: "Zoom",
+      emptyTitle: "Keine datierten Aufgaben",
+      emptyDesc: "Aufgaben mit Start- und Fälligkeitsdatum erscheinen hier in der Timeline.",
+      emptyAction: "Aufgabe anlegen",
     },
     kanban: {
       emptyTodo: "Keine offenen Aufgaben",
@@ -401,10 +415,21 @@ export const translations = {
       selected: "selected",
       bulkUpdated: "tasks updated",
     },
+    empty: {
+      workspaceTitle: "No tasks yet",
+      workspaceDesc: "Create your first task — or connect a vault with existing Obsidian .md files.",
+      workspaceAction: "Create first task",
+    },
+    nav: {
+      primary: "Primary navigation",
+      more: "More",
+      docsShort: "Docs",
+      ganttShort: "Gantt",
+    },
     onboarding: {
       title: "Welcome to ProMan",
-      tip: "Connect a local vault folder in the sidebar — or just start with the demo data.",
-      dismiss: "Got it",
+      tip: "Connect a local folder for Obsidian-compatible .md files. Without a vault, data stays in the browser (including demo).",
+      dismiss: "Get started",
     },
     calendar: {
       today: "Today",
@@ -417,6 +442,9 @@ export const translations = {
       zoomDay: "Day",
       zoomWeek: "Week",
       zoom: "Zoom",
+      emptyTitle: "No dated tasks",
+      emptyDesc: "Tasks with start and due dates appear here on the timeline.",
+      emptyAction: "Add task",
     },
     kanban: {
       emptyTodo: "No open tasks",

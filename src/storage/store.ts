@@ -1150,6 +1150,20 @@ export class AppStore {
     this.notify();
   }
 
+  /** True when any task filter/search narrows the workspace view. */
+  hasActiveTaskFilters(): boolean {
+    return Boolean(
+      this.selectedClientId ||
+      this.selectedProjectId ||
+      this.filterPriority !== "all" ||
+      this.filterStatus !== "all" ||
+      this.filterAssignee !== "all" ||
+      this.filterCycle.trim() ||
+      this.filterQuick !== "all" ||
+      this.searchQuery.trim()
+    );
+  }
+
   /**
    * Returns true if assigning `newDeps` to `taskId` would introduce a dependency cycle.
    */

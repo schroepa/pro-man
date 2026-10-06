@@ -704,9 +704,14 @@
     grid-template-columns: 1fr 1fr !important;
   }
 
+  /* Vertical stack only — avoids conflict with edge-swipe drawer */
   .kanban-board {
-    grid-template-columns: minmax(280px, 1fr) !important;
-    overflow-x: auto;
+    grid-template-columns: 1fr !important;
+    overflow-x: hidden;
+  }
+
+  .kanban-column {
+    max-height: none;
   }
 }
 

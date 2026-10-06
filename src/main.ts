@@ -14,13 +14,15 @@ import { themeManager } from "./storage/theme-manager";
 import { initSquircleEngine } from "./utils/squircle";
 import { t } from "./i18n";
 import { initSidebarLayout, toggleSidebar } from "./storage/sidebar-layout";
-
-const ONBOARD_KEY = "proman_onboarded";
+import { renderOnboardingBanner } from "./components/onboarding-banner";
+import { renderMobileBottomNav } from "./components/mobile-bottom-nav";
+import { initMobileGestures } from "./utils/mobile-gestures";
 
 const sidebarContainer = document.getElementById("sidebar-container")!;
 const topbarContainer = document.getElementById("topbar-container")!;
 const viewContainer = document.getElementById("view-container")!;
 const mainContent = document.getElementById("main-content")!;
+const mobileNavContainer = document.getElementById("mobile-nav-container")!;
 
 const taskDialog = new TaskDialog();
 
@@ -65,61 +67,6 @@ const commandPalette = new CommandPalette(
 
 let lastView: string | null = null;
 
-function isOnboarded(): boolean {
-  try {
-    return localStorage.getItem(ONBOARD_KEY) === "1";
-  } catch {
-    return true;
-  }
-}
-
-function dismissOnboarding(): void {
-  try {
-    localStorage.setItem(ONBOARD_KEY, "1");
-  } catch {}
-  renderApp();
-}
-
-function renderOnboardingBanner(): HTMLElement | null {
-  if (isOnboarded()) return null;
-
-  const banner = document.createElement("div");
-  banner.className = "onboarding-banner";
-  banner.setAttribute("role", "region");
-  banner.setAttribute("aria-label", t().onboarding.title);
-  banner.innerHTML = `
-    <div class="onboarding-banner-body">
-      <strong class="onboarding-banner-title">${t().onboarding.title}</strong>
-      <p class="onboarding-banner-tip">${t().onboarding.tip}</p>
-    </div>
-    <div class="onboarding-banner-actions">
-      <button type="button" id="onboard-connect" class="btn btn-secondary">${t().actions.connectVault}</button>
-      <button type="button" id="onboard-dismiss" class="btn btn-primary">${t().onboarding.dismiss}</button>
-    </div>
-  `;
-
-  banner.querySelector("#onboard-connect")?.addEventListener("click", async () => {
-    try {
-      const connected = await store.vault.connect();
-      if (connected) {
-        const { showToast } = await import("./components/toast");
-        showToast(t().vault.connectedToast, "success");
-        await store.reloadAll();
-      }
-    } catch (err: any) {
-      const { showToast } = await import("./components/toast");
-      showToast(err?.message || "Fehler beim Verbinden.", "error");
-    }
-    dismissOnboarding();
-  });
-
-  banner.querySelector("#onboard-dismiss")?.addEventListener("click", () => {
-    dismissOnboarding();
-  });
-
-  return banner;
-}
-
 function renderApp(): void {
   const viewChanged = lastView !== null && lastView !== store.currentView;
   lastView = store.currentView;
@@ -135,9 +82,11 @@ function renderApp(): void {
     () => commandPalette.open()
   );
 
+  renderMobileBottomNav(mobileNavContainer);
+
   // Clear viewport and optionally show onboarding
   viewContainer.innerHTML = "";
-  const banner = renderOnboardingBanner();
+  const banner = renderOnboardingBanner(() => renderApp());
   if (banner) {
     viewContainer.appendChild(banner);
   }
@@ -150,9 +99,9 @@ function renderApp(): void {
   if (store.currentView === "kanban") {
     renderKanbanBoard(viewMount, openTask, createNewTask);
   } else if (store.currentView === "list") {
-    renderListView(viewMount, openTask);
+    renderListView(viewMount, openTask, () => createNewTask());
   } else if (store.currentView === "gantt") {
-    renderGanttChart(viewMount, openTask);
+    renderGanttChart(viewMount, openTask, createNewTask);
   } else if (store.currentView === "calendar") {
     renderCalendarView(viewMount, openTask);
   } else if (store.currentView === "docs") {
@@ -235,6 +184,7 @@ async function start() {
   themeManager.init();
   initSquircleEngine();
   initSidebarLayout();
+  initMobileGestures();
   store.subscribe(renderApp);
   await store.init();
   renderApp();
