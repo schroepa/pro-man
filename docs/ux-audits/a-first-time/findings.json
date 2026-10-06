@@ -1,0 +1,247 @@
+{
+  "audit": {
+    "title": "ProMan — First-time → produktive Arbeit",
+    "auditor": "Claude (ux-audit skill)",
+    "date": "2026-10-06",
+    "user_goal": "Ein Erstnutzer soll Vault verbinden oder bewusst lokal starten, die erste Aufgabe anlegen und sie im Board bewegen — und sich danach orientiert, nicht überfordert fühlen.",
+    "summary": "Der First-Run zeigt gleichzeitig Vault-Onboarding, Demo-Workload und volles Power-User-Chrome. Die stärkste Reibung: Demo-Daten wirken wie echte Arbeit, während Vault-CTAs mehrfach konkurrieren. Der Task-Dialog packt zu viele Felder vor den ersten Speichern. Empty State und „Erste Aufgabe“ sind klar — die Umgebung drumherum (Filter, Demo-Kunden) bleibt laut.",
+    "things_that_work": [
+      "Primärfarbe und „+ Neue Aufgabe“ / „Speichern“ sind klar als Hauptaktion erkennbar.",
+      "Empty State „Noch keine Aufgaben“ erklärt Vault vs. erste Aufgabe und bietet einen konkreten CTA.",
+      "Vault-Hinweis in der Sidebar benennt ehrlich Browser-Cache vs. Ordner-Persistenz.",
+      "Kanban-Karten zeigen Status, Priorität und Issue-Key ohne Hover.",
+      "Task-Dialog hat Abbrechen/Schließen und destruktives Löschen als sekundäre Aktion."
+    ],
+    "manual_follow_ups": [
+      "Tastaturreihenfolge und Fokus-Ring im Task-Dialog (CustomSelects, Date-Inputs).",
+      "Screenreader-Ansage beim Öffnen/Schließen des Dialogs und nach Speichern.",
+      "Kontrastmessung KPI-Labels und muted Vault-Hint-Text.",
+      "Native Vault-Ordnerauswahl (OS-Picker) ist nicht im Screenshot prüfbar.",
+      "Mobile First-Run (Bottom-Nav, Dialog-Sheet) separat prüfen."
+    ],
+    "next_steps": [
+      "5 First-Run-Sessions: Vault verbinden vs. Loslegen vs. erste Aufgabe.",
+      "Prototype: progressive Task-Create (Titel → Speichern; Rest später).",
+      "Audit G (Full App) nach Fixes an Onboarding/Dialog."
+    ]
+  },
+  "screenshots": [
+    {
+      "id": "01-onboarding-board",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/a-first-time/01-onboarding-board.png",
+      "sub_task": "Landen und Onboarding verstehen"
+    },
+    {
+      "id": "02-board-after-dismiss",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/a-first-time/02-board-after-dismiss.png",
+      "sub_task": "Board nach Loslegen nutzen"
+    },
+    {
+      "id": "03-task-dialog",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/a-first-time/03-task-dialog.png",
+      "sub_task": "Bestehende Aufgabe öffnen und verstehen"
+    },
+    {
+      "id": "04-new-task-dialog",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/a-first-time/04-new-task-dialog.png",
+      "sub_task": "Erste eigene Aufgabe anlegen"
+    },
+    {
+      "id": "05-empty-workspace",
+      "path": "/Users/ptrck/Developer/pro-man/docs/ux-audits/a-first-time/05-empty-workspace.png",
+      "sub_task": "Leeren Workspace verstehen"
+    }
+  ],
+  "findings": [
+    {
+      "id": "onboarding-demo-data-unlabelled",
+      "screenshot_id": "01-onboarding-board",
+      "sub_task": "Landen und Onboarding verstehen",
+      "title": "Demo-Board wirkt wie echte Kundendaten",
+      "heuristics": [
+        "FTU.2 (No required prerequisite knowledge)",
+        "TRUST.3 (State clarity)",
+        "Shneiderman #7 (Internal locus of control)"
+      ],
+      "severity": 3,
+      "what_we_see": "Beim ersten Besuch liegen vier Aufgaben von Acme, TechStart und Intern auf dem Board, inkl. KPI-Zahlen und Kundenbaum — ohne Label wie „Demo“ oder „Beispieldaten“. Parallel fordert das Banner „Vault verbinden“.",
+      "why_it_matters": "Erstnutzer wissen nicht, ob sie fremde/echte Daten sehen oder eine Sandbox. Das untergräbt Vertrauen und macht den Vault-Schritt unklar („muss ich das jetzt übernehmen?“).",
+      "recommendation": "Demo explizit kennzeichnen (Banner-Chip „Beispieldaten“, Sidebar-Badge) und optional einen CTA „Demo leeren / mit leerem Workspace starten“ anbieten.",
+      "region": { "x_pct": 20, "y_pct": 42, "w_pct": 78, "h_pct": 55 }
+    },
+    {
+      "id": "onboarding-competing-vault-ctas",
+      "screenshot_id": "01-onboarding-board",
+      "sub_task": "Landen und Onboarding verstehen",
+      "title": "Zwei gleichlautende Vault-Primäraktionen konkurrieren",
+      "heuristics": [
+        "COG.2 (Primary action count)",
+        "FTU.1 (Next action obvious)",
+        "Hick's Law"
+      ],
+      "severity": 3,
+      "what_we_see": "„Vault verbinden“ erscheint als Primärbutton im Welcome-Banner und erneut im Sidebar-Panel. Dazu kommen „Loslegen“, „+ Neue Aufgabe“ und Spalten-„Aufgabe anlegen“.",
+      "why_it_matters": "Mehrere gleich gewichtete nächste Schritte erhöhen die Entscheidungskosten genau im Moment, in dem Orientierung nötig ist.",
+      "recommendation": "Eine Primärstory pro First-Run: Banner = Vault; Sidebar-Panel nach Dismiss auf Secondary reduzieren; „Neue Aufgabe“ erst nach Loslegen oder als einzige Alternative hervorheben.",
+      "region": { "x_pct": 20, "y_pct": 12, "w_pct": 78, "h_pct": 14 }
+    },
+    {
+      "id": "onboarding-jargon-vault-obsidian",
+      "screenshot_id": "01-onboarding-board",
+      "sub_task": "Landen und Onboarding verstehen",
+      "title": "Vault-/Obsidian-Jargon ohne Einführung",
+      "heuristics": [
+        "FTU.5 (Jargon budget)",
+        "Nielsen #2 (Match between system and real world)",
+        "Plain language (Content Design)"
+      ],
+      "severity": 2,
+      "what_we_see": "Banner und Sidebar sprechen von „Vault“, „Obsidian-kompatible .md-Dateien“ und „Browser-Cache“, bevor das Produkt diese Begriffe erklärt.",
+      "why_it_matters": "Nutzer ohne Obsidian-Kontext müssen intern übersetzen („Ordner? Notizen? Backup?“), bevor sie die Kernentscheidung treffen.",
+      "recommendation": "First-Run-Copy auf Nutzen umstellen: z. B. „Ordner auf diesem Mac wählen — Aufgaben als Markdown speichern“. „Vault/Obsidian“ als sekundären Hinweis.",
+      "region": { "x_pct": 2, "y_pct": 8, "w_pct": 16, "h_pct": 14 }
+    },
+    {
+      "id": "onboarding-loslegen-unclear",
+      "screenshot_id": "01-onboarding-board",
+      "sub_task": "Landen und Onboarding verstehen",
+      "title": "„Loslegen“ verrät nicht, was passiert",
+      "heuristics": [
+        "Specific, not generic (Content Design)",
+        "FTU.1 (Next action obvious)"
+      ],
+      "severity": 2,
+      "what_we_see": "Der Secondary-Button heißt „Loslegen“ und steht neben „Vault verbinden“. Optisch wirkt er wie „ohne Vault starten“, erklärt aber nicht, dass nur das Banner geschlossen wird und Demo-Daten bleiben.",
+      "why_it_matters": "Erwartung und Ergebnis können auseinanderlaufen — Nutzer denken, sie starten „richtig“, bleiben aber im Demo-Board mit Vault-Panel.",
+      "recommendation": "Label konkretisieren: „Mit Beispieldaten starten“ oder „Ohne Ordner fortfahren“; nach Klick kurzer Toast, was gilt.",
+      "region": { "x_pct": 72, "y_pct": 18, "w_pct": 12, "h_pct": 5 }
+    },
+    {
+      "id": "board-first-run-chrome-density",
+      "screenshot_id": "02-board-after-dismiss",
+      "sub_task": "Board nach Loslegen nutzen",
+      "title": "Nach Dismiss bleibt volles Filter-/KPI-Chrome",
+      "heuristics": [
+        "COG.3 (New concept count)",
+        "Gerhardt-Powals #8 (Only needed information)",
+        "Nielsen #8 (Aesthetic and minimalist design)"
+      ],
+      "severity": 2,
+      "what_we_see": "Nach „Loslegen“ bleiben View-Switcher, vier Filter-Dropdowns, KPI-Leiste, Kundenbaum und vier Board-Spalten gleichzeitig sichtbar — ohne First-Run-Guidance.",
+      "why_it_matters": "Der Nutzer, der gerade „loslegen“ wollte, trifft sofort auf Power-User-Dichte statt auf einen geführten ersten Erfolg.",
+      "recommendation": "Optionalen First-Run-Modus: KPI und erweiterte Filter einklappen, bis die erste eigene Aufgabe existiert; einen Coachmark auf „Neue Aufgabe“.",
+      "region": { "x_pct": 20, "y_pct": 6, "w_pct": 78, "h_pct": 28 }
+    },
+    {
+      "id": "board-vault-panel-persists",
+      "screenshot_id": "02-board-after-dismiss",
+      "sub_task": "Board nach Loslegen nutzen",
+      "title": "Vault-Panel bleibt nach Loslegen dominant",
+      "heuristics": [
+        "COG.2 (Primary action count)",
+        "Nielsen #8 (Aesthetic and minimalist design)"
+      ],
+      "severity": 2,
+      "what_we_see": "Das orange „Vault verbinden“-Panel in der Sidebar bleibt nach Banner-Dismiss unverändert die lauteste Sidebar-Fläche über Views und Kunden.",
+      "why_it_matters": "Wer bewusst ohne Ordner starten wollte, wird dauerhaft zurück in den Vault-Pfad gezogen.",
+      "recommendation": "Nach Dismiss Panel kollabieren zu einer Zeile „Lokal (Browser) · Ordner verbinden“; volle Fläche nur vor Onboarding oder bei permission_needed.",
+      "region": { "x_pct": 1, "y_pct": 7, "w_pct": 17, "h_pct": 15 }
+    },
+    {
+      "id": "task-dialog-field-overload",
+      "screenshot_id": "03-task-dialog",
+      "sub_task": "Bestehende Aufgabe öffnen und verstehen",
+      "title": "Task-Dialog zeigt zu viele Felder auf einmal",
+      "heuristics": [
+        "Progressive disclosure",
+        "Hick's Law",
+        "COG.1 (Decision count)",
+        "Bastien & Scapin (Workload / information density)"
+      ],
+      "severity": 3,
+      "what_we_see": "„Aufgabe bearbeiten“ zeigt Kunde, Projekt, Titel, Status, Priorität, Assignee, zwei Daten, Schätzung, Meilenstein, Cycle, Wiederholung, Git-URL, Tags/Abhängigkeiten — plus Fußzeilenaktionen — im ersten Viewport.",
+      "why_it_matters": "Selbst zum Lesen einer Demo-Aufgabe muss der Nutzer viele Konzepte scannen. Für First-Run-„nur Titel ändern“ ist die Oberfläche überdimensioniert.",
+      "recommendation": "Essentials first: Titel, Status, Priorität, Fällig. Rest unter „Mehr Details“ / Accordion. Create-Flow noch schlanker als Edit.",
+      "region": { "x_pct": 28, "y_pct": 12, "w_pct": 44, "h_pct": 78 }
+    },
+    {
+      "id": "new-task-title-double-dash-default",
+      "screenshot_id": "04-new-task-dialog",
+      "sub_task": "Erste eigene Aufgabe anlegen",
+      "title": "Neuer Titel startet mit „--“ statt leer/Placeholder",
+      "heuristics": [
+        "Nielsen #5 (Error prevention)",
+        "Norman's principles (Affordances / signifiers)",
+        "Plain language (Content Design)"
+      ],
+      "severity": 2,
+      "what_we_see": "Im Dialog „Neue Aufgabe“ steht im Titelfeld der Wert „--“ (fokussiert mit orangem Rand). Speichern mit diesem Wert würde eine sinnlose Aufgabe erzeugen.",
+      "why_it_matters": "Erstnutzer können „--“ als gültigen Default missverstehen oder übersehen und speichern Müll.",
+      "recommendation": "Titelfeld leer lassen mit Placeholder „Was ist zu tun?“; Speichern ohne Titel blockieren oder soft-validieren.",
+      "region": { "x_pct": 30, "y_pct": 28, "w_pct": 40, "h_pct": 8 }
+    },
+    {
+      "id": "new-task-prefilled-scope-surprise",
+      "screenshot_id": "04-new-task-dialog",
+      "sub_task": "Erste eigene Aufgabe anlegen",
+      "title": "Neue Aufgabe erbt Demo-Kunde/Projekt ohne Erklärung",
+      "heuristics": [
+        "TRUST.3 (State clarity)",
+        "FTU.2 (No required prerequisite knowledge)",
+        "Shneiderman #5 (Prevent errors)"
+      ],
+      "severity": 2,
+      "what_we_see": "„Neue Aufgabe“ ist vorausgefüllt mit Acme Corporation / Web-Portal Relaunch und Issue-Key ACM-WEB-2, obwohl der Nutzer gerade erst startet.",
+      "why_it_matters": "Scope-Defaults aus Demo-Kontext erzeugen Issue-Keys und Zuordnung, die der Nutzer nicht gewählt hat — späteres Aufräumen kostet Vertrauen.",
+      "recommendation": "Im First-Run ohne explizite Auswahl: leere/„Kein Kunde“-Defaults oder Hinweis „Beispielkunde vorausgewählt — ändern?“.",
+      "region": { "x_pct": 30, "y_pct": 16, "w_pct": 40, "h_pct": 12 }
+    },
+    {
+      "id": "empty-filters-still-active",
+      "screenshot_id": "05-empty-workspace",
+      "sub_task": "Leeren Workspace verstehen",
+      "title": "Filterleiste bleibt auf leerem Board sichtbar",
+      "heuristics": [
+        "FTU.4 (Empty states do work)",
+        "Gerhardt-Powals #8 (Only needed information)"
+      ],
+      "severity": 2,
+      "what_we_see": "Bei „Noch keine Aufgaben“ bleiben Kunde/Projekt/Priorität/Schnell-Filter und View-Switcher aktiv über dem Empty State.",
+      "why_it_matters": "Filter ohne Daten suggerieren, die Leere käme von Filtern — oder lenken vom CTA „Erste Aufgabe anlegen“ ab.",
+      "recommendation": "Bei totalem Leerstand Filterleiste ausblenden oder disabled + Hinweis; KPI ohnehin schon weg — Filter konsistent behandeln.",
+      "region": { "x_pct": 20, "y_pct": 8, "w_pct": 55, "h_pct": 6 }
+    },
+    {
+      "id": "empty-demo-clients-remain",
+      "screenshot_id": "05-empty-workspace",
+      "sub_task": "Leeren Workspace verstehen",
+      "title": "Demo-Kunden bleiben im leeren Workspace",
+      "heuristics": [
+        "TRUST.3 (State clarity)",
+        "FTU.4 (Empty states do work)",
+        "Consistency and standards (Nielsen #4)"
+      ],
+      "severity": 2,
+      "what_we_see": "Das Board ist leer, aber „Kunden & Projekte“ listet weiterhin Acme, TechStart und Intern mit Projekt-Counts „1“.",
+      "why_it_matters": "Widerspruch: keine Aufgaben, aber Kundenbaum wirkt befüllt — unklar, ob der Workspace wirklich „frisch“ ist.",
+      "recommendation": "Counts an Tasks koppeln (0 anzeigen) oder Demo-Kunden mit dem Demo-Clear entfernen; Empty State um „Beispieldaten entfernen“ ergänzen.",
+      "region": { "x_pct": 1, "y_pct": 48, "w_pct": 17, "h_pct": 28 }
+    },
+    {
+      "id": "journey-first-success-not-celebrated",
+      "screenshot_id": "journey-level",
+      "sub_task": "Journey-level",
+      "title": "Kein klarer First-Success-Abschluss der Journey",
+      "heuristics": [
+        "Peak-end rule",
+        "Shneiderman #4 (Design dialogs to yield closure)",
+        "Fogg Behaviour Model (Motivation after ability)"
+      ],
+      "severity": 2,
+      "what_we_see": "Über Onboarding → Board → Dialog → Empty hinweg endet der Flow funktional (Speichern/CTA), aber ohne Bestätigung eines erreichten Ziels („Erste Aufgabe liegt im Board“ / „Lokal gestartet“).",
+      "why_it_matters": "Ohne Peak-End bleibt der First-Run als dichter Werkzeugstart statt als abgeschlossener Erfolg in Erinnerung.",
+      "recommendation": "Nach erster gespeicherter Aufgabe kurzes Success-Moment (Toast + optional Coachmark „Ziehen zum Status ändern“); nach Loslegen Statuszeile „Lokaler Start · Ordner jederzeit möglich“.",
+      "region": { "x_pct": 0, "y_pct": 0, "w_pct": 100, "h_pct": 100 }
+    }
+  ]
+}

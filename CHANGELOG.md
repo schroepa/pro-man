@@ -6,6 +6,9 @@ Alle nennenswerten Änderungen an ProMan.
 
 ### Features
 - **Kunden-Seiten**: Sidebar-/Breadcrumb-/⌘K-Klick öffnet eigene Client-Ansicht mit editierbaren Stammdaten, Kontakten, Projekten und KPIs (Board/Docs-CTAs)
+
+### Docs
+- **UX-Audit A** (First-time → produktiv): `docs/ux-audits/a-first-time/` — findings, Report, interaktives `audit.html`
 - **Mobile Bottom-Nav** (≤768px): Board · Liste · Gantt · Docs · Mehr (öffnet Drawer)
 - **Edge-Swipe Drawer**: von links öffnen, nach links schließen; Escape + Body-Scroll-Lock
 
