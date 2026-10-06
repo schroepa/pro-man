@@ -27,6 +27,13 @@ describe("UX — task dialog select mounts", () => {
     expect(src).toContain("firstTaskToast");
   });
 
+  it("preserves more-details open state across form remounts", () => {
+    const src = readSrc("components/task-dialog.ts");
+    expect(src).toContain("moreDetailsOpen");
+    expect(src).toMatch(/existingDetails\.open/);
+    expect(src).toMatch(/detailsEl\?\.addEventListener\("toggle"/);
+  });
+
   it("wires CustomSelect values into collectFormTask", () => {
     const src = readSrc("components/task-dialog.ts");
     expect(src).toMatch(/selectClient\?\.getValue\(\)/);

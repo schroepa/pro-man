@@ -18,7 +18,7 @@ Alle nennenswerten Änderungen an ProMan.
 
 ### Improvements
 - **Onboarding / Ordner-Shell**: Copy ohne Vault-Jargon; Banner = Primär-CTA; Sidebar nach Dismiss kompakt („Lokal · Ordner jederzeit“); „Mit Beispieldaten starten“ + Toast
-- **Task-Dialog Essentials-first**: Titel/Status/Priorität/Fällig sichtbar; Rest unter „Mehr Details“; Sheet-Header mit Issue-Key + Status-Chip
+- **Task-Dialog Essentials-first**: Titel/Status/Priorität/Fällig sichtbar; Rest unter „Mehr Details“; Sheet-Header mit Issue-Key + Status-Chip; Accordion bleibt nach Kunde-/Projektwechsel offen
 - **Empty Chrome**: Filterleiste bei 0 Tasks aus; KPI erst nach erster eigener Aufgabe; Demo-Banner am Board
 - **Kunden/Backoffice**: Speichern sticky; Board/Docs sekundär; Badge „Primär“; Backoffice → Kunden-Seite; Status-Spalten als Zeilen-UI
 - **IA**: Sidebar „n Proj.“; Gantt-Legende Priorität(+Erledigt); Listen-Zuweisung nur wenn genutzt

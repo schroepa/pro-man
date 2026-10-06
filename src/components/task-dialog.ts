@@ -22,6 +22,8 @@ export class TaskDialog {
   private selectPriority: CustomSelect | null = null;
   private selectAssignee: CustomSelect | null = null;
   private selectRecurrence: CustomSelect | null = null;
+  /** Persist accordion across form remounts (client/project change). */
+  private moreDetailsOpen = false;
 
   constructor() {
     this.dialog = document.createElement("dialog");
@@ -87,6 +89,8 @@ export class TaskDialog {
     this.currentSubtasks = [...task.subtasks];
     this.currentComments = [...(task.comments || [])];
     this.currentAttachments = [...(task.attachments || [])];
+    // New tasks start collapsed; edit starts open — remounts keep the user's choice.
+    this.moreDetailsOpen = this.currentTaskId !== null;
     this.renderForm(task);
     this.dialog.showModal();
 
@@ -112,6 +116,12 @@ export class TaskDialog {
   }
 
   private renderForm(task: Task): void {
+    // Keep accordion open if the user already expanded it before this remount
+    const existingDetails = this.dialog.querySelector<HTMLDetailsElement>(".task-more-details");
+    if (existingDetails) {
+      this.moreDetailsOpen = existingDetails.open;
+    }
+
     CustomSelect.closeAll();
     this.selectClient = null;
     this.selectProject = null;
@@ -172,7 +182,7 @@ export class TaskDialog {
             <input type="date" id="task-input-due" class="input" value="${task.dueDate}" />
           </div>
 
-          <details class="task-more-details" ${isNew ? "" : "open"}>
+          <details class="task-more-details" ${this.moreDetailsOpen ? "open" : ""}>
             <summary class="task-more-details-summary">${t().tasks.moreDetails}</summary>
             <div class="task-more-details-body">
               <p class="task-essentials-hint">${t().tasks.essentialsHint}</p>
@@ -331,6 +341,11 @@ export class TaskDialog {
     `;
 
     this.mountSelects(task, clients, availableProjects, members, statusOptions);
+
+    const detailsEl = this.dialog.querySelector<HTMLDetailsElement>(".task-more-details");
+    detailsEl?.addEventListener("toggle", () => {
+      this.moreDetailsOpen = detailsEl.open;
+    });
 
     this.dialog.querySelector(".close-btn")?.addEventListener("click", () => this.dialog.close());
     this.dialog.querySelector(".cancel-btn")?.addEventListener("click", () => this.dialog.close());
