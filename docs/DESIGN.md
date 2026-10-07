@@ -183,6 +183,7 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 - Task-Dialog: Elevated + Overlay-Shadow; Essentials zuerst (Titel, Status, Priorität, Fällig), Rest in `<details class="task-more-details">`.
 - Sheet-Header: Issue-Key + Status-Chip (mobil sichtbar halten).
+- Mobil-Sheet (≤640px): `display: flex` nur bei `dialog.task-dialog[open]`; geschlossen immer `display: none` (sonst Fullscreen-Weißfläche auf iPhone).
 - Inputs: `min-height: 32px`, Subtle-Hintergrund.
 - Milestone-Switch: **gleiche** Höhe/Padding/Radius wie `.input`.
 - Date-Picker-Icons: Mask + `--color-text-secondary` (nicht OS-`color-scheme`-Ghosts).
