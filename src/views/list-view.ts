@@ -91,11 +91,15 @@ export function renderListView(
   });
   wrapper.appendChild(header);
 
+  const archivedTasks = [...store.getArchivedTasks()].sort((a, b) =>
+    (b.archivedAt || b.updatedAt).localeCompare(a.archivedAt || a.updatedAt)
+  );
+
   if (tasks.length === 0) {
     const rawCount = store.getAllRawTasks().length;
     const empty = document.createElement("div");
     empty.className = "list-empty-state";
-    if (rawCount === 0) {
+    if (rawCount === 0 && archivedTasks.length === 0) {
       empty.innerHTML = `
         <div aria-hidden="true">${TablerIcon.listDetails({ size: 28 })}</div>
         <h3 class="list-empty-title">${t().empty.workspaceTitle}</h3>
@@ -122,7 +126,10 @@ export function renderListView(
         store.clearFilters();
       });
     }
-    wrapper.appendChild(empty);
+    if (rawCount > 0 || archivedTasks.length === 0) {
+      wrapper.appendChild(empty);
+    }
+    appendArchiveSection(wrapper, archivedTasks, onOpenTask);
     container.appendChild(wrapper);
     return;
   }
@@ -267,7 +274,64 @@ export function renderListView(
 
   wrap.appendChild(table);
   wrapper.appendChild(wrap);
+  appendArchiveSection(wrapper, archivedTasks, onOpenTask);
   container.appendChild(wrapper);
+}
+
+function appendArchiveSection(
+  wrapper: HTMLElement,
+  archivedTasks: Task[],
+  onOpenTask: (taskId: string) => void
+): void {
+  if (archivedTasks.length === 0) return;
+
+  const section = document.createElement("details");
+  section.className = "list-archive-section";
+  section.open = false;
+  section.innerHTML = `
+    <summary class="list-archive-summary">
+      <span>${t().list.archiveSection}</span>
+      <span class="list-archive-count">${archivedTasks.length}</span>
+    </summary>
+    <p class="list-archive-hint">${t().list.archiveHint}</p>
+    <div class="list-table-wrap list-archive-table-wrap">
+      <table class="list-table list-archive-table">
+        <thead>
+          <tr>
+            <th scope="col">${t().list.colId}</th>
+            <th scope="col">${t().tasks.title}</th>
+            <th scope="col">${t().filters.status}</th>
+            <th scope="col">${t().tasks.dueDate}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${archivedTasks.map(task => `
+            <tr data-task-id="${task.id}" class="list-archive-row">
+              <td><code>${task.issueKey || task.id}</code></td>
+              <td>${escapeHtml(task.title)}</td>
+              <td>${(t().statuses as Record<string, string>)[task.status] || task.status}</td>
+              <td>${task.dueDate || "—"}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  section.querySelectorAll<HTMLElement>("tbody tr").forEach(row => {
+    const taskId = row.dataset.taskId;
+    if (!taskId) return;
+    row.tabIndex = 0;
+    row.addEventListener("click", () => onOpenTask(taskId));
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onOpenTask(taskId);
+      }
+    });
+  });
+
+  wrapper.appendChild(section);
 }
 
 async function applyBulkUpdate(patch: { status?: TaskStatus; priority?: TaskPriority }): Promise<void> {

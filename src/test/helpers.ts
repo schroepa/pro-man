@@ -51,11 +51,17 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
 
 type StoreMaps = {
   tasks: Map<string, Task>;
+  archivedTasks: Map<string, Task>;
   clients: Map<string, Client>;
   projects: Map<string, Project>;
   members: Map<string, WorkspaceMember>;
   docs: Map<string, unknown>;
-  storage: { saveTask: (task: Task) => Promise<void> };
+  storage: {
+    saveTask: (task: Task) => Promise<void>;
+    archiveTask: (task: Task) => Promise<void>;
+    restoreTask: (task: Task) => Promise<void>;
+    purgeTask: (taskId: string) => Promise<void>;
+  };
 };
 
 export function storeInternals(): StoreMaps {
@@ -65,6 +71,7 @@ export function storeInternals(): StoreMaps {
 export function resetStoreMaps(): void {
   const s = storeInternals();
   s.tasks.clear();
+  s.archivedTasks?.clear();
   s.clients.clear();
   s.projects.clear();
   s.members?.clear();
@@ -101,6 +108,9 @@ export function seedClientProject(opts?: {
 export function stubVaultWrites(): void {
   const s = storeInternals();
   s.storage.saveTask = async () => {};
+  s.storage.archiveTask = async () => {};
+  s.storage.restoreTask = async () => {};
+  s.storage.purgeTask = async () => {};
   (s.storage as { saveClientsAndProjects?: () => Promise<void> }).saveClientsAndProjects = async () => {};
 }
 

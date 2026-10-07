@@ -367,9 +367,17 @@ export class TaskDialog {
                 ${TablerIcon.copy({ size: 14 })}
                 <span>${t().actions.duplicate}</span>
               </button>
-              <button type="button" id="delete-task-btn" class="btn btn-ghost" style="color: #ef4444;">
-                ${t().actions.delete}
-              </button>
+              ${task.archivedAt ? `
+                <button type="button" id="restore-task-btn" class="btn btn-ghost">
+                  ${TablerIcon.arrowBackUp({ size: 14 })}
+                  <span>${t().actions.restore}</span>
+                </button>
+              ` : `
+                <button type="button" id="archive-task-btn" class="btn btn-ghost" style="color: #ef4444;">
+                  ${TablerIcon.archive({ size: 14 })}
+                  <span>${t().actions.archive}</span>
+                </button>
+              `}
             ` : ""}
           </div>
           <div class="dialog-footer-actions">
@@ -521,7 +529,7 @@ export class TaskDialog {
       }
       const description = descInput?.value.trim() || undefined;
       await store.logTaskTime(this.currentTaskId, hours, description);
-      const refreshed = store.getTask(this.currentTaskId);
+      const refreshed = store.getTaskById(this.currentTaskId);
       if (refreshed) {
         this.currentComments = [...(refreshed.comments || [])];
         this.currentSubtasks = [...refreshed.subtasks];
@@ -555,11 +563,17 @@ export class TaskDialog {
       this.renderForm(duplicated);
     });
 
-    this.dialog.querySelector("#delete-task-btn")?.addEventListener("click", async () => {
-      if (confirm(t().tasks.deleteConfirm)) {
-        await store.deleteTask(task.id);
+    this.dialog.querySelector("#archive-task-btn")?.addEventListener("click", async () => {
+      if (confirm(t().tasks.archiveConfirm)) {
+        await store.archiveTask(task.id);
         this.dialog.close();
       }
+    });
+
+    this.dialog.querySelector("#restore-task-btn")?.addEventListener("click", async () => {
+      await store.restoreTask(task.id);
+      this.dialog.close();
+      showToast(t().announcements.taskRestored, "success");
     });
 
     this.dialog.querySelector("#task-dialog-form")?.addEventListener("submit", async (e) => {
@@ -785,7 +799,7 @@ export class TaskDialog {
     const tags = tagsStr.split(",").map(s => s.trim()).filter(Boolean);
     const dependencies = depsStr.split(",").map(s => s.trim()).filter(Boolean);
 
-    const latest = this.currentTaskId ? store.getTask(this.currentTaskId) : null;
+    const latest = this.currentTaskId ? store.getTaskById(this.currentTaskId) : null;
 
     return {
       ...base,

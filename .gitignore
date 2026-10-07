@@ -19,3 +19,7 @@ Thumbs.db
 # Accidental emit (tsc is noEmit; Vite consumes .ts directly)
 src/**/*.js
 src/**/*.js.map
+
+# Local Notion / one-off imports (may contain client data)
+.import/
+vault-notion/

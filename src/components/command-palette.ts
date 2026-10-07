@@ -8,7 +8,7 @@ export type PaletteOpenTask = (taskId: string) => void;
 
 const SEARCH_DEBOUNCE_MS = 150;
 
-type PaletteGroup = "recent" | "actions" | "views" | "tasks" | "docs" | "clients";
+type PaletteGroup = "recent" | "actions" | "views" | "tasks" | "archive" | "docs" | "clients";
 
 interface PaletteItem {
   id: string;
@@ -21,7 +21,7 @@ interface PaletteItem {
 }
 
 const EMPTY_GROUP_ORDER: PaletteGroup[] = ["recent", "actions", "views"];
-const QUERY_GROUP_ORDER: PaletteGroup[] = ["tasks", "docs", "clients", "actions", "views"];
+const QUERY_GROUP_ORDER: PaletteGroup[] = ["tasks", "archive", "docs", "clients", "actions", "views"];
 
 export class CommandPalette {
   private dialog: HTMLDialogElement;
@@ -193,6 +193,7 @@ export class CommandPalette {
     if (group === "actions") return c.groupActions;
     if (group === "views") return c.groupViews;
     if (group === "tasks") return c.groupTasks;
+    if (group === "archive") return c.groupArchive;
     if (group === "clients") return c.groupClients;
     return c.groupDocs;
   }
@@ -314,6 +315,27 @@ export class CommandPalette {
       },
     ];
 
+    const archivedTasks: PaletteItem[] = store.getArchivedTasks().map(task => {
+      const key = task.issueKey || task.id;
+      const label = i18n.command.taskLabel
+        .replace("{key}", key)
+        .replace("{title}", task.title);
+      return {
+        id: `archived-${task.id}`,
+        label,
+        shortcut: "archive",
+        group: "archive" as const,
+        fields: [key, task.id, task.title, task.description, ...(task.tags || []), "archiv", "archive"],
+        score: 0,
+        action: () => {
+          pushCommandRecent({ kind: "task", id: task.id });
+          store.currentView = "list";
+          store.notify();
+          this.onOpenTask?.(task.id);
+        },
+      };
+    });
+
     const tasks: PaletteItem[] = store.getAllRawTasks().map(task => {
       const key = task.issueKey || task.id;
       const label = i18n.command.taskLabel
@@ -368,7 +390,7 @@ export class CommandPalette {
     const recents: PaletteItem[] = [];
     for (const recent of getCommandRecents()) {
       if (recent.kind === "task") {
-        const task = store.getTask(recent.id);
+        const task = store.getTaskById(recent.id);
         if (!task) continue;
         const key = task.issueKey || task.id;
         recents.push({
@@ -405,7 +427,7 @@ export class CommandPalette {
       }
     }
 
-    return [...recents, ...actions, ...views, ...tasks, ...docs, ...clients];
+    return [...recents, ...actions, ...views, ...tasks, ...archivedTasks, ...docs, ...clients];
   }
 
   private filter(query: string): void {

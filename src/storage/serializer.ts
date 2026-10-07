@@ -30,6 +30,10 @@ export function taskToMarkdown(task: Task): string {
     `updatedAt: ${task.updatedAt}`,
   ];
 
+  if (task.archivedAt) {
+    lines.push(`archivedAt: ${task.archivedAt}`);
+  }
+
   if (task.estimateHours !== undefined) {
     lines.push(`estimateHours: ${task.estimateHours}`);
   }
@@ -363,6 +367,7 @@ export function markdownToTask(rawContent: string, fallbackId: string): Task {
     order: typeof parsedData.order === "number" ? parsedData.order : 0,
     createdAt: String(parsedData.createdAt || defaultTask.createdAt),
     updatedAt: String(parsedData.updatedAt || defaultTask.updatedAt),
+    archivedAt: parsedData.archivedAt ? String(parsedData.archivedAt) : undefined,
   };
 }
 

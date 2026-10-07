@@ -7,6 +7,7 @@ const DB_NAME = "pro_man_storage";
 const STORE_NAME = "handles";
 const HANDLE_KEY = "vault_dir_handle";
 const TASKS_DIR = "tasks";
+const TASKS_ARCHIVE_DIR = "archive";
 const DOCS_DIR = "docs";
 const ATTACHMENTS_DIR = "attachments";
 const LAST_VAULTS_KEY = "pro_man_last_vaults";
@@ -270,7 +271,8 @@ export class VaultStorage {
   private async ensureVaultStructure(): Promise<void> {
     if (!this.dirHandle) return;
     try {
-      await this.dirHandle.getDirectoryHandle(TASKS_DIR, { create: true });
+      const tasksDir = await this.dirHandle.getDirectoryHandle(TASKS_DIR, { create: true });
+      await tasksDir.getDirectoryHandle(TASKS_ARCHIVE_DIR, { create: true });
       await this.dirHandle.getDirectoryHandle(DOCS_DIR, { create: true });
       await this.dirHandle.getDirectoryHandle(ATTACHMENTS_DIR, { create: true });
     } catch (err) {
@@ -324,6 +326,20 @@ export class VaultStorage {
     }
   }
 
+  private async getTasksArchiveDir(create = false): Promise<FileSystemDirectoryHandle | null> {
+    const tasksDir = await this.getTasksDir(create);
+    if (!tasksDir) return null;
+    try {
+      return await tasksDir.getDirectoryHandle(TASKS_ARCHIVE_DIR, { create });
+    } catch {
+      return null;
+    }
+  }
+
+  private taskFileName(taskId: string): string {
+    return `${taskId}.md`;
+  }
+
   private async getDocsDir(create = false): Promise<FileSystemDirectoryHandle | null> {
     if (!this.dirHandle) return null;
     try {
@@ -347,6 +363,7 @@ export class VaultStorage {
       const tasksDir = await this.getTasksDir(false);
       if (tasksDir) {
         for await (const entry of (tasksDir as any).values()) {
+          if (entry.kind === "directory") continue;
           if (entry.kind === "file" && entry.name.endsWith(".md")) {
             try {
               const file = await entry.getFile();
@@ -411,23 +428,76 @@ export class VaultStorage {
     return tasks;
   }
 
+  async loadArchivedTasks(): Promise<Task[]> {
+    if (!this.dirHandle) {
+      return this.loadFallbackArchivedTasks();
+    }
+
+    const tasks: Task[] = [];
+    const seen = new Set<string>();
+
+    try {
+      const archiveDir = await this.getTasksArchiveDir(false);
+      if (archiveDir) {
+        for await (const entry of (archiveDir as any).values()) {
+          if (entry.kind !== "file" || !entry.name.endsWith(".md")) continue;
+          try {
+            const file = await entry.getFile();
+            const text = await file.text();
+            const fallbackId = entry.name.replace(/\.md$/, "");
+            const task = markdownToTask(text, fallbackId);
+            if (!seen.has(task.id)) {
+              seen.add(task.id);
+              tasks.push(task);
+            }
+          } catch (err) {
+            console.warn(`Failed to parse archived task ${entry.name}`, err);
+          }
+        }
+      }
+    } catch (err) {
+      this.noteWriteError(err);
+      if (isVaultPermissionError(err)) {
+        return this.loadFallbackArchivedTasks();
+      }
+      throw err;
+    }
+
+    tasks.sort((a, b) => a.order - b.order);
+    return tasks;
+  }
+
   async saveTask(task: Task): Promise<void> {
     if (!this.dirHandle) {
-      this.saveFallbackTask(task);
+      if (task.archivedAt) {
+        this.saveFallbackArchivedTask(task);
+      } else {
+        this.saveFallbackTask(task);
+      }
       return;
     }
 
     try {
       await this.ensureVaultStructure();
-      const tasksDir = await this.getTasksDir(true);
-      if (!tasksDir) throw new Error("tasks/ directory unavailable");
-
-      const fileName = `${task.id}.md`;
+      const fileName = this.taskFileName(task.id);
       const markdown = taskToMarkdown(task);
-      const fileHandle = await tasksDir.getFileHandle(fileName, { create: true });
+      const targetDir = task.archivedAt
+        ? await this.getTasksArchiveDir(true)
+        : await this.getTasksDir(true);
+      if (!targetDir) throw new Error("tasks directory unavailable");
+
+      const fileHandle = await targetDir.getFileHandle(fileName, { create: true });
       const writable = await (fileHandle as any).createWritable();
       await writable.write(markdown);
       await writable.close();
+
+      // Ensure file exists in only one location
+      const otherDir = task.archivedAt
+        ? await this.getTasksDir(false)
+        : await this.getTasksArchiveDir(false);
+      try {
+        await otherDir?.removeEntry(fileName);
+      } catch { /* ignore */ }
 
       // Remove legacy root copy if present
       try {
@@ -435,26 +505,70 @@ export class VaultStorage {
       } catch { /* ignore */ }
     } catch (err: unknown) {
       this.noteWriteError(err);
-      this.saveFallbackTask(task);
+      if (task.archivedAt) {
+        this.saveFallbackArchivedTask(task);
+      } else {
+        this.saveFallbackTask(task);
+      }
       throw err;
     }
   }
 
-  async deleteTask(taskId: string): Promise<void> {
+  /** Move task markdown to `tasks/archive/` (never permanently delete vault files). */
+  async archiveTask(task: Task): Promise<void> {
+    const archived: Task = {
+      ...task,
+      archivedAt: task.archivedAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await this.saveTask(archived);
     if (!this.dirHandle) {
-      this.deleteFallbackTask(taskId);
+      this.deleteFallbackTask(task.id);
       return;
     }
-
-    const fileName = `${taskId}.md`;
+    const fileName = this.taskFileName(task.id);
     try {
       const tasksDir = await this.getTasksDir(false);
-      if (tasksDir) {
-        await (tasksDir as any).removeEntry(fileName);
-      }
-    } catch (err) {
-      console.warn(`Could not delete task file ${fileName}`, err);
+      await tasksDir?.removeEntry(fileName);
+    } catch { /* already moved via saveTask */ }
+  }
+
+  /** Move task back from `tasks/archive/` to active `tasks/`. */
+  async restoreTask(task: Task): Promise<void> {
+    const { archivedAt: _removed, ...rest } = task;
+    const active: Task = {
+      ...rest,
+      updatedAt: new Date().toISOString(),
+    };
+    delete active.archivedAt;
+    await this.saveTask(active);
+    if (!this.dirHandle) {
+      this.deleteFallbackArchivedTask(task.id);
+      return;
     }
+    const fileName = this.taskFileName(task.id);
+    try {
+      const archiveDir = await this.getTasksArchiveDir(false);
+      await archiveDir?.removeEntry(fileName);
+    } catch { /* already moved via saveTask */ }
+  }
+
+  /** Hard-remove a task file (undo of a brand-new task only — not user-facing delete). */
+  async purgeTask(taskId: string): Promise<void> {
+    if (!this.dirHandle) {
+      this.deleteFallbackTask(taskId);
+      this.deleteFallbackArchivedTask(taskId);
+      return;
+    }
+    const fileName = this.taskFileName(taskId);
+    try {
+      const tasksDir = await this.getTasksDir(false);
+      await tasksDir?.removeEntry(fileName);
+    } catch { /* ignore */ }
+    try {
+      const archiveDir = await this.getTasksArchiveDir(false);
+      await archiveDir?.removeEntry(fileName);
+    } catch { /* ignore */ }
     try {
       await (this.dirHandle as any).removeEntry(fileName);
     } catch { /* legacy */ }
@@ -606,6 +720,32 @@ export class VaultStorage {
   private deleteFallbackTask(taskId: string): void {
     const tasks = this.loadFallbackTasks().filter(t => t.id !== taskId);
     localStorage.setItem("pro_man_fallback_tasks", JSON.stringify(tasks));
+  }
+
+  private loadFallbackArchivedTasks(): Task[] {
+    const raw = localStorage.getItem("pro_man_archived_tasks");
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveFallbackArchivedTask(task: Task): void {
+    const tasks = this.loadFallbackArchivedTasks();
+    const idx = tasks.findIndex(t => t.id === task.id);
+    if (idx !== -1) {
+      tasks[idx] = task;
+    } else {
+      tasks.push(task);
+    }
+    localStorage.setItem("pro_man_archived_tasks", JSON.stringify(tasks));
+  }
+
+  private deleteFallbackArchivedTask(taskId: string): void {
+    const tasks = this.loadFallbackArchivedTasks().filter(t => t.id !== taskId);
+    localStorage.setItem("pro_man_archived_tasks", JSON.stringify(tasks));
   }
 
   private loadFallbackDocs(): DocItem[] {

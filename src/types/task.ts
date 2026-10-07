@@ -99,6 +99,8 @@ export interface Task {
   order: number;
   createdAt: string;
   updatedAt: string;
+  /** Set when moved to vault `tasks/archive/` — not shown on the active board. */
+  archivedAt?: string;
 }
 
 export interface ProjectMetadata {

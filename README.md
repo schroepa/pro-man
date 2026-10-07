@@ -121,6 +121,7 @@ Weitere Module:
 mein-vault/
   clients.json            # clients, projects, members
   tasks/<ISSUE-KEY>.md    # YAML-Frontmatter + Body
+  tasks/archive/          # archivierte Aufgaben (kein Löschen — nur Verschieben)
   docs/DOC-*.md
   attachments/            # optionale Binärdateien
 ```

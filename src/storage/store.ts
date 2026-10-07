@@ -77,6 +77,7 @@ interface Command {
 
 export class AppStore {
   private tasks: Map<string, Task> = new Map();
+  private archivedTasks: Map<string, Task> = new Map();
   private clients: Map<string, Client> = new Map();
   private projects: Map<string, Project> = new Map();
   private docs: Map<string, DocItem> = new Map();
@@ -177,6 +178,10 @@ export class AppStore {
       loaded.forEach(t => this.tasks.set(t.id, t));
       this.normalizeStatusesToColumns(this.getActiveColumns());
     }
+
+    this.archivedTasks.clear();
+    const archived = await this.storage.loadArchivedTasks();
+    archived.forEach(t => this.archivedTasks.set(t.id, t));
 
     const docs = await this.storage.loadAllDocs();
     if (docs.length === 0 && !isDemoCleared()) {
@@ -627,6 +632,10 @@ export class AppStore {
         this.normalizeStatusesToColumns(this.getActiveColumns());
       }
 
+      this.archivedTasks.clear();
+      const archived = await this.storage.loadArchivedTasks();
+      archived.forEach(t => this.archivedTasks.set(t.id, t));
+
       const docs = await this.storage.loadAllDocs();
       this.docs.clear();
       if (docs.length === 0 && !this.storage.isConnected && !isDemoCleared()) {
@@ -743,7 +752,7 @@ export class AppStore {
 
     let max = 0;
     const re = new RegExp(`^${escapeRegExp(prefix)}-(\\d+)$`, "i");
-    for (const task of this.tasks.values()) {
+    for (const task of [...this.tasks.values(), ...this.archivedTasks.values()]) {
       for (const key of [task.issueKey, task.id]) {
         if (!key) continue;
         const m = key.match(re);
@@ -756,7 +765,7 @@ export class AppStore {
   /** Allocate a unique task file id (= issue key when possible). */
   createTaskId(clientId?: string, projectId?: string): string {
     let id = this.allocateIssueKey(clientId, projectId);
-    while (this.tasks.has(id)) {
+    while (this.tasks.has(id) || this.archivedTasks.has(id)) {
       const m = id.match(/^(.*-)(\d+)$/);
       if (!m) {
         id = `${id}-${Date.now().toString(36)}`;
@@ -823,6 +832,28 @@ export class AppStore {
     }
     showToast(`${t().announcements.recurringCreated}: ${next.issueKey || next.id}`, "success");
     this.notify();
+  }
+
+  /** Active task → vault archive with status done (Erledigt). */
+  private autoArchivePayload(task: Task, patch: Partial<Task> = {}): Task {
+    const now = new Date().toISOString();
+    return {
+      ...cloneTask(task),
+      ...patch,
+      status: "done",
+      archivedAt: now,
+      updatedAt: now,
+    };
+  }
+
+  private async moveActiveTaskToArchive(archived: Task): Promise<void> {
+    this.tasks.delete(archived.id);
+    this.archivedTasks.set(archived.id, archived);
+    try {
+      await this.storage.archiveTask(archived);
+    } catch {
+      reportVaultError(this.storage);
+    }
   }
 
   private generateUniqueTaskId(): string {
@@ -1293,7 +1324,11 @@ export class AppStore {
       execute: async () => {
         for (let i = 0; i < taskIdsInOrder.length; i++) {
           const task = this.tasks.get(taskIdsInOrder[i]);
-          if (task) {
+          if (!task) continue;
+          if (status === "done") {
+            const archived = this.autoArchivePayload(task, { order: i });
+            await this.moveActiveTaskToArchive(archived);
+          } else {
             task.order = i;
             task.status = status;
             task.updatedAt = new Date().toISOString();
@@ -1303,8 +1338,13 @@ export class AppStore {
       },
       undo: async () => {
         for (const snap of snapshots) {
+          this.archivedTasks.delete(snap.id);
           this.tasks.set(snap.id, snap);
-          await this.storage.saveTask(snap);
+          try {
+            await this.storage.restoreTask(snap);
+          } catch {
+            reportVaultError(this.storage);
+          }
         }
       },
     };
@@ -1312,13 +1352,25 @@ export class AppStore {
     await this.executeCommand(cmd);
     for (const id of newlyDoneIds) {
       this.toastUnblocked(id);
-      const done = this.tasks.get(id);
+      const done = this.archivedTasks.get(id);
       if (done) await this.spawnRecurringInstance(done);
     }
   }
 
   getAllRawTasks(): Task[] {
     return Array.from(this.tasks.values());
+  }
+
+  getArchivedTasks(): Task[] {
+    return Array.from(this.archivedTasks.values());
+  }
+
+  isTaskArchived(taskId: string): boolean {
+    return this.archivedTasks.has(taskId);
+  }
+
+  getTaskById(taskId: string): Task | undefined {
+    return this.tasks.get(taskId) ?? this.archivedTasks.get(taskId);
   }
 
   clearFilters(): void {
@@ -1360,7 +1412,7 @@ export class AppStore {
     const taskIds = [...this.tasks.keys()].filter(isSampleTaskId);
     for (const id of taskIds) {
       this.tasks.delete(id);
-      await this.storage.deleteTask(id);
+      await this.storage.purgeTask(id);
     }
 
     const docIds = [...this.docs.keys()].filter(isSampleDocId);
@@ -1401,7 +1453,7 @@ export class AppStore {
   wouldCreateDependencyCycle(taskId: string, newDeps: string[]): boolean {
     const getDeps = (id: string): string[] => {
       if (id === taskId) return newDeps;
-      return this.tasks.get(id)?.dependencies || [];
+      return this.getTaskById(id)?.dependencies || [];
     };
 
     const canReach = (from: string, target: string, seen: Set<string>): boolean => {
@@ -1462,23 +1514,40 @@ export class AppStore {
     const becameDone = newStatus === "done" && oldStatus !== "done";
     const snapshot = cloneTask(task);
     const cmd: Command = {
-      description: `Aufgabe "${task.title}" nach ${newStatus} verschoben`,
+      description: becameDone
+        ? `${t().announcements.taskArchived}: ${task.title}`
+        : `Aufgabe "${task.title}" nach ${newStatus} verschoben`,
       execute: async () => {
-        task.status = newStatus;
-        task.updatedAt = new Date().toISOString();
-        await this.storage.saveTask(task);
+        if (newStatus === "done") {
+          const archived = this.autoArchivePayload(snapshot);
+          await this.moveActiveTaskToArchive(archived);
+        } else {
+          task.status = newStatus;
+          task.updatedAt = new Date().toISOString();
+          await this.storage.saveTask(task);
+        }
       },
       undo: async () => {
-        task.status = oldStatus;
-        task.updatedAt = snapshot.updatedAt;
-        await this.storage.saveTask(task);
-      }
+        if (newStatus === "done") {
+          this.archivedTasks.delete(taskId);
+          this.tasks.set(taskId, snapshot);
+          try {
+            await this.storage.restoreTask(snapshot);
+          } catch {
+            reportVaultError(this.storage);
+          }
+        } else {
+          task.status = oldStatus;
+          task.updatedAt = snapshot.updatedAt;
+          await this.storage.saveTask(task);
+        }
+      },
     };
 
     await this.executeCommand(cmd);
     if (becameDone) {
       this.toastUnblocked(taskId);
-      await this.spawnRecurringInstance(snapshot);
+      await this.spawnRecurringInstance({ ...snapshot, status: "done" });
     }
   }
 
@@ -1495,20 +1564,38 @@ export class AppStore {
 
   async saveOrUpdateTask(updatedTask: Task): Promise<void> {
     let taskToSave = this.ensureIssueKey(updatedTask);
-    const existing = this.tasks.get(taskToSave.id);
+    const inActive = this.tasks.get(taskToSave.id);
+    const inArchive = this.archivedTasks.get(taskToSave.id);
+    const existing = inActive ?? inArchive;
     const isNew = !existing;
+    const wasArchived = Boolean(inArchive);
     const oldSnapshot = existing ? cloneTask(existing) : null;
+    if (wasArchived && !taskToSave.archivedAt && oldSnapshot?.archivedAt) {
+      taskToSave = { ...taskToSave, archivedAt: oldSnapshot.archivedAt };
+    }
     const becameDone = !isNew && taskToSave.status === "done" && existing!.status !== "done";
+    const autoArchiveOnDone =
+      !wasArchived && taskToSave.status === "done" && (isNew || existing!.status !== "done");
 
     if (becameDone && this.rejectDoneIfSubtasksOpen(taskToSave)) return;
     if (isNew && taskToSave.status === "done" && this.rejectDoneIfSubtasksOpen(taskToSave)) return;
 
     const cmd: Command = {
-      description: isNew
-        ? `${t().announcements.taskCreated}: ${taskToSave.title}`
-        : `${t().announcements.taskUpdated}: ${taskToSave.title}`,
+      description: autoArchiveOnDone && !isNew
+        ? `${t().announcements.taskArchived}: ${taskToSave.title}`
+        : isNew
+          ? `${t().announcements.taskCreated}: ${taskToSave.title}`
+          : `${t().announcements.taskUpdated}: ${taskToSave.title}`,
       execute: async () => {
-        this.tasks.set(taskToSave.id, taskToSave);
+        if (autoArchiveOnDone) {
+          await this.moveActiveTaskToArchive(this.autoArchivePayload(taskToSave));
+          return;
+        }
+        if (wasArchived || taskToSave.archivedAt) {
+          this.archivedTasks.set(taskToSave.id, taskToSave);
+        } else {
+          this.tasks.set(taskToSave.id, taskToSave);
+        }
         try {
           await this.storage.saveTask(taskToSave);
         } catch {
@@ -1518,44 +1605,108 @@ export class AppStore {
       undo: async () => {
         if (isNew) {
           this.tasks.delete(taskToSave.id);
-          await this.storage.deleteTask(taskToSave.id);
+          this.archivedTasks.delete(taskToSave.id);
+          await this.storage.purgeTask(taskToSave.id);
         } else if (oldSnapshot) {
-          this.tasks.set(oldSnapshot.id, oldSnapshot);
+          this.archivedTasks.delete(taskToSave.id);
+          if (autoArchiveOnDone || !(wasArchived || oldSnapshot.archivedAt)) {
+            this.tasks.set(oldSnapshot.id, oldSnapshot);
+          }
+          if (wasArchived || oldSnapshot.archivedAt) {
+            if (!autoArchiveOnDone) {
+              this.archivedTasks.set(oldSnapshot.id, oldSnapshot);
+              this.tasks.delete(oldSnapshot.id);
+            }
+          }
           try {
-            await this.storage.saveTask(oldSnapshot);
+            if (autoArchiveOnDone) {
+              await this.storage.restoreTask(oldSnapshot);
+            } else {
+              await this.storage.saveTask(oldSnapshot);
+            }
           } catch {
             reportVaultError(this.storage);
           }
         }
-      }
+      },
     };
 
     await this.executeCommand(cmd);
-    if (becameDone) {
+    if (autoArchiveOnDone) {
       this.toastUnblocked(taskToSave.id);
       await this.spawnRecurringInstance({ ...taskToSave, status: "done" });
     }
   }
 
-  async deleteTask(taskId: string): Promise<void> {
+  /** Move task to vault `tasks/archive/` (never permanently delete user tickets). */
+  async archiveTask(taskId: string): Promise<void> {
     const task = this.tasks.get(taskId);
     if (!task) return;
 
     const taskSnapshot = cloneTask(task);
     const cmd: Command = {
-      description: `${t().announcements.taskDeleted}: ${task.title}`,
+      description: `${t().announcements.taskArchived}: ${task.title}`,
       execute: async () => {
         this.tasks.delete(taskId);
-        await this.storage.deleteTask(taskId);
-      },
-      undo: async () => {
-        this.tasks.set(taskId, taskSnapshot);
+        const archived: Task = {
+          ...cloneTask(taskSnapshot),
+          archivedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        this.archivedTasks.set(taskId, archived);
         try {
-          await this.storage.saveTask(taskSnapshot);
+          await this.storage.archiveTask(archived);
         } catch {
           reportVaultError(this.storage);
         }
-      }
+      },
+      undo: async () => {
+        this.archivedTasks.delete(taskId);
+        this.tasks.set(taskId, taskSnapshot);
+        try {
+          await this.storage.restoreTask(taskSnapshot);
+        } catch {
+          reportVaultError(this.storage);
+        }
+      },
+    };
+
+    await this.executeCommand(cmd);
+  }
+
+  /** @deprecated Use archiveTask */
+  async deleteTask(taskId: string): Promise<void> {
+    return this.archiveTask(taskId);
+  }
+
+  async restoreTask(taskId: string): Promise<void> {
+    const task = this.archivedTasks.get(taskId);
+    if (!task) return;
+
+    const snapshot = cloneTask(task);
+    const active: Task = { ...snapshot };
+    delete active.archivedAt;
+
+    const cmd: Command = {
+      description: `${t().announcements.taskRestored}: ${task.title}`,
+      execute: async () => {
+        this.archivedTasks.delete(taskId);
+        this.tasks.set(taskId, active);
+        try {
+          await this.storage.restoreTask(active);
+        } catch {
+          reportVaultError(this.storage);
+        }
+      },
+      undo: async () => {
+        this.tasks.delete(taskId);
+        this.archivedTasks.set(taskId, snapshot);
+        try {
+          await this.storage.archiveTask(snapshot);
+        } catch {
+          reportVaultError(this.storage);
+        }
+      },
     };
 
     await this.executeCommand(cmd);

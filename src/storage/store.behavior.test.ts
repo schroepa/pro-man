@@ -117,7 +117,8 @@ describe("subtasks block Done", () => {
     storeInternals().tasks.set(task.id, task);
 
     await store.updateTaskStatus(task.id, "done");
-    expect(storeInternals().tasks.get(task.id)?.status).toBe("done");
+    expect(storeInternals().tasks.get(task.id)).toBeUndefined();
+    expect(storeInternals().archivedTasks.get(task.id)?.status).toBe("done");
   });
 });
 
@@ -144,5 +145,47 @@ describe("filters", () => {
     expect(store.searchQuery).toBe("");
     expect(store.selectedClientId).toBeNull();
     expect(store.selectedProjectId).toBeNull();
+  });
+});
+
+describe("task archive", () => {
+  beforeEach(() => {
+    resetStoreMaps();
+    stubVaultWrites();
+  });
+
+  it("moves active tasks to archived map", async () => {
+    const task = makeTask({ id: "ACM-1", issueKey: "ACM-1" });
+    storeInternals().tasks.set(task.id, task);
+    await store.archiveTask(task.id);
+    expect(store.getTask(task.id)).toBeUndefined();
+    expect(store.getArchivedTasks()).toHaveLength(1);
+    expect(store.getArchivedTasks()[0].archivedAt).toBeTruthy();
+  });
+
+  it("restore puts task back on the board", async () => {
+    const task = makeTask({ id: "ACM-2", archivedAt: "2026-10-01T12:00:00.000Z" });
+    storeInternals().archivedTasks.set(task.id, task);
+    await store.restoreTask(task.id);
+    expect(store.getTask(task.id)).toBeDefined();
+    expect(store.getArchivedTasks()).toHaveLength(0);
+    expect(store.getTask(task.id)?.archivedAt).toBeUndefined();
+  });
+
+  it("auto-archives when status becomes done", async () => {
+    const task = makeTask({ id: "ACM-3", status: "in-progress" });
+    storeInternals().tasks.set(task.id, task);
+    await store.updateTaskStatus(task.id, "done");
+    expect(store.getTask(task.id)).toBeUndefined();
+    expect(store.getArchivedTasks()[0]?.status).toBe("done");
+  });
+
+  it("createTaskId avoids ids in the archive", () => {
+    seedClientProject();
+    storeInternals().archivedTasks.set(
+      "ACM-WEB-1",
+      makeTask({ id: "ACM-WEB-1", issueKey: "ACM-WEB-1", clientId: "cli-acme", projectId: "prj-web" })
+    );
+    expect(store.createTaskId("cli-acme", "prj-web")).toBe("ACM-WEB-2");
   });
 });

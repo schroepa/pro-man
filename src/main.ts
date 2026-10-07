@@ -25,7 +25,7 @@ const mobileNavContainer = document.getElementById("mobile-nav-container")!;
 const taskDialog = new TaskDialog();
 
 function openTask(taskId: string): void {
-  const task = store.getTask(taskId);
+  const task = store.getTaskById(taskId);
   if (task) {
     taskDialog.open(task);
   }

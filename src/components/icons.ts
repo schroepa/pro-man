@@ -65,6 +65,9 @@ export const TablerIcon = {
   arrowBackUp: (props?: IconProps) =>
     createSvg('<path d="M9 14l-4 -4l4 -4" /><path d="M5 10h11a4 4 0 1 1 0 8h-1" />', props),
 
+  archive: (props?: IconProps) =>
+    createSvg('<path d="M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" /><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" /><path d="M10 12l4 0" />', props),
+
   arrowForwardUp: (props?: IconProps) =>
     createSvg('<path d="M15 14l4 -4l-4 -4" /><path d="M19 10h-11a4 4 0 1 0 0 8h1" />', props),
 
