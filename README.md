@@ -157,6 +157,7 @@ Kurzüberblick — **vollständige Spezifikation:** [`docs/DESIGN.md`](./docs/DE
 | **Typo** | Geist / Geist Mono, self-hosted, `font-display: swap`, Preload nur Sans |
 | **Motion** | kurze Durations, `prefers-reduced-motion` respektiert |
 | **Formen** | Squircle / Concentric Radii |
+| **Brand** | Logo-Lockup in Sidebar; Favicon/PWA/OG unter `public/` (`public/brand/`) |
 
 ### Surface-Stack (Dark)
 

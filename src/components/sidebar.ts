@@ -65,10 +65,14 @@ export function renderSidebar(container: HTMLElement): void {
   sidebar.innerHTML = `
     <div class="sidebar-header">
       <div class="sidebar-workspace-title">
-        <span style="color: var(--color-primary-500); display: flex;">
-          ${TablerIcon.briefcase({ size: 20, strokeWidth: 2.2 })}
-        </span>
-        <span>${t().appName}</span>
+        <img
+          class="sidebar-brand-logo"
+          src="${isDarkMode ? "/brand/lockup-horizontal-dark.svg" : "/brand/lockup-horizontal-light.svg"}"
+          alt="${t().appName}"
+          width="104"
+          height="22"
+          decoding="async"
+        />
         ${showDemoBadge ? `<span class="demo-chip sidebar-demo-chip">${t().empty.demoBadge}</span>` : ""}
       </div>
       <button type="button" id="sidebar-collapse-btn" class="sidebar-collapse-btn" data-sidebar-toggle aria-label="${t().actions.collapseSidebar}" title="${t().actions.collapseSidebar} (⌘\\)">

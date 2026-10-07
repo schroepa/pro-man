@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
+- **Pro-Man Branding**: Eigenes Logo (Lockup horizontal) in der Sidebar; Favicon (SVG/ICO/Apple Touch), PWA-Icons, Open-Graph-Bild; Schreibweise „Pro-Man“
 - **Team-Vault Hardening**: Confirm-Dialog (Primary=Neu laden), Content-Digest im Fingerprint, Atomic Writes (Temp→Replace), Banner mit betroffenen Pfaden + „Später“
 - **Team-Vault (Soft Concurrent)**: Kleine Teams am zentralen Share — Session-Identität („Ich bin …“), Stale-Banner bei Fremd-Änderungen, Save-Guard vor Überschreiben; Playbook [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md)
 - **Dashboard als Startseite**: ViewMode `dashboard` (Default) — Fokus-KPIs (Offen · Dringend/Überfällig · Diese Woche · In Arbeit), Heute/Überfällig-Liste, Weiter-Links; KPI-Klick → Liste mit Filter; Kanban-KPI-Leiste entfernt; Mobile-Nav: Übersicht zuerst

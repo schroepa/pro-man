@@ -2,7 +2,7 @@ export type Language = "de" | "en";
 
 export const translations = {
   de: {
-    appName: "ProMan",
+    appName: "Pro-Man",
     tagline: "Local-First Workspace",
     views: {
       dashboard: "Übersicht",
@@ -223,7 +223,7 @@ export const translations = {
       ganttShort: "Gantt",
     },
     onboarding: {
-      title: "Willkommen bei ProMan",
+      title: "Willkommen bei Pro-Man",
       tip: "Wähle einen Ordner auf diesem Gerät — Aufgaben werden als Markdown gespeichert. Ohne Ordner bleiben die Daten im Browser (inkl. Beispieldaten).",
       dismiss: "Mit Beispieldaten starten",
       tipSecondary: "Obsidian-kompatible .md-Dateien möglich. Kleines Team? Denselben Ordner auf dem Share verbinden.",
@@ -400,7 +400,7 @@ export const translations = {
     }
   },
   en: {
-    appName: "ProMan",
+    appName: "Pro-Man",
     tagline: "Local-First Workspace",
     views: {
       dashboard: "Overview",
@@ -621,7 +621,7 @@ export const translations = {
       ganttShort: "Gantt",
     },
     onboarding: {
-      title: "Welcome to ProMan",
+      title: "Welcome to Pro-Man",
       tip: "Choose a folder on this device — tasks are saved as Markdown. Without a folder, data stays in the browser (including sample data).",
       dismiss: "Start with sample data",
       tipSecondary: "Obsidian-compatible .md files supported. Small team? Connect the same folder on the share.",

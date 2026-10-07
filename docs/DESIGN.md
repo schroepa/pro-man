@@ -164,22 +164,37 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 ---
 
-## 6. Komponenten-Verträge
+## 6. Brand / Logo
 
-### 6.1 CustomSelect
+Assets unter `public/brand/` und Favicon/OG im `public/`-Root. Regeln: `public/brand/README.md`.
+
+| Oberfläche | Asset |
+|---|---|
+| Sidebar | `lockup-horizontal-light/dark.svg` (Höhe 22 px, Theme folgt `data-theme`) |
+| Favicon | `favicon.svg` (auto Light/Dark via `prefers-color-scheme`) + `favicon.ico` |
+| PWA | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` |
+| Social / OG | `og-image.png` (1200×630) |
+
+Light-Variante nur auf hellem Grund, Dark-Variante nur auf dunklem. Bildmarke min. 16 px; horizontaler Lockup min. 96 px Breite. Nicht verzerren, umfärben oder Module verschieben.
+
+---
+
+## 7. Komponenten-Verträge
+
+### 7.1 CustomSelect
 
 - Keine nativen `<select>` in der Produkt-UI (Design-Test erzwingt das).
 - Menu: `role="listbox"`, Optionen `role="option"`, `aria-label` an Trigger **und** Menu.
 - Portal: in offenen `<dialog>` oder `body`; `popover="manual"` für Top-Layer über `showModal()`.
 - `z-index` Menu ≥ 1500.
 
-### 6.2 Filter-Popover
+### 7.2 Filter-Popover
 
 - `position: fixed`, Elevated Surface + Popover-Shadow.
 - Positionierung **erst nach** `appendChild` des Topbars (sonst 0,0 nach `notify()`-Remount).
 - Resize/Scroll-Reposition; Outside-Click ignoriert portierte Select-Menus.
 
-### 6.3 Dialog / Forms
+### 7.3 Dialog / Forms
 
 - Task-Dialog: Elevated + Overlay-Shadow; Essentials zuerst (Titel, Status, Priorität, Fällig), Rest in `<details class="task-more-details">`.
 - Sheet-Header: Issue-Key + Status-Chip (mobil sichtbar halten).
@@ -189,14 +204,14 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 - Date-Picker-Icons: Mask + `--color-text-secondary` (nicht OS-`color-scheme`-Ghosts).
 - `color-scheme` folgt Theme (`light` / `dark`), nicht `light dark` pauschal.
 
-### 6.4 Cards / Board
+### 7.4 Cards / Board
 
 - Cards: Surface + weiche Shadows (Dark abgemildert).
 - Hover-Schatten: genug Padding in Listen, damit nichts abgeschnitten wird.
 - Fokus-KPIs leben auf der **Dashboard**-Startseite (nicht mehr im Kanban); Demo-Banner mit Clear-CTA am Board solange Sample-Daten existieren.
 - Filterleiste ausblenden bei `getAllRawTasks().length === 0`.
 
-### 6.5 Kunden-Seite
+### 7.5 Kunden-Seite
 
 - ViewMode `client` (lazy wie Docs/Backoffice); Styles in `client.css`.
 - Layout: Header (Swatch + Name/Code + sekundäre Board/Docs-CTAs) · KPI-Zeile · Grid Stammdaten | Kontakte/Projekte.
@@ -206,14 +221,14 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 - Topbar: View-Switcher ausgeblendet (Label „Kunde“), Filter ausgeblendet — analog Docs/Backoffice.
 - Kontakt-Badge: i18n `client.primary` („Primär“ / „Primary“).
 
-### 6.6 Shell / Onboarding
+### 7.6 Shell / Onboarding
 
 - Banner = einzige Primär-CTA „Ordner verbinden“; Sidebar-Connect vor Dismiss ohne Primary-Gewicht.
 - Nach Onboard + Offline: kompakte Statuszeile (`sidebar-vault-compact`), volle Fläche nur bei `permission_needed` / Unsupported / vor Onboard.
 - Compact-Zeile: Label + CTA gestapelt; Label max. 2 Zeilen (`line-clamp`), CTA mit Ellipsis; Breite `calc(100% − Side-Margins)`, kein Horizontal-Overflow.
 - Topbar-Primäraktion kontextuell: Docs → Doc, Backoffice → Kunde, Client → Board, sonst Aufgabe.
 
-### 6.7 Team & Zuweisung
+### 7.7 Team & Zuweisung
 
 - `WorkspaceMember` ≠ `Client`: Zuweisung geht nur über Members (intern/extern + Rolle).
 - Task-Dialog: Assignee-Select mit „+ Person“; Kind-Toggle (keine nativen `<select>`).
@@ -224,7 +239,7 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 ---
 
-## 7. Theme & Tintfield
+## 8. Theme & Tintfield
 
 - Theme-Toggle setzt `data-theme` + `localStorage: proman_theme_mode`.
 - Backoffice: Tintfield-JSON/`--neutral-*`/`--brand-*` Overrides via `theme-manager.ts`.
@@ -232,7 +247,7 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 ---
 
-## 8. Checkliste bei UI-Änderungen
+## 9. Checkliste bei UI-Änderungen
 
 1. Tokens statt Magic Numbers?
 2. Floating UI → `elevated` + Popover/Overlay-Shadow?
@@ -244,7 +259,7 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 ---
 
-## 9. Referenzdateien
+## 10. Referenzdateien
 
 | Datei | Inhalt |
 |---|---|
@@ -254,3 +269,5 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 | `src/styles/components/*` | Komponenten |
 | `src/design/design-integrity.test.ts` | Automatisierte Design-Verträge |
 | `public/fonts/` | Binary Fonts + OFL-Hinweis |
+| `public/brand/` | Logo-Lockups, Mark, Wordmark |
+| `public/favicon.svg` / `og-image.png` | Favicon + Social |
