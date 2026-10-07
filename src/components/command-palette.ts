@@ -261,6 +261,14 @@ export class CommandPalette {
 
     const views: PaletteItem[] = [
       {
+        id: "view-dashboard",
+        label: show(i18n.views.dashboard),
+        group: "views",
+        fields: [i18n.views.dashboard, "übersicht", "overview", "dashboard", "home"],
+        score: 0,
+        action: () => { store.currentView = "dashboard"; store.notify(); },
+      },
+      {
         id: "view-kanban",
         label: show(i18n.views.kanban),
         shortcut: "1",

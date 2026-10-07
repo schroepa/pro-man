@@ -71,15 +71,20 @@ describe("Mobile app shell", () => {
   it("bottom nav switches views and More opens drawer", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
-    store.currentView = "kanban";
+    store.currentView = "dashboard";
     renderMobileBottomNav(host);
 
     const buttons = host.querySelectorAll<HTMLButtonElement>(".mobile-bottom-nav-item");
     expect(buttons.length).toBe(5);
+    expect(host.textContent).toContain(t().views.dashboard);
+    expect(host.textContent).toContain(t().views.kanban);
     expect(host.textContent).toContain(t().nav.more);
 
-    buttons[1].click(); // Liste
+    buttons[2].click(); // Liste (Übersicht · Board · Liste · Docs · Mehr)
     expect(store.currentView).toBe("list");
+
+    buttons[1].click(); // Board
+    expect(store.currentView).toBe("kanban");
 
     buttons[4].click(); // Mehr
     expect(isSidebarVisible()).toBe(true);

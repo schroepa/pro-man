@@ -130,17 +130,19 @@ export function renderTopbar(
   const taskCount = store.getAllRawTasks().length;
   const hideFilters =
     taskCount === 0 ||
+    store.currentView === "dashboard" ||
     store.currentView === "docs" ||
     store.currentView === "backoffice" ||
     store.currentView === "client";
   const isCalendar = store.currentView === "calendar";
   const hasScope = !!(store.selectedClientId || store.selectedProjectId);
   const sidebarVisible = isSidebarVisible();
-  const showPrimaryViews = !["docs", "backoffice", "client"].includes(store.currentView);
+  const showPrimaryViews = !["dashboard", "docs", "backoffice", "client"].includes(store.currentView);
   const secondaryViewLabel =
-    store.currentView === "docs" ? t().views.docs
-      : store.currentView === "client" ? t().views.client
-        : t().views.backoffice;
+    store.currentView === "dashboard" ? t().views.dashboard
+      : store.currentView === "docs" ? t().views.docs
+        : store.currentView === "client" ? t().views.client
+          : t().views.backoffice;
 
   type PrimaryCta = { id: string; label: string; icon: string };
   let primaryCta: PrimaryCta = {

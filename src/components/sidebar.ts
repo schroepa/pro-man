@@ -132,6 +132,10 @@ export function renderSidebar(container: HTMLElement): void {
           <span>Views & Hubs</span>
         </div>
         <div class="sidebar-nav-list" role="list">
+          <button class="sidebar-nav-item ${store.currentView === "dashboard" ? "active" : ""}" data-nav="dashboard">
+            ${TablerIcon.layoutDashboard({ size: 16 })}
+            <span>${t().views.dashboard}</span>
+          </button>
           <button class="sidebar-nav-item ${store.currentView === "kanban" && !store.selectedClientId && !store.selectedProjectId ? "active" : ""}" data-nav="everything">
             ${TablerIcon.layoutKanban({ size: 16 })}
             <span>${escapeHtml(everythingLabel)}</span>
@@ -305,7 +309,11 @@ export function renderSidebar(container: HTMLElement): void {
         closeMobileNav();
         return;
       }
-      if (nav === "everything") {
+      if (nav === "dashboard") {
+        store.selectedClientId = null;
+        store.selectedProjectId = null;
+        store.currentView = "dashboard";
+      } else if (nav === "everything") {
         store.selectedClientId = null;
         store.selectedProjectId = null;
         store.currentView = "kanban";

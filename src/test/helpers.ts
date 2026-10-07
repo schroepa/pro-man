@@ -77,7 +77,7 @@ export function resetStoreMaps(): void {
   s.members?.clear();
   s.docs?.clear();
   store.clearFilters();
-  store.currentView = "kanban";
+  store.currentView = "dashboard";
   // clearFilters schedules a coalesced notify — flush so later tests see a clean rAF queue
   store.notifySync();
 }

@@ -1,6 +1,7 @@
 import { store } from "./storage/store";
 import { renderSidebar } from "./components/sidebar";
 import { renderTopbar } from "./components/topbar";
+import { renderDashboardView } from "./views/dashboard-view";
 import { renderKanbanBoard } from "./views/kanban-board";
 import { renderListView } from "./views/list-view";
 import { TaskDialog } from "./components/task-dialog";
@@ -97,6 +98,10 @@ async function mountActiveView(viewMount: HTMLElement): Promise<void> {
   const gen = ++viewRenderGen;
   const view = store.currentView;
 
+  if (view === "dashboard") {
+    renderDashboardView(viewMount, openTask, () => createNewTask());
+    return;
+  }
   if (view === "kanban") {
     renderKanbanBoard(viewMount, openTask, createNewTask);
     return;

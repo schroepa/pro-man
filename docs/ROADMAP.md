@@ -33,6 +33,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Dashboard als Startseite (MVP)**: `currentView = "dashboard"` Default; Fokus-KPIs → Liste+Filter; Attention-Liste; Weiter Board/Liste/Favorit; Kanban ohne KPI-Leiste; Mobile-Nav Übersicht zuerst
 - **Docs-Markdown angleichen**: Docs-Editor auf `MarkdownLiveField` (eine Fläche, Auto-Grow, Blur→Render, Wikilinks)
 - **v0.3.1**: Aufgaben-Archiv (`tasks/archive/`), lesbare Task-Markdown, Live-Beschreibung, Markdown-Listen-Containment; Smoke-Pass manuell grün
 - Team & Personen (Workspace-Members ≠ Kunden): CRUD, Intern/Extern, Dialog-Inline-Add, Backoffice-Tab

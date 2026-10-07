@@ -193,7 +193,7 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 
 - Cards: Surface + weiche Shadows (Dark abgemildert).
 - Hover-Schatten: genug Padding in Listen, damit nichts abgeschnitten wird.
-- KPI-Bar erst nach erster **eigener** (nicht Sample-) Aufgabe; Demo-Banner mit Clear-CTA solange Sample-Daten existieren.
+- Fokus-KPIs leben auf der **Dashboard**-Startseite (nicht mehr im Kanban); Demo-Banner mit Clear-CTA am Board solange Sample-Daten existieren.
 - Filterleiste ausblenden bei `getAllRawTasks().length === 0`.
 
 ### 6.5 Kunden-Seite

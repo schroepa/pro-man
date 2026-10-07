@@ -27,6 +27,9 @@ export const TablerIcon = {
   layoutKanban: (props?: IconProps) =>
     createSvg('<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" /><path d="M10 4l0 16" /><path d="M14 4l0 16" />', props),
 
+  layoutDashboard: (props?: IconProps) =>
+    createSvg('<path d="M4 4h6v8h-6z" /><path d="M4 16h6v4h-6z" /><path d="M14 12h6v8h-6z" /><path d="M14 4h6v4h-6z" />', props),
+
   timeline: (props?: IconProps) =>
     createSvg('<path d="M4 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 20m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M20 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M20 8m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 8m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 9v6" /><path d="M12 5v14" /><path d="M20 9v6" />', props),
 

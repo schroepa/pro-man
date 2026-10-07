@@ -17,7 +17,7 @@ import {
   hasOwnTasks,
 } from "./demo-mode";
 
-export type ViewMode = "kanban" | "list" | "gantt" | "calendar" | "docs" | "backoffice" | "client";
+export type ViewMode = "dashboard" | "kanban" | "list" | "gantt" | "calendar" | "docs" | "backoffice" | "client";
 
 const FAVORITES_KEY = "pro_man_favorite_projects";
 const MEMBERS_KEY = "pro_man_members";
@@ -92,7 +92,7 @@ export class AppStore {
   private redoStack: Command[] = [];
 
   // Navigation & Multi-filter state
-  public currentView: ViewMode = "kanban";
+  public currentView: ViewMode = "dashboard";
   public searchQuery: string = "";
   public selectedClientId: string | null = null;
   public selectedProjectId: string | null = null;

@@ -11,9 +11,9 @@ type NavItem =
 function items(): NavItem[] {
   const i18n = t();
   return [
+    { kind: "view", view: "dashboard", label: i18n.views.dashboard, icon: TablerIcon.layoutDashboard({ size: 20 }) },
     { kind: "view", view: "kanban", label: i18n.views.kanban, icon: TablerIcon.layoutKanban({ size: 20 }) },
     { kind: "view", view: "list", label: i18n.views.list, icon: TablerIcon.listDetails({ size: 20 }) },
-    { kind: "view", view: "gantt", label: i18n.nav.ganttShort, icon: TablerIcon.timeline({ size: 20 }) },
     { kind: "view", view: "docs", label: i18n.nav.docsShort, icon: TablerIcon.fileText({ size: 20 }) },
     { kind: "more", label: i18n.nav.more, icon: TablerIcon.menu({ size: 20 }) },
   ];
@@ -31,7 +31,7 @@ export function renderMobileBottomNav(container: HTMLElement): void {
   nav.dataset.testid = "mobile-bottom-nav";
 
   const current = store.currentView;
-  const moreActive = current === "backoffice" || current === "calendar";
+  const moreActive = current === "backoffice" || current === "calendar" || current === "gantt";
 
   for (const item of items()) {
     const btn = document.createElement("button");

@@ -4,6 +4,7 @@ import { createTaskCard } from "../components/task-card";
 import { TablerIcon } from "../components/icons";
 import { t } from "../i18n";
 import { SAMPLE_CLIENT_IDS } from "../storage/demo-mode";
+import { computeTaskMetrics } from "../utils/task-metrics";
 
 function dotClassForStatus(id: string): string {
   if (id === "todo") return "column-dot-todo";
@@ -44,122 +45,16 @@ export function renderKanbanBoard(
   // Soft-migrate unknown statuses into the first active column (in-memory)
   store.normalizeStatusesToColumns(columns);
 
-  // Date constants for KPI calculation
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const nextWeek = new Date();
-  nextWeek.setDate(nextWeek.getDate() + 7);
-  const nextWeekStr = nextWeek.toISOString().slice(0, 10);
+  const totalTasks = computeTaskMetrics(allRawTasks).total;
 
-  // Compute live operative metrics (3-Second Rule)
-  const totalTasks = allRawTasks.length;
-  const openTasks = allRawTasks.filter(task => task.status !== "done").length;
-  const inProgressTasks = allRawTasks.filter(task => task.status === "in-progress").length;
-  const inReviewTasks = allRawTasks.filter(task => task.status === "in-review").length;
-  const doneTasks = allRawTasks.filter(task => task.status === "done").length;
-  const overdueTasks = allRawTasks.filter(task => task.status !== "done" && task.dueDate && task.dueDate < todayStr).length;
-  const urgentTasks = allRawTasks.filter(task => task.status !== "done" && task.priority === "urgent").length;
-  const dueSoonTasks = allRawTasks.filter(task => task.status !== "done" && task.dueDate && task.dueDate >= todayStr && task.dueDate <= nextWeekStr).length;
-  const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-
-  // 1. Inverted-Pyramid KPI Overview Bar
-  const kpiBar = document.createElement("div");
-  kpiBar.className = "dashboard-kpi-bar";
-  kpiBar.setAttribute("role", "region");
-  kpiBar.setAttribute("aria-label", i18n.kanban.ariaRegion);
-
-  const isUrgentCritical = (overdueTasks + urgentTasks) > 0;
-
-  kpiBar.innerHTML = `
-    <div class="kpi-card" tabindex="0" role="button" aria-label="${i18n.kanban.kpiOpen}: ${openTasks}" title="${i18n.kanban.kpiOpen}">
-      <div class="kpi-header">
-        <span class="kpi-label">${i18n.kanban.kpiOpen}</span>
-        <span class="kpi-icon-wrap">${TablerIcon.listCheck({ size: 15 })}</span>
-      </div>
-      <div class="kpi-value-row">
-        <span class="kpi-value">${openTasks}</span>
-      </div>
-      <span class="kpi-subtext">${inProgressTasks} ${i18n.kanban.kpiInProgress} • ${inReviewTasks} ${i18n.kanban.kpiInReview}</span>
-    </div>
-
-    <div class="kpi-card ${isUrgentCritical ? "kpi-card-danger" : "kpi-card-success"}" tabindex="0" role="button" aria-label="${i18n.kanban.kpiUrgent}: ${overdueTasks + urgentTasks}" title="${i18n.kanban.kpiUrgent}">
-      <div class="kpi-header">
-        <span class="kpi-label">${i18n.kanban.kpiUrgent}</span>
-        <span class="kpi-icon-wrap">${TablerIcon.clockAlert({ size: 15 })}</span>
-      </div>
-      <div class="kpi-value-row">
-        <span class="kpi-value">${overdueTasks + urgentTasks}</span>
-      </div>
-      <span class="kpi-subtext">${isUrgentCritical ? `${overdueTasks} ${i18n.kanban.kpiOverdue} • ${urgentTasks} ${i18n.kanban.kpiUrgentCount}` : i18n.kanban.kpiOnTrack}</span>
-    </div>
-
-    <div class="kpi-card" tabindex="0" role="button" aria-label="${i18n.kanban.kpiDueSoon}: ${dueSoonTasks}" title="${i18n.kanban.kpiDueSoon}">
-      <div class="kpi-header">
-        <span class="kpi-label">${i18n.kanban.kpiDueSoon}</span>
-        <span class="kpi-icon-wrap">${TablerIcon.calendarDue({ size: 15 })}</span>
-      </div>
-      <div class="kpi-value-row">
-        <span class="kpi-value">${dueSoonTasks}</span>
-      </div>
-      <span class="kpi-subtext">${i18n.kanban.kpiDueSoonSub}</span>
-    </div>
-
-    <div class="kpi-card" tabindex="0" role="button" aria-label="${i18n.kanban.kpiCompletion} ${completionRate}%" title="${i18n.kanban.kpiCompletion}">
-      <div class="kpi-header">
-        <span class="kpi-label">${i18n.kanban.kpiCompletion}</span>
-        <span class="kpi-icon-wrap">${TablerIcon.circleCheck({ size: 15 })}</span>
-      </div>
-      <div class="kpi-value-row">
-        <span class="kpi-value">${completionRate}%</span>
-      </div>
-      <span class="kpi-subtext">${doneTasks} ${i18n.kanban.kpiDoneOf} ${totalTasks} ${i18n.kanban.kpiDoneSuffix}</span>
-      <div class="kpi-progress-bar" aria-hidden="true">
-        <div class="kpi-progress-fill" style="width: ${completionRate}%;"></div>
-      </div>
-    </div>
-  `;
-
-  // Bind interactive filtering to KPI cards
-  const kpiActions = [
-    () => {
-      store.filterStatus = "all";
-      store.notify();
-    },
-    () => {
-      store.filterQuick = store.filterQuick === "overdue" ? "all" : "overdue";
-      store.notify();
-    },
-    () => {
-      store.filterQuick = store.filterQuick === "due_soon" ? "all" : "due_soon";
-      store.notify();
-    },
-    () => {
-      store.filterStatus = store.filterStatus === "done" ? "all" : "done";
-      store.notify();
-    },
-  ];
-
-  const kpiCards = kpiBar.querySelectorAll(".kpi-card");
-  kpiCards.forEach((card, index) => {
-    const action = kpiActions[index];
-    if (!action) return;
-    card.addEventListener("click", action);
-    card.addEventListener("keydown", (e) => {
-      const ke = e as KeyboardEvent;
-      if (ke.key === "Enter" || ke.key === " ") {
-        ke.preventDefault();
-        action();
-      }
-    });
-  });
-
-  // 2. Kanban Board
+  // Kanban Board (KPI-Leiste lebt nur noch auf dem Dashboard)
   const board = document.createElement("div");
   board.className = "kanban-board";
   board.style.setProperty("--kanban-cols", String(Math.max(columns.length, 1)));
   board.setAttribute("role", "region");
   board.setAttribute("aria-label", i18n.kanban.ariaBoard);
 
-  // Truly empty workspace — guide to first task (skip KPI noise)
+  // Truly empty workspace — guide to first task
   if (totalTasks === 0) {
     const emptyBoard = document.createElement("div");
     emptyBoard.className = "board-empty-state";
@@ -193,11 +88,6 @@ export function renderKanbanBoard(
     viewWrapper.appendChild(board);
     container.appendChild(viewWrapper);
     return;
-  }
-
-  // KPI only after the first own (non-sample) task — quieter first-run with demo data
-  if (store.hasOwnTasks()) {
-    viewWrapper.appendChild(kpiBar);
   }
 
   if (store.hasSampleData()) {

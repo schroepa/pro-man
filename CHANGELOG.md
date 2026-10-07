@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
+- **Dashboard als Startseite**: ViewMode `dashboard` (Default) — Fokus-KPIs (Offen · Dringend/Überfällig · Diese Woche · In Arbeit), Heute/Überfällig-Liste, Weiter-Links; KPI-Klick → Liste mit Filter; Kanban-KPI-Leiste entfernt; Mobile-Nav: Übersicht zuerst
 - **Docs Live-Markdown**: Docs-Editor nutzt dieselbe Notion-artige Fläche wie die Task-Beschreibung (Klick zum Bearbeiten, Auto-Grow, formatiert nach Blur); Edit/Preview-Tabs entfernt; Wikilinks bleiben klickbar
 
 ## [0.3.1] — 2026-10-07
