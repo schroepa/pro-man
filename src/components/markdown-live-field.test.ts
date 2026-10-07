@@ -65,4 +65,47 @@ describe("MarkdownLiveField", () => {
     expect(view.classList.contains("is-hidden")).toBe(false);
     expect(view.innerHTML).toContain("<em>kursiv</em>");
   });
+
+  it("fires onInput and onRenderView hooks", async () => {
+    const inputs: string[] = [];
+    const rendered: string[] = [];
+    const field = new MarkdownLiveField({
+      id: "desc",
+      value: "Hallo [[Wiki]]",
+      placeholder: "Schreiben…",
+      onInput: (v) => inputs.push(v),
+      onRenderView: (el) => {
+        rendered.push(el.innerHTML);
+      },
+    });
+    document.body.append(field.getElement());
+    expect(rendered.length).toBeGreaterThanOrEqual(1);
+    expect(rendered[0]).toContain("md-wikilink");
+
+    field.focus();
+    const source = field.getElement().querySelector<HTMLTextAreaElement>(".md-live-source")!;
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    source.value = "- Liste";
+    source.dispatchEvent(new Event("input"));
+    expect(inputs).toEqual(["- Liste"]);
+
+    source.blur();
+    document.body.focus?.();
+    await new Promise((r) => setTimeout(r, 180));
+    expect(rendered.length).toBeGreaterThanOrEqual(2);
+    expect(rendered.at(-1)).toContain("md-list");
+  });
+
+  it("does not enter edit when clicking a wikilink", () => {
+    const field = new MarkdownLiveField({
+      id: "desc",
+      value: "Siehe [[Andere]]",
+      placeholder: "Schreiben…",
+    });
+    document.body.append(field.getElement());
+    const wiki = field.getElement().querySelector<HTMLElement>(".md-wikilink")!;
+    wiki.click();
+    expect(field.getElement().dataset.mode).toBe("view");
+    expect(field.getElement().querySelector(".md-live-source")!.classList.contains("is-hidden")).toBe(true);
+  });
 });

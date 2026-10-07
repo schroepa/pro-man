@@ -1,8 +1,8 @@
 import { store } from "../storage/store";
 import { DocItem } from "../types/doc";
 import { t } from "../i18n";
-import { renderMarkdown } from "../utils/markdown";
 import { CustomSelect } from "../components/custom-select";
+import { MarkdownLiveField } from "../components/markdown-live-field";
 
 interface DocTreeNode {
   doc: DocItem;
@@ -151,23 +151,25 @@ export function renderDocsView(container: HTMLElement, onSelectDoc?: (docId: str
         </datalist>
       </div>
 
-      <div class="markdown-editor-wrapper">
-        <div class="markdown-tab-bar">
-          <div class="md-tab-group" role="tablist" aria-label="Editor-Modus">
-            <button type="button" class="md-tab-btn active" data-mode="edit" role="tab" aria-selected="true">Bearbeiten</button>
-            <button type="button" class="md-tab-btn" data-mode="preview" role="tab" aria-selected="false">Vorschau</button>
-          </div>
-        </div>
-        <textarea id="doc-content-textarea" class="doc-content-textarea" placeholder="${t().docs.contentPlaceholder}">${escapeHtml(activeDoc.content)}</textarea>
-        <div id="doc-preview-pane" class="markdown-preview-pane doc-preview-pane" hidden></div>
-      </div>
+      <div id="doc-content-mount" class="doc-content-mount"></div>
     `;
 
     const titleInput = canvas.querySelector<HTMLInputElement>("#doc-title-input")!;
-    const contentTextarea = canvas.querySelector<HTMLTextAreaElement>("#doc-content-textarea")!;
-    const previewPane = canvas.querySelector<HTMLElement>("#doc-preview-pane")!;
+    const contentMount = canvas.querySelector<HTMLElement>("#doc-content-mount")!;
     const tagsInput = canvas.querySelector<HTMLInputElement>("#doc-tags-input")!;
     const deleteBtn = canvas.querySelector("#delete-doc-btn");
+
+    const contentField = new MarkdownLiveField({
+      id: "doc-content-textarea",
+      value: activeDoc.content,
+      placeholder: t().docs.contentPlaceholder,
+      editHint: t().docs.contentMarkdownHint,
+      minRows: 12,
+      className: "md-live-field--docs",
+      onInput: () => triggerSave(),
+      onRenderView: (viewEl) => bindWikilinks(viewEl),
+    });
+    contentMount.appendChild(contentField.getElement());
 
     let selectedClientId = activeDoc.clientId;
     let selectedProjectId = activeDoc.projectId;
@@ -214,14 +216,14 @@ export function renderDocsView(container: HTMLElement, onSelectDoc?: (docId: str
     canvas.querySelector("#doc-project-mount")?.appendChild(projectSelect.getElement());
     canvas.querySelector("#doc-parent-mount")?.appendChild(parentSelect.getElement());
 
-    let saveTimeout: any = null;
+    let saveTimeout: ReturnType<typeof setTimeout> | null = null;
     const triggerSave = () => {
-      clearTimeout(saveTimeout);
+      if (saveTimeout) clearTimeout(saveTimeout);
       saveTimeout = setTimeout(() => {
         const updated: DocItem = {
           ...activeDoc,
-          title: titleInput.value.trim() || "Unbenannt",
-          content: contentTextarea.value,
+          title: titleInput.value.trim() || t().docs.untitled,
+          content: contentField.getValue(),
           clientId: selectedClientId,
           projectId: selectedProjectId,
           parentDocId: selectedParentId || undefined,
@@ -233,32 +235,7 @@ export function renderDocsView(container: HTMLElement, onSelectDoc?: (docId: str
     };
 
     titleInput.addEventListener("input", triggerSave);
-    contentTextarea.addEventListener("input", () => {
-      triggerSave();
-      if (!previewPane.hidden) {
-        renderPreview(previewPane, contentTextarea.value);
-      }
-    });
     tagsInput.addEventListener("input", triggerSave);
-
-    canvas.querySelectorAll<HTMLButtonElement>(".md-tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const mode = btn.dataset.mode;
-        canvas.querySelectorAll<HTMLButtonElement>(".md-tab-btn").forEach(b => {
-          const active = b === btn;
-          b.classList.toggle("active", active);
-          b.setAttribute("aria-selected", String(active));
-        });
-        if (mode === "preview") {
-          contentTextarea.hidden = true;
-          previewPane.hidden = false;
-          renderPreview(previewPane, contentTextarea.value);
-        } else {
-          contentTextarea.hidden = false;
-          previewPane.hidden = true;
-        }
-      });
-    });
 
     deleteBtn?.addEventListener("click", async () => {
       if (confirm(`Dokument "${activeDoc.title}" wirklich löschen?`)) {
@@ -325,11 +302,6 @@ export function renderDocsView(container: HTMLElement, onSelectDoc?: (docId: str
   wrapper.appendChild(sidebar);
   wrapper.appendChild(canvas);
   container.appendChild(wrapper);
-}
-
-function renderPreview(previewPane: HTMLElement, markdown: string): void {
-  previewPane.innerHTML = renderMarkdown(markdown);
-  bindWikilinks(previewPane);
 }
 
 function bindWikilinks(root: HTMLElement): void {

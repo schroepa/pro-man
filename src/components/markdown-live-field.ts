@@ -7,6 +7,12 @@ export interface MarkdownLiveFieldOptions {
   placeholder: string;
   editHint?: string;
   minRows?: number;
+  /** Extra class on the root (e.g. `md-live-field--docs`). */
+  className?: string;
+  /** Fired on every source input (for auto-save). */
+  onInput?: (value: string) => void;
+  /** After rendered HTML is set in view mode (e.g. bind wikilinks). */
+  onRenderView?: (viewEl: HTMLElement) => void;
 }
 
 /**
@@ -22,13 +28,17 @@ export class MarkdownLiveField {
   private minHeight: number;
   private mode: "view" | "edit" = "view";
   private blurTimer: ReturnType<typeof setTimeout> | null = null;
+  private onInputCb?: (value: string) => void;
+  private onRenderViewCb?: (viewEl: HTMLElement) => void;
 
   constructor(opts: MarkdownLiveFieldOptions) {
     this.placeholder = opts.placeholder;
     this.minHeight = (opts.minRows ?? 3) * 22;
+    this.onInputCb = opts.onInput;
+    this.onRenderViewCb = opts.onRenderView;
 
     this.root = document.createElement("div");
-    this.root.className = "md-live-field";
+    this.root.className = ["md-live-field", opts.className].filter(Boolean).join(" ");
     this.root.dataset.mode = "view";
 
     this.view = document.createElement("div");
@@ -77,15 +87,27 @@ export class MarkdownLiveField {
   }
 
   private bind(): void {
-    this.view.addEventListener("click", () => this.enterEdit());
+    this.view.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      // Keep interactive rendered content (wikilinks, links) clickable without entering edit.
+      if (target.closest("a, .md-wikilink, button, [role='link']")) return;
+      this.enterEdit();
+    });
     this.view.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
+        const target = e.target as HTMLElement;
+        if (target.closest("a, .md-wikilink, button, [role='link']") && target !== this.view) {
+          return;
+        }
         e.preventDefault();
         this.enterEdit();
       }
     });
 
-    this.source.addEventListener("input", () => this.autosize());
+    this.source.addEventListener("input", () => {
+      this.autosize();
+      this.onInputCb?.(this.source.value);
+    });
 
     this.source.addEventListener("focus", () => {
       if (this.blurTimer) {
@@ -151,6 +173,7 @@ export class MarkdownLiveField {
     }
     this.view.classList.remove("is-empty");
     this.view.innerHTML = renderMarkdown(raw);
+    this.onRenderViewCb?.(this.view);
   }
 }
 

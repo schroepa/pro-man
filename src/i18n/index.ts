@@ -248,6 +248,7 @@ export const translations = {
     docs: {
       title: "Dokumenttitel",
       contentPlaceholder: "Schreibe Notizen, Spezifikationen und Konzepte hier in Markdown...",
+      contentMarkdownHint: "Markdown: **Fett**, *Kursiv*, Listen, Links, Wikilinks [[Doc]] — formatiert nach dem Bearbeiten.",
       noDocs: "Noch keine Dokumente in diesem Projekt vorhanden.",
       created: "Erstellt am",
       updated: "Aktualisiert am",
@@ -618,6 +619,7 @@ export const translations = {
     docs: {
       title: "Doc Title",
       contentPlaceholder: "Write notes, requirements and specs here in Markdown...",
+      contentMarkdownHint: "Markdown: **bold**, *italic*, lists, links, wikilinks [[Doc]] — formatted after editing.",
       noDocs: "No documents in this project yet.",
       created: "Created",
       updated: "Updated",

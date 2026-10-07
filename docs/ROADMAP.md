@@ -13,7 +13,6 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 | # | Thema | Warum |
 |---|---|---|
 | 1 | **Alltag mit echtem Vault** | SWT-/Notion-Daten im Flow schärfen (Filter, Tags, Projekte) — Reibung aus dem echten Arbeiten |
-| 2 | **Docs-Markdown angleichen** | Dieselbe Live-/Containment-Qualität wie Task-Beschreibung (Edit/Preview oder ein Feld) |
 
 ---
 
@@ -34,6 +33,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Docs-Markdown angleichen**: Docs-Editor auf `MarkdownLiveField` (eine Fläche, Auto-Grow, Blur→Render, Wikilinks)
 - **v0.3.1**: Aufgaben-Archiv (`tasks/archive/`), lesbare Task-Markdown, Live-Beschreibung, Markdown-Listen-Containment; Smoke-Pass manuell grün
 - Team & Personen (Workspace-Members ≠ Kunden): CRUD, Intern/Extern, Dialog-Inline-Add, Backoffice-Tab
 - UX-Audit A/G Findings umgesetzt: Ordner-Shell, Demo-Badge/Clear, Essentials-Dialog, kontextuelle Topbar-CTA, Docs Suche/Gruppen, Empty-Chrome, Client/Backoffice, IA-Polish, First-Success

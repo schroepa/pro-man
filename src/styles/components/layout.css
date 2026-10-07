@@ -892,8 +892,8 @@
   }
 
   .doc-title-input,
-  .doc-content-textarea,
-  .doc-preview-pane,
+  .doc-content-mount .md-live-view,
+  .doc-content-mount .md-live-source,
   .markdown-rendered-content {
     display: block !important;
     border: none !important;
@@ -901,8 +901,8 @@
     color: #000 !important;
   }
 
-  .doc-content-textarea[hidden],
-  .doc-preview-pane[hidden] {
+  .doc-content-mount .md-live-source.is-hidden,
+  .doc-content-mount .md-live-view.is-hidden {
     display: none !important;
   }
 }

@@ -4,6 +4,9 @@ Alle nennenswerten Änderungen an ProMan.
 
 ## [Unreleased]
 
+### Features
+- **Docs Live-Markdown**: Docs-Editor nutzt dieselbe Notion-artige Fläche wie die Task-Beschreibung (Klick zum Bearbeiten, Auto-Grow, formatiert nach Blur); Edit/Preview-Tabs entfernt; Wikilinks bleiben klickbar
+
 ## [0.3.1] — 2026-10-07
 
 ### Features

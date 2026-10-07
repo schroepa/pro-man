@@ -183,39 +183,39 @@
   color: var(--color-text-muted);
 }
 
-.doc-content-textarea {
+.doc-content-mount {
   flex: 1;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.doc-content-mount .md-live-field--docs {
+  flex: 1;
+  min-height: 280px;
+}
+
+.doc-content-mount .md-live-field--docs .md-live-view {
+  min-height: 260px;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.doc-content-mount .md-live-field--docs .md-live-source {
+  min-height: 260px;
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
-  color: var(--color-text-primary);
-  background: transparent;
-  border: none;
-  resize: none;
-  padding: var(--space-2) 0;
-  min-height: 400px;
 }
 
-.doc-content-textarea:focus {
-  outline: none;
-}
-
-.doc-content-textarea:focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
+.doc-content-mount .md-live-field--docs .markdown-rendered-content {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
 }
 
 .doc-card-item:focus-visible {
   outline: 2px solid var(--color-primary-500);
   outline-offset: 2px;
-}
-
-.doc-preview-pane {
-  flex: 1;
-  min-height: 400px;
-  max-height: none;
 }
 
 .md-wikilink {
