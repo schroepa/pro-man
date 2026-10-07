@@ -19,6 +19,7 @@ Alle nennenswerten Änderungen an ProMan.
 - **Edge-Swipe Drawer**: von links öffnen, nach links schließen; Escape + Body-Scroll-Lock
 
 ### Improvements
+- **iPhone Blank-Screen**: SW cached kein HTML mehr (v3); `updateViaCache: 'none'` + Controller-Reload; Inline-Watchdog löscht stecken gebliebene Caches; `content-visibility` nur Desktop
 - **Sidebar Vault-Compact**: Status + „Ordner verbinden“ gestapelt; Label `line-clamp: 2`, CTA Ellipsis; Breite berücksichtigt Side-Margins (kein Overflow)
 - **Onboarding / Ordner-Shell**: Copy ohne Vault-Jargon; Banner = Primär-CTA; Sidebar nach Dismiss kompakt („Lokal · Ordner jederzeit“); „Mit Beispieldaten starten“ + Toast
 - **Task-Dialog Essentials-first**: Titel/Status/Priorität/Fällig sichtbar; Rest unter „Mehr Details“; Sheet-Header mit Issue-Key + Status-Chip; Accordion bleibt nach Kunde-/Projektwechsel offen

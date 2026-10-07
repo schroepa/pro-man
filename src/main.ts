@@ -14,6 +14,7 @@ import { renderOnboardingBanner } from "./components/onboarding-banner";
 import { renderMobileBottomNav } from "./components/mobile-bottom-nav";
 import { initMobileGestures } from "./utils/mobile-gestures";
 import { getChromeSignature } from "./utils/chrome-signature";
+import { markAppBooted, recoverBrokenShell, registerServiceWorker } from "./utils/service-worker";
 
 const sidebarContainer = document.getElementById("sidebar-container")!;
 const topbarContainer = document.getElementById("topbar-container")!;
@@ -231,9 +232,13 @@ window.addEventListener("keydown", (e: KeyboardEvent) => {
 async function start() {
   viewContainer.innerHTML = `<div class="app-loading" style="padding: var(--space-8); color: var(--color-text-muted); font-size: var(--font-size-sm);">${t().loading}</div>`;
 
-  const savedThemeMode = localStorage.getItem("proman_theme_mode");
-  if (savedThemeMode === "dark" || savedThemeMode === "light") {
-    document.documentElement.setAttribute("data-theme", savedThemeMode);
+  try {
+    const savedThemeMode = localStorage.getItem("proman_theme_mode");
+    if (savedThemeMode === "dark" || savedThemeMode === "light") {
+      document.documentElement.setAttribute("data-theme", savedThemeMode);
+    }
+  } catch {
+    /* Safari private / storage blocked */
   }
   themeManager.init();
   initSquircleEngine();
@@ -244,14 +249,12 @@ async function start() {
   // First paint: ensure chrome mounts even if signature was empty
   lastChromeSig = "";
   renderApp();
+  markAppBooted();
 
-  if ("serviceWorker" in navigator) {
-    try {
-      await navigator.serviceWorker.register("/sw.js");
-    } catch {
-      // PWA optional — ignore registration failures in preview / file://
-    }
-  }
+  await registerServiceWorker();
 }
 
-start();
+start().catch((err) => {
+  console.error(err);
+  void recoverBrokenShell();
+});

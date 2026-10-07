@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="Local-First, Accessible Project Management mit Kanban-Board, Gantt-Timeline und Docs Hub nach modernsten ClickUp-Erkenntnissen." />
   <title>ProMan - Local-First Workspace</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -74,5 +74,37 @@
 
   <!-- Application Bootstrap -->
   <script type="module" src="./src/main.ts"></script>
+
+  <!--
+    Inline watchdog: if the module bundle never boots (classic iOS symptom after a
+    deploy — stale SW HTML → missing hashed assets → only canvas background),
+    wipe Cache Storage + unregister SW and reload once.
+  -->
+  <script>
+    (function () {
+      var FAIL = "proman_sw_recovery";
+      setTimeout(function () {
+        if (window.__PROMAN_BOOTED__) return;
+        try {
+          if (sessionStorage.getItem(FAIL) === "1") return;
+          sessionStorage.setItem(FAIL, "1");
+        } catch (e) { /* ignore */ }
+
+        var done = function () { location.reload(); };
+        var tasks = [];
+        if ("caches" in window) {
+          tasks.push(caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }));
+        }
+        if ("serviceWorker" in navigator) {
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+        Promise.all(tasks).then(done).catch(done);
+      }, 4000);
+    })();
+  </script>
 </body>
 </html>

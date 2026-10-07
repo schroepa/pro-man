@@ -64,11 +64,11 @@ describe("Performance — notify coalesce & chrome signature", () => {
     expect(c).not.toBe(b);
   });
 
-  it("CSS enables content-visibility for long lists/cards", () => {
+  it("CSS enables content-visibility for long lists/cards on fine pointers", () => {
     const board = readSrc("styles/components/board.css");
-    expect(board).toMatch(/\.task-card\s*\{[\s\S]*content-visibility:\s*auto/);
+    expect(board).toMatch(/@media \(hover: hover\) and \(pointer: fine\)[\s\S]*\.task-card\s*\{[\s\S]*content-visibility:\s*auto/);
     const list = readSrc("styles/components/list.css");
-    expect(list).toMatch(/\.list-table tbody tr\s*\{[\s\S]*content-visibility:\s*auto/);
+    expect(list).toMatch(/@media \(hover: hover\) and \(pointer: fine\)[\s\S]*\.list-table tbody tr\s*\{[\s\S]*content-visibility:\s*auto/);
   });
 
   it("command palette debounces live search notify", async () => {

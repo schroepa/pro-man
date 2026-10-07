@@ -1,5 +1,5 @@
-/* ProMan shell SW — HTML always network-first so hashed Vite assets stay in sync. */
-const CACHE = "proman-shell-v2";
+/* ProMan shell SW — never cache HTML; only fingerprinted static assets. */
+const CACHE = "proman-shell-v3";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
@@ -11,6 +11,12 @@ self.addEventListener("activate", (event) => {
       Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 function isNavigation(req) {
@@ -30,19 +36,9 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML / navigations: network first — never serve stale index with old asset hashes
+  // HTML / navigations: network only — never cache index (avoids stale Vite hashes on iOS)
   if (isNavigation(req) || url.pathname === "/" || url.pathname.endsWith(".html")) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(req, clone));
-          }
-          return res;
-        })
-        .catch(() => caches.match(req))
-    );
+    event.respondWith(fetch(req));
     return;
   }
 

@@ -67,7 +67,7 @@ src/
   test/                   # Shared Test-Helpers + Setup
 public/
   fonts/                  # Geist-Variable.woff2, GeistMono-Variable.woff2
-  sw.js                   # PWA App-Shell Cache
+  sw.js                   # PWA: hashed assets only (HTML never cached)
 vault-example/            # Beispiel-Vault
 docs/                     # Lebende Design- & Architekturdoku
 ```
