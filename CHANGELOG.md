@@ -4,6 +4,8 @@ Alle nennenswerten Änderungen an ProMan.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-10-07
+
 ### Features
 - **Aufgaben-Archiv**: „Löschen“ archiviert ins Vault `tasks/archive/`; Wiederherstellen in der Liste (Archiv-Abschnitt) und im Dialog; ⌘K durchsucht Archiv-Treffer; **Erledigt** (Board/Dialog/Liste) archiviert automatisch
 - **Lesbare Task-Markdown**: kompaktes Frontmatter (ohne leere Felder / schemaOrg-Lärm), `# Titel` + Beschreibung im Body; Notion-`Aufwand` (S/M/L) → `estimateHours` (2/4/8)

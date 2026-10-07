@@ -2,7 +2,7 @@
 
 > **Lebende Spezifikation.** Diese Datei wird bei jeder relevanten Design-/Token-/UI-Änderung aktualisiert. Quelle der Wahrheit für Tokens: `src/styles/tokens.css`. Tests: `src/design/design-integrity.test.ts`.
 
-Stand: **v0.3.0** (Warm Obsidian + Geist)
+Stand: **v0.3.1** (Warm Obsidian + Geist)
 
 ---
 

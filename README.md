@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Version** | 0.3.0 |
+| **Version** | 0.3.1 |
 | **Stack** | TypeScript, Vite 6, Vitest, happy-dom, axe-core |
 | **UI** | Eigenes Token-System (kein Tailwind/Shadcn) |
 | **Typo** | Geist + Geist Mono (self-hosted, variable woff2) |
