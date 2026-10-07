@@ -10,14 +10,13 @@ export interface MarkdownLiveFieldOptions {
 }
 
 /**
- * Notion-like description field: click to edit (auto-growing textarea),
- * live Markdown preview while typing, rendered view when idle.
+ * Notion-like description: one surface at a time —
+ * rendered Markdown when idle, auto-growing source when editing.
  */
 export class MarkdownLiveField {
   private root: HTMLElement;
   private view: HTMLElement;
   private source: HTMLTextAreaElement;
-  private livePreview: HTMLElement;
   private hint: HTMLElement | null = null;
   private placeholder: string;
   private minHeight: number;
@@ -44,25 +43,18 @@ export class MarkdownLiveField {
     this.source.value = opts.value || "";
     this.source.placeholder = opts.placeholder;
     this.source.rows = opts.minRows ?? 3;
-    this.source.hidden = true;
     if (opts.labelId) this.source.setAttribute("aria-labelledby", opts.labelId);
-
-    this.livePreview = document.createElement("div");
-    this.livePreview.className = "md-live-preview markdown-preview-pane";
-    this.livePreview.hidden = true;
-    this.livePreview.setAttribute("aria-live", "polite");
 
     if (opts.editHint) {
       this.hint = document.createElement("p");
       this.hint.className = "md-live-hint";
       this.hint.textContent = opts.editHint;
-      this.hint.hidden = true;
     }
 
-    this.root.append(this.view, this.source, this.livePreview);
+    this.root.append(this.view, this.source);
     if (this.hint) this.root.append(this.hint);
 
-    this.renderView();
+    this.setMode("view");
     this.bind();
   }
 
@@ -76,12 +68,8 @@ export class MarkdownLiveField {
 
   setValue(value: string): void {
     this.source.value = value;
-    if (this.mode === "edit") {
-      this.autosize();
-      this.updateLivePreview();
-    } else {
-      this.renderView();
-    }
+    if (this.mode === "edit") this.autosize();
+    else this.renderView();
   }
 
   focus(): void {
@@ -97,10 +85,7 @@ export class MarkdownLiveField {
       }
     });
 
-    this.source.addEventListener("input", () => {
-      this.autosize();
-      this.updateLivePreview();
-    });
+    this.source.addEventListener("input", () => this.autosize());
 
     this.source.addEventListener("focus", () => {
       if (this.blurTimer) {
@@ -110,18 +95,11 @@ export class MarkdownLiveField {
     });
 
     this.source.addEventListener("blur", () => {
-      // Allow clicking inside the field (preview) without collapsing mid-interaction
       this.blurTimer = setTimeout(() => {
         const active = document.activeElement;
         if (active && this.root.contains(active) && active !== this.view) return;
         this.exitEdit();
       }, 120);
-    });
-
-    this.livePreview.addEventListener("mousedown", (e) => {
-      // Keep focus on textarea when interacting with preview chrome
-      e.preventDefault();
-      this.source.focus();
     });
   }
 
@@ -130,14 +108,7 @@ export class MarkdownLiveField {
       this.source.focus();
       return;
     }
-    this.mode = "edit";
-    this.root.dataset.mode = "edit";
-    this.view.hidden = true;
-    this.source.hidden = false;
-    this.livePreview.hidden = false;
-    if (this.hint) this.hint.hidden = false;
-    this.autosize();
-    this.updateLivePreview();
+    this.setMode("edit");
     requestAnimationFrame(() => {
       this.source.focus();
       const len = this.source.value.length;
@@ -147,29 +118,28 @@ export class MarkdownLiveField {
 
   private exitEdit(): void {
     if (this.mode === "view") return;
-    this.mode = "view";
-    this.root.dataset.mode = "view";
-    this.source.hidden = true;
-    this.livePreview.hidden = true;
-    if (this.hint) this.hint.hidden = true;
-    this.view.hidden = false;
-    this.renderView();
+    this.setMode("view");
+  }
+
+  private setMode(mode: "view" | "edit"): void {
+    this.mode = mode;
+    this.root.dataset.mode = mode;
+    if (mode === "edit") {
+      this.view.classList.add("is-hidden");
+      this.source.classList.remove("is-hidden");
+      if (this.hint) this.hint.classList.remove("is-hidden");
+      this.autosize();
+    } else {
+      this.source.classList.add("is-hidden");
+      if (this.hint) this.hint.classList.add("is-hidden");
+      this.view.classList.remove("is-hidden");
+      this.renderView();
+    }
   }
 
   private autosize(): void {
     this.source.style.height = "auto";
     this.source.style.height = `${Math.max(this.minHeight, this.source.scrollHeight)}px`;
-  }
-
-  private updateLivePreview(): void {
-    const raw = this.source.value.trim();
-    if (!raw) {
-      this.livePreview.innerHTML = `<p class="md-live-empty">${escapeHtml(this.placeholder)}</p>`;
-      this.livePreview.classList.add("is-empty");
-      return;
-    }
-    this.livePreview.classList.remove("is-empty");
-    this.livePreview.innerHTML = renderMarkdown(raw);
   }
 
   private renderView(): void {

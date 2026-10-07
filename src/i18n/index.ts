@@ -129,8 +129,8 @@ export const translations = {
     tasks: {
       title: "Titel",
       description: "Beschreibung",
-      descriptionPlaceholder: "Beschreibung schreiben… Markdown wird sofort formatiert.",
-      descriptionMarkdownHint: "**Fett**, *Kursiv*, Listen, Links und Checklisten werden live gerendert.",
+      descriptionPlaceholder: "Beschreibung schreiben… Nach dem Verlassen wird Markdown formatiert.",
+      descriptionMarkdownHint: "Markdown: **Fett**, *Kursiv*, Listen, Links, Checklisten — formatiert nach dem Bearbeiten.",
       subtasks: "Checkliste & Unteraufgaben",
       startDate: "Startdatum",
       dueDate: "Fälligkeitsdatum",
@@ -499,8 +499,8 @@ export const translations = {
     tasks: {
       title: "Title",
       description: "Description",
-      descriptionPlaceholder: "Write a description… Markdown formats as you type.",
-      descriptionMarkdownHint: "**Bold**, *italic*, lists, links and checklists render live.",
+      descriptionPlaceholder: "Write a description… Markdown formats when you leave the field.",
+      descriptionMarkdownHint: "Markdown: **bold**, *italic*, lists, links, checklists — formatted after editing.",
       subtasks: "Checklist & Subtasks",
       startDate: "Start Date",
       dueDate: "Due Date",

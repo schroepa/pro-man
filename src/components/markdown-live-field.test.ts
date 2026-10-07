@@ -9,7 +9,7 @@ describe("MarkdownLiveField", () => {
     document.body.innerHTML = "";
   });
 
-  it("shows rendered markdown in view mode", () => {
+  it("shows only rendered markdown in view mode", () => {
     const field = new MarkdownLiveField({
       id: "desc",
       value: "**Hallo** Welt",
@@ -17,11 +17,14 @@ describe("MarkdownLiveField", () => {
     });
     document.body.append(field.getElement());
     const view = field.getElement().querySelector(".md-live-view")!;
+    const source = field.getElement().querySelector(".md-live-source")!;
+    expect(view.classList.contains("is-hidden")).toBe(false);
+    expect(source.classList.contains("is-hidden")).toBe(true);
     expect(view.innerHTML).toContain("<strong>Hallo</strong>");
-    expect(view.innerHTML).toContain("Welt");
+    expect(field.getElement().querySelector(".md-live-preview")).toBeNull();
   });
 
-  it("grows into edit mode with live preview on click", () => {
+  it("switches to a single auto-growing editor on click", () => {
     const field = new MarkdownLiveField({
       id: "desc",
       value: "# Titel",
@@ -31,19 +34,19 @@ describe("MarkdownLiveField", () => {
     document.body.append(field.getElement());
     field.getElement().querySelector<HTMLElement>(".md-live-view")!.click();
 
+    const view = field.getElement().querySelector(".md-live-view")!;
     const source = field.getElement().querySelector<HTMLTextAreaElement>(".md-live-source")!;
-    const preview = field.getElement().querySelector<HTMLElement>(".md-live-preview")!;
-    expect(source.hidden).toBe(false);
-    expect(preview.hidden).toBe(false);
-    expect(preview.innerHTML).toMatch(/md-h1|Titel/);
+    expect(view.classList.contains("is-hidden")).toBe(true);
+    expect(source.classList.contains("is-hidden")).toBe(false);
+    expect(source.value).toBe("# Titel");
 
-    source.value = "- [ ] Aufgabe";
+    source.value = "- [ ] Aufgabe\n- [ ] Zwei";
     source.dispatchEvent(new Event("input"));
-    expect(preview.innerHTML).toContain("md-task-item");
-    expect(field.getValue()).toBe("- [ ] Aufgabe");
+    expect(Number.parseInt(source.style.height || "0", 10)).toBeGreaterThan(40);
+    expect(field.getValue()).toBe("- [ ] Aufgabe\n- [ ] Zwei");
   });
 
-  it("returns to rendered view on blur", async () => {
+  it("returns to a single rendered view on blur", async () => {
     const field = new MarkdownLiveField({
       id: "desc",
       value: "*kursiv*",
@@ -52,14 +55,14 @@ describe("MarkdownLiveField", () => {
     document.body.append(field.getElement());
     field.focus();
     const source = field.getElement().querySelector<HTMLTextAreaElement>(".md-live-source")!;
-    // Wait for enterEdit's rAF focus before blurring
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     source.blur();
     document.body.focus?.();
     await new Promise((r) => setTimeout(r, 180));
-    expect(source.hidden).toBe(true);
+
+    expect(source.classList.contains("is-hidden")).toBe(true);
     const view = field.getElement().querySelector(".md-live-view")!;
-    expect(view.hidden).toBe(false);
+    expect(view.classList.contains("is-hidden")).toBe(false);
     expect(view.innerHTML).toContain("<em>kursiv</em>");
   });
 });
