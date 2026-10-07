@@ -2,8 +2,32 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect } from "vitest";
-import { renderMarkdown, MARKDOWN_FORMAT_FIXTURE } from "./markdown";
+import { renderMarkdown, markdownToPlainText, MARKDOWN_FORMAT_FIXTURE } from "./markdown";
 import { readSrc } from "../test/helpers";
+
+describe("markdownToPlainText", () => {
+  it("strips heading markers from board-style snippets", () => {
+    const plain = markdownToPlainText(
+      "### Weitere Projekte (Notion)\n- SWT Endkunden-App\n- SWT-Webportal"
+    );
+    expect(plain).not.toContain("###");
+    expect(plain).not.toMatch(/(^|\s)-\s/);
+    expect(plain).toContain("Weitere Projekte (Notion)");
+    expect(plain).toContain("SWT Endkunden-App");
+    expect(plain).toContain("SWT-Webportal");
+  });
+
+  it("strips inline formatting markers", () => {
+    const plain = markdownToPlainText("Text mit **fett**, *kursiv*, ~~strike~~ und `code`.");
+    expect(plain).toBe("Text mit fett, kursiv, strike und code.");
+  });
+
+  it("keeps link and wikilink labels only", () => {
+    expect(markdownToPlainText("Siehe [Docs](https://example.com) und [[Plan]]")).toBe(
+      "Siehe Docs und Plan"
+    );
+  });
+});
 
 describe("renderMarkdown", () => {
   it("wraps consecutive bullets in a ul (never orphan li)", () => {

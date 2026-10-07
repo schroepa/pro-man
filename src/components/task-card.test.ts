@@ -35,3 +35,25 @@ describe("Task card assignee", () => {
     expect(card.querySelector(".task-assignee-chip")).toBeNull();
   });
 });
+
+describe("Task card description snippet", () => {
+  beforeEach(() => {
+    resetStoreMaps();
+    stubVaultWrites();
+  });
+
+  it("shows plain text without markdown formatting characters", () => {
+    const task = makeTask({
+      id: "SWT-VM-1",
+      title: "SWT Icons in DS einbinden",
+      description: "### Weitere Projekte (Notion)\n- SWT Endkunden-App\n- SWT-Webportal",
+    });
+    const card = createTaskCard(task, () => {});
+    const snippet = card.querySelector(".task-desc-snippet");
+    expect(snippet).toBeTruthy();
+    expect(snippet?.textContent).not.toContain("###");
+    expect(snippet?.textContent).not.toMatch(/(^|\s)-\s/);
+    expect(snippet?.textContent).toContain("Weitere Projekte (Notion)");
+    expect(snippet?.textContent).toContain("SWT Endkunden-App");
+  });
+});

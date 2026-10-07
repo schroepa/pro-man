@@ -3,6 +3,7 @@ import { store } from "../storage/store";
 import { announcer } from "../a11y/announcer";
 import { TablerIcon } from "./icons";
 import { t } from "../i18n";
+import { markdownToPlainText } from "../utils/markdown";
 
 export interface TaskCardOptions {
   tabIndex?: number;
@@ -51,6 +52,7 @@ export function createTaskCard(
   const assigneeInitials = assignee ? initialsFromName(assignee.name) : "";
   const assigneeColor = assignee?.color || "var(--color-primary-500)";
   const displayKey = task.issueKey || task.id;
+  const descSnippet = markdownToPlainText(task.description || "");
 
   const ariaParts = [`${displayKey}: ${task.title}`, priorityLabel];
   if (assignee) ariaParts.push(`${t().tasks.assignee}: ${assignee.name}`);
@@ -68,7 +70,7 @@ export function createTaskCard(
       </span>
     </div>
     <h3 class="task-title" itemprop="name">${escapeHtml(task.title)}</h3>
-    ${task.description ? `<p class="task-desc-snippet" itemprop="description">${escapeHtml(task.description)}</p>` : ""}
+    ${descSnippet ? `<p class="task-desc-snippet" itemprop="description">${escapeHtml(descSnippet)}</p>` : ""}
     ${totalSubtasks > 0 ? `
       <div class="task-card-subtasks" role="group" aria-label="${t().tasks.openSubtasks}">
         <div class="task-subtasks-progress" aria-label="${completedSubtasks}/${totalSubtasks}">

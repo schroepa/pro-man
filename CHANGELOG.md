@@ -9,6 +9,10 @@ Alle nennenswerten Änderungen an ProMan.
 - **Dashboard als Startseite**: ViewMode `dashboard` (Default) — Fokus-KPIs (Offen · Dringend/Überfällig · Diese Woche · In Arbeit), Heute/Überfällig-Liste, Weiter-Links; KPI-Klick → Liste mit Filter; Kanban-KPI-Leiste entfernt; Mobile-Nav: Übersicht zuerst
 - **Docs Live-Markdown**: Docs-Editor nutzt dieselbe Notion-artige Fläche wie die Task-Beschreibung (Klick zum Bearbeiten, Auto-Grow, formatiert nach Blur); Edit/Preview-Tabs entfernt; Wikilinks bleiben klickbar
 
+### Improvements
+- **Board-Karten Beschreibung**: Snippet zeigt Plain Text ohne Markdown-Zeichen (`###`, `**`, Listenmarker, …)
+- **Team-Vault Regressionstests**: Soft Concurrent Freshness/Write-Guard/Banner + Session-Identität absichern (`mockVaultFreshness`, 21 Tests)
+
 ### Docs
 - **Team-Vault Playbook**: Setup auf NAS/SMB, Rollen, Arbeitsregeln, Soft-Concurrent-Limits; Verweise in README/ROADMAP/DESIGN
 

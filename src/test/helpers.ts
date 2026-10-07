@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { Task } from "../types/task";
 import type { Client, Project } from "../types/client";
 import type { WorkspaceMember } from "../types/member";
+import type { VaultFingerprint } from "../storage/file-system";
 import { store } from "../storage/store";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -112,6 +113,61 @@ export function stubVaultWrites(): void {
   s.storage.restoreTask = async () => {};
   s.storage.purgeTask = async () => {};
   (s.storage as { saveClientsAndProjects?: () => Promise<void> }).saveClientsAndProjects = async () => {};
+  (s.storage as { saveDoc?: () => Promise<void> }).saveDoc = async () => {};
+  (s.storage as { deleteDoc?: () => Promise<void> }).deleteDoc = async () => {};
+}
+
+export type VaultFreshnessMock = {
+  /** Disk fingerprint returned by subsequent captureFingerprint calls. */
+  setCurrent: (fp: VaultFingerprint) => void;
+  /** Re-snapshot baseline from the current disk mock (clears vaultStale). */
+  refreshBaseline: () => Promise<void>;
+  restore: () => void;
+};
+
+/**
+ * Mock vault connection + fingerprint baseline/current for Soft Concurrent tests.
+ * Uses public store.vaultStale — no private field access.
+ */
+export async function mockVaultFreshness(opts: {
+  connected?: boolean;
+  baseline: VaultFingerprint;
+  current: VaultFingerprint;
+}): Promise<VaultFreshnessMock> {
+  const connected = opts.connected !== false;
+  const vault = store.vault as unknown as {
+    isConnected: boolean;
+    captureFingerprint: () => Promise<VaultFingerprint | null>;
+  };
+
+  let diskFp: VaultFingerprint | null = opts.baseline;
+  const originalCapture = store.vault.captureFingerprint.bind(store.vault);
+
+  Object.defineProperty(store.vault, "isConnected", {
+    configurable: true,
+    enumerable: true,
+    get: () => connected,
+  });
+
+  vault.captureFingerprint = async () => diskFp;
+
+  diskFp = opts.baseline;
+  await store.refreshVaultFingerprint();
+  diskFp = opts.current;
+
+  return {
+    setCurrent(fp) {
+      diskFp = fp;
+    },
+    async refreshBaseline() {
+      await store.refreshVaultFingerprint();
+    },
+    restore() {
+      vault.captureFingerprint = originalCapture;
+      delete (store.vault as { isConnected?: unknown }).isConnected;
+      store.onVaultDisconnected();
+    },
+  };
 }
 
 export function cssVarBlock(css: string, selector: string): string {

@@ -66,6 +66,39 @@ Ende des Format-Tests.
 `;
 
 /**
+ * Strips markdown syntax for plain-text previews (e.g. board card snippets).
+ * Keeps readable content; removes headings, lists, emphasis, links, fences.
+ */
+export function markdownToPlainText(raw: string): string {
+  if (!raw) return "";
+
+  let text = raw.replace(/\r\n/g, "\n");
+
+  // Fenced code: keep inner content, drop fences
+  text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, "$1");
+
+  const lines = text.split("\n").map((line) => {
+    line = line.replace(/^#{1,6}\s+/, "");
+    line = line.replace(/^>\s?/, "");
+    line = line.replace(/^- \[[x ]\]\s+/i, "");
+    line = line.replace(/^\s*[-*]\s+/, "");
+    line = line.replace(/^\s*\d+\.\s+/, "");
+    return line;
+  });
+
+  text = lines.join(" ");
+
+  text = text.replace(/`([^`]+)`/g, "$1");
+  text = text.replace(/\*\*([^*]+)\*\*/g, "$1");
+  text = text.replace(/\*([^*]+)\*/g, "$1");
+  text = text.replace(/~~([^~]+)~~/g, "$1");
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+  text = text.replace(/\[\[([^\]]+)\]\]/g, "$1");
+
+  return text.replace(/\s+/g, " ").trim();
+}
+
+/**
  * Converts Markdown to safe HTML. Block elements are never nested inside <p>,
  * and bullet lines are wrapped in <ul> so markers stay inside the field.
  */
