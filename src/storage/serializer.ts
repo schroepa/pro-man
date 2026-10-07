@@ -7,57 +7,53 @@ function schemaActionStatus(status: TaskStatus): SchemaOrgAction["actionStatus"]
 }
 
 /**
- * Converts a Task object into a clean Obsidian-compatible Markdown file with YAML frontmatter.
- * Includes Schema.org metadata for AI agents and machine readers.
+ * Converts a Task into Obsidian-friendly Markdown:
+ * compact YAML frontmatter (no empty noise) + `# Title` body for human reading.
+ * Schema.org stays in `taskToSchemaOrgJsonLd` for the app — not dumped into every vault file.
  */
 export function taskToMarkdown(task: Task): string {
-  const priorityCapitalized = (task.priority.charAt(0).toUpperCase() + task.priority.slice(1)) as "Urgent" | "High" | "Normal" | "Low";
+  const lines: string[] = ["---"];
 
-  // Build Frontmatter
-  const lines: string[] = [
-    "---",
-    `id: ${task.id}`,
-    task.clientId ? `clientId: ${task.clientId}` : `clientId: ""`,
-    task.projectId ? `projectId: ${task.projectId}` : `projectId: ""`,
-    task.assigneeId ? `assigneeId: ${task.assigneeId}` : `assigneeId: ""`,
-    `title: ${JSON.stringify(task.title)}`,
-    `status: ${task.status}`,
-    `priority: ${task.priority}`,
-    `startDate: ${task.startDate || ""}`,
-    `dueDate: ${task.dueDate || ""}`,
-    `order: ${task.order}`,
-    `createdAt: ${task.createdAt}`,
-    `updatedAt: ${task.updatedAt}`,
-  ];
+  const push = (key: string, value: string | number | boolean) => {
+    lines.push(`${key}: ${value}`);
+  };
+  const pushQuoted = (key: string, value: string) => {
+    lines.push(`${key}: ${JSON.stringify(value)}`);
+  };
 
-  if (task.archivedAt) {
-    lines.push(`archivedAt: ${task.archivedAt}`);
-  }
+  push("id", task.id);
+  if (task.issueKey) pushQuoted("issueKey", task.issueKey);
+  pushQuoted("title", task.title);
+  push("status", task.status);
+  push("priority", task.priority);
+  if (task.startDate) push("startDate", task.startDate);
+  if (task.dueDate) push("dueDate", task.dueDate);
+  if (task.clientId) push("clientId", task.clientId);
+  if (task.projectId) push("projectId", task.projectId);
+  if (task.assigneeId) push("assigneeId", task.assigneeId);
+  push("order", task.order);
+  push("createdAt", task.createdAt);
+  push("updatedAt", task.updatedAt);
 
-  if (task.estimateHours !== undefined) {
-    lines.push(`estimateHours: ${task.estimateHours}`);
-  }
-  if (task.timeSpentHours !== undefined) {
-    lines.push(`timeSpentHours: ${task.timeSpentHours}`);
-  }
-  if (task.isMilestone !== undefined) {
-    lines.push(`isMilestone: ${task.isMilestone}`);
-  }
-  if (task.cycle) {
-    lines.push(`cycle: ${JSON.stringify(task.cycle)}`);
-  }
-  if (task.gitUrl) {
-    lines.push(`gitUrl: ${JSON.stringify(task.gitUrl)}`);
-  }
-  if (task.issueKey) {
-    lines.push(`issueKey: ${JSON.stringify(task.issueKey)}`);
-  }
-  if (task.recurrence) {
-    lines.push(`recurrence: ${task.recurrence}`);
+  if (task.archivedAt) push("archivedAt", task.archivedAt);
+  if (task.estimateHours !== undefined) push("estimateHours", task.estimateHours);
+  if (task.timeSpentHours !== undefined) push("timeSpentHours", task.timeSpentHours);
+  if (task.isMilestone !== undefined) push("isMilestone", task.isMilestone);
+  if (task.cycle) pushQuoted("cycle", task.cycle);
+  if (task.gitUrl) pushQuoted("gitUrl", task.gitUrl);
+  if (task.recurrence) push("recurrence", task.recurrence);
+
+  if (task.tags?.length) {
+    lines.push("tags:");
+    task.tags.forEach(t => lines.push(`  - ${t}`));
   }
 
-  // Attachments as YAML list
-  if (task.attachments && task.attachments.length > 0) {
+  if (task.dependencies?.length) {
+    lines.push("dependencies:");
+    task.dependencies.forEach(d => lines.push(`  - ${d}`));
+  }
+
+  if (task.attachments?.length) {
     lines.push("attachments:");
     task.attachments.forEach(att => {
       lines.push(`  - id: ${att.id}`);
@@ -66,24 +62,7 @@ export function taskToMarkdown(task: Task): string {
     });
   }
 
-  // Tags array
-  if (task.tags && task.tags.length > 0) {
-    lines.push("tags:");
-    task.tags.forEach(t => lines.push(`  - ${t}`));
-  } else {
-    lines.push("tags: []");
-  }
-
-  // Dependencies array
-  if (task.dependencies && task.dependencies.length > 0) {
-    lines.push("dependencies:");
-    task.dependencies.forEach(d => lines.push(`  - ${d}`));
-  } else {
-    lines.push("dependencies: []");
-  }
-
-  // Time logs as YAML list
-  if (task.timeLogs && task.timeLogs.length > 0) {
+  if (task.timeLogs?.length) {
     lines.push("timeLogs:");
     task.timeLogs.forEach(log => {
       lines.push(`  - id: ${log.id}`);
@@ -94,34 +73,28 @@ export function taskToMarkdown(task: Task): string {
     });
   }
 
-  // Schema.org metadata block in YAML
-  lines.push("schemaOrg:");
-  lines.push(`  "@context": "https://schema.org"`);
-  lines.push(`  "@type": "PlanAction"`);
-  lines.push(`  identifier: ${JSON.stringify(task.id)}`);
-  lines.push(`  actionStatus: "${schemaActionStatus(task.status)}"`);
-  lines.push(`  priority: "${priorityCapitalized}"`);
-
   lines.push("---");
   lines.push("");
+  lines.push(`# ${task.title}`);
 
-  // Body content: task description
-  lines.push(task.description.trim());
-
-  // Subtasks as Markdown checklist with stable ids
-  if (task.subtasks && task.subtasks.length > 0) {
+  const description = task.description.trim();
+  if (description) {
     lines.push("");
-    lines.push("### Checkliste");
+    lines.push(description);
+  }
+
+  if (task.subtasks?.length) {
+    lines.push("");
+    lines.push("## Checkliste");
     task.subtasks.forEach(sub => {
       const mark = sub.completed ? "x" : " ";
       lines.push(`- [${mark}] ${sub.title} <!-- id:${sub.id} -->`);
     });
   }
 
-  // Comments section
-  if (task.comments && task.comments.length > 0) {
+  if (task.comments?.length) {
     lines.push("");
-    lines.push("### Kommentare");
+    lines.push("## Kommentare");
     task.comments.forEach(c => {
       lines.push(`- **${c.author}** (${c.createdAt}): ${c.body} <!-- id:${c.id} -->`);
     });
@@ -285,9 +258,13 @@ export function markdownToTask(rawContent: string, fallbackId: string): Task {
       flushTimeLog();
       flushAttachment();
 
-      if (rawVal === "" || rawVal === "[]") {
+      if (rawVal === "[]") {
         currentKey = key;
-        parsedData[key] = rawVal === "[]" ? [] : [];
+        parsedData[key] = [];
+      } else if (rawVal === "") {
+        // Empty scalar (e.g. legacy `dueDate:`) — keep as empty string, not []
+        currentKey = key;
+        parsedData[key] = "";
       } else {
         currentKey = key;
         parsedData[key] = unquoteYaml(rawVal);
@@ -297,9 +274,9 @@ export function markdownToTask(rawContent: string, fallbackId: string): Task {
   flushTimeLog();
   flushAttachment();
 
-  // Extract checklist items from body (before comments section)
-  const checklistSection = bodyStr.match(/### Checkliste\n([\s\S]*?)(?=\n### |\n*$)/);
-  const commentsSection = bodyStr.match(/### Kommentare\n([\s\S]*?)(?=\n### |\n*$)/);
+  // Extract checklist / comments (## or legacy ###)
+  const checklistSection = bodyStr.match(/#{2,3} Checkliste\n([\s\S]*?)(?=\n#{2,3} |\n*$)/);
+  const commentsSection = bodyStr.match(/#{2,3} Kommentare\n([\s\S]*?)(?=\n#{2,3} |\n*$)/);
 
   const subtasks: Subtask[] = [];
   const checklistSource = checklistSection ? checklistSection[1] : bodyStr;
@@ -329,16 +306,25 @@ export function markdownToTask(rawContent: string, fallbackId: string): Task {
     }
   }
 
-  // Clean out structured sections from description body
+  // Clean out structured sections + leading H1 (title lives in frontmatter)
   let cleanBody = bodyStr
-    .replace(/### Checkliste[\s\S]*?(?=\n### |$)/, "")
-    .replace(/### Kommentare[\s\S]*?(?=\n### |$)/, "")
+    .replace(/^\s*#\s+.+\n+/, "")
+    .replace(/#{2,3} Checkliste[\s\S]*?(?=\n#{2,3} |$)/, "")
+    .replace(/#{2,3} Kommentare[\s\S]*?(?=\n#{2,3} |$)/, "")
     .trim();
 
   const statusRaw = parsedData.status ? String(parsedData.status) : "todo";
   const recurrenceRaw = parsedData.recurrence ? String(parsedData.recurrence) : "";
   const recurrence: TaskRecurrence | undefined =
     recurrenceRaw === "weekly" || recurrenceRaw === "monthly" ? recurrenceRaw : undefined;
+
+  // Missing/empty dates stay empty — do not invent "today" (would pollute vault on save)
+  const startRaw = parsedData.startDate;
+  const dueRaw = parsedData.dueDate;
+  const startDate =
+    typeof startRaw === "string" && startRaw.trim() ? startRaw.trim() : "";
+  const dueDate =
+    typeof dueRaw === "string" && dueRaw.trim() ? dueRaw.trim() : "";
 
   return {
     id: String(parsedData.id || fallbackId),
@@ -349,8 +335,8 @@ export function markdownToTask(rawContent: string, fallbackId: string): Task {
     description: cleanBody,
     status: statusRaw as TaskStatus,
     priority: (["urgent", "high", "normal", "low"].includes(parsedData.priority) ? parsedData.priority : "normal") as TaskPriority,
-    startDate: String(parsedData.startDate || defaultTask.startDate),
-    dueDate: String(parsedData.dueDate || defaultTask.dueDate),
+    startDate,
+    dueDate,
     estimateHours: typeof parsedData.estimateHours === "number" ? parsedData.estimateHours : undefined,
     timeSpentHours: typeof parsedData.timeSpentHours === "number" ? parsedData.timeSpentHours : undefined,
     timeLogs: timeLogs.length > 0 ? timeLogs : undefined,

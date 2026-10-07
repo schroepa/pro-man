@@ -77,7 +77,30 @@ describe("serializer", () => {
     expect(md).not.toMatch(/^gitUrl:/m);
   });
 
-  it("round-trips comments via ### Kommentare section", () => {
+  it("writes a human-readable body with H1 and omits empty noise", () => {
+    const md = taskToMarkdown(
+      sampleTask({
+        assigneeId: undefined,
+        tags: [],
+        dependencies: [],
+        startDate: "",
+        dueDate: "2026-10-10",
+      })
+    );
+    expect(md).toContain("# Serializer Roundtrip");
+    expect(md).toContain("Body with **markdown**.");
+    expect(md).toMatch(/^dueDate: 2026-10-10$/m);
+    expect(md).not.toMatch(/^startDate:/m);
+    expect(md).not.toMatch(/^assigneeId:/m);
+    expect(md).not.toMatch(/^tags:/m);
+    expect(md).not.toMatch(/^schemaOrg:/m);
+    const parsed = markdownToTask(md, "FALLBACK");
+    expect(parsed.title).toBe("Serializer Roundtrip");
+    expect(parsed.description).toBe("Body with **markdown**.");
+    expect(parsed.description).not.toContain("# Serializer");
+  });
+
+  it("round-trips comments via ## Kommentare section", () => {
     const original = sampleTask({
       comments: [
         { id: "c1", author: "Ich", body: "Erste Notiz", createdAt: "2026-10-05T10:00:00.000Z" },
@@ -85,13 +108,41 @@ describe("serializer", () => {
       ],
     });
     const md = taskToMarkdown(original);
-    expect(md).toContain("### Kommentare");
+    expect(md).toContain("## Kommentare");
     const parsed = markdownToTask(md, "FALLBACK");
     expect(parsed.comments).toHaveLength(2);
     expect(parsed.comments![0]).toMatchObject({ id: "c1", author: "Ich", body: "Erste Notiz" });
     expect(parsed.comments![1]).toMatchObject({ id: "c2", author: "Optional", body: "Follow-up" });
     expect(parsed.description).toContain("Body with **markdown**.");
-    expect(parsed.description).not.toContain("### Kommentare");
+    expect(parsed.description).not.toContain("## Kommentare");
+  });
+
+  it("still reads legacy ### sections and schemaOrg blocks", () => {
+    const legacy = `---
+id: LEG-1
+title: "Legacy"
+status: todo
+priority: normal
+order: 0
+createdAt: 2026-10-01T10:00:00.000Z
+updatedAt: 2026-10-01T10:00:00.000Z
+schemaOrg:
+  "@context": "https://schema.org"
+  "@type": "PlanAction"
+---
+
+Alte Notiz
+
+### Checkliste
+- [x] Done <!-- id:s1 -->
+
+### Kommentare
+- **Ich** (2026-10-01T10:00:00.000Z): Hi <!-- id:c1 -->
+`;
+    const parsed = markdownToTask(legacy, "FALLBACK");
+    expect(parsed.description).toBe("Alte Notiz");
+    expect(parsed.subtasks).toEqual([{ id: "s1", title: "Done", completed: true }]);
+    expect(parsed.comments?.[0]).toMatchObject({ id: "c1", body: "Hi" });
   });
 
   it("round-trips attachments, recurrence and issueKey", () => {
