@@ -6,6 +6,27 @@ function schemaActionStatus(status: TaskStatus): SchemaOrgAction["actionStatus"]
   return "ActiveActionStatus";
 }
 
+/** Strip Notion import noise like `auch:swt-webportal` → `swt-webportal`. */
+export function normalizeTag(tag: string): string {
+  return String(tag || "")
+    .trim()
+    .replace(/^auch:\s*/i, "")
+    .trim();
+}
+
+export function normalizeTags(tags: string[] | undefined): string[] {
+  if (!tags?.length) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of tags) {
+    const tag = normalizeTag(raw);
+    if (!tag || seen.has(tag)) continue;
+    seen.add(tag);
+    out.push(tag);
+  }
+  return out;
+}
+
 /**
  * Converts a Task into Obsidian-friendly Markdown:
  * compact YAML frontmatter (no empty noise) + `# Title` body for human reading.
@@ -43,9 +64,10 @@ export function taskToMarkdown(task: Task): string {
   if (task.gitUrl) pushQuoted("gitUrl", task.gitUrl);
   if (task.recurrence) push("recurrence", task.recurrence);
 
-  if (task.tags?.length) {
+  const tags = normalizeTags(task.tags);
+  if (tags.length) {
     lines.push("tags:");
-    task.tags.forEach(t => lines.push(`  - ${t}`));
+    tags.forEach(t => lines.push(`  - ${t}`));
   }
 
   if (task.dependencies?.length) {
@@ -341,7 +363,7 @@ export function markdownToTask(rawContent: string, fallbackId: string): Task {
     timeSpentHours: typeof parsedData.timeSpentHours === "number" ? parsedData.timeSpentHours : undefined,
     timeLogs: timeLogs.length > 0 ? timeLogs : undefined,
     isMilestone: typeof parsedData.isMilestone === "boolean" ? parsedData.isMilestone : undefined,
-    tags: Array.isArray(parsedData.tags) ? parsedData.tags : [],
+    tags: Array.isArray(parsedData.tags) ? normalizeTags(parsedData.tags.map(String)) : [],
     dependencies: Array.isArray(parsedData.dependencies) ? parsedData.dependencies : [],
     subtasks: subtasks,
     comments: comments.length > 0 ? comments : undefined,

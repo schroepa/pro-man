@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { taskToMarkdown, markdownToTask } from "./serializer";
+import { taskToMarkdown, markdownToTask, normalizeTags } from "./serializer";
 import type { Task } from "../types/task";
 
 function sampleTask(overrides: Partial<Task> = {}): Task {
@@ -115,6 +115,21 @@ describe("serializer", () => {
     expect(parsed.comments![1]).toMatchObject({ id: "c2", author: "Optional", body: "Follow-up" });
     expect(parsed.description).toContain("Body with **markdown**.");
     expect(parsed.description).not.toContain("## Kommentare");
+  });
+
+  it("strips Notion auch: prefix from tags on write and read", () => {
+    expect(normalizeTags(["auch:swt-webportal", "auch: swt-endkunden-app", "abstimmung"])).toEqual([
+      "swt-webportal",
+      "swt-endkunden-app",
+      "abstimmung",
+    ]);
+    const md = taskToMarkdown(
+      sampleTask({ tags: ["auch:swt-webportal", "auch:swt-webportal", "review"] })
+    );
+    expect(md).toContain("  - swt-webportal");
+    expect(md).not.toContain("auch:");
+    const parsed = markdownToTask(md, "FALLBACK");
+    expect(parsed.tags).toEqual(["swt-webportal", "review"]);
   });
 
   it("still reads legacy ### sections and schemaOrg blocks", () => {

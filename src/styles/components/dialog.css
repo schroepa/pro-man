@@ -356,6 +356,75 @@ dialog.task-dialog[open]::backdrop {
   color: #ffffff;
 }
 
+/* Notion-like live Markdown description (task dialog) */
+.md-live-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.md-live-view {
+  min-height: 72px;
+  padding: var(--space-3);
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  cursor: text;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.md-live-view:hover {
+  background-color: var(--color-bg-muted);
+}
+
+.md-live-view:focus-visible {
+  outline: none;
+  background-color: var(--color-bg-surface);
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.md-live-view.is-empty {
+  color: var(--color-text-muted);
+}
+
+.md-live-source {
+  resize: none;
+  overflow: hidden;
+  min-height: 72px;
+  line-height: 1.5;
+  field-sizing: content; /* progressive enhancement where supported */
+}
+
+.md-live-preview {
+  min-height: 48px;
+  max-height: none;
+  overflow: visible;
+  border: 1px solid var(--color-border-subtle, transparent);
+}
+
+.md-live-preview.is-empty,
+.md-live-empty {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.md-live-hint {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+.md-live-field .markdown-rendered-content {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+.md-live-field .markdown-rendered-content p:last-child {
+  margin-bottom: 0;
+}
+
 /* Markdown Tabs & Editor */
 .markdown-editor-wrapper {
   display: flex;

@@ -4,6 +4,7 @@ import { t } from "../i18n";
 import { TablerIcon } from "./icons";
 import { showToast } from "./toast";
 import { CustomSelect } from "./custom-select";
+import { MarkdownLiveField } from "./markdown-live-field";
 import {
   hasCelebratedFirstTask,
   markFirstTaskCelebrated,
@@ -25,6 +26,7 @@ export class TaskDialog {
   private selectPriority: CustomSelect | null = null;
   private selectAssignee: CustomSelect | null = null;
   private selectRecurrence: CustomSelect | null = null;
+  private descriptionField: MarkdownLiveField | null = null;
   /** Persist accordion across form remounts (client/project change). */
   private moreDetailsOpen = false;
   private showAddMemberForm = false;
@@ -300,8 +302,8 @@ export class TaskDialog {
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="task-textarea-desc">${t().tasks.description}</label>
-                <textarea id="task-textarea-desc" class="textarea" rows="4">${escapeHtml(task.description)}</textarea>
+                <label class="form-label" id="task-desc-label" for="task-textarea-desc">${t().tasks.description}</label>
+                <div id="task-desc-mount"></div>
               </div>
 
               <div class="attachments-section">
@@ -389,6 +391,7 @@ export class TaskDialog {
     `;
 
     this.mountSelects(task, clients, availableProjects, members, statusOptions);
+    this.mountDescriptionField(task);
 
     const detailsEl = this.dialog.querySelector<HTMLDetailsElement>(".task-more-details");
     detailsEl?.addEventListener("toggle", () => {
@@ -610,6 +613,25 @@ export class TaskDialog {
     return { ...task, id: newId, issueKey: newId };
   }
 
+  private mountDescriptionField(task: Task): void {
+    const mount = this.dialog.querySelector("#task-desc-mount");
+    if (!mount) return;
+    // Preserve draft text across in-dialog remounts; use task value on fresh open
+    const value =
+      this.dialog.open && this.descriptionField
+        ? this.descriptionField.getValue()
+        : (task.description ?? "");
+    this.descriptionField = new MarkdownLiveField({
+      id: "task-textarea-desc",
+      labelId: "task-desc-label",
+      value,
+      placeholder: t().tasks.descriptionPlaceholder,
+      editHint: t().tasks.descriptionMarkdownHint,
+      minRows: 3,
+    });
+    mount.replaceChildren(this.descriptionField.getElement());
+  }
+
   private mountSelects(
     task: Task,
     clients: ReturnType<typeof store.getClients>,
@@ -794,7 +816,7 @@ export class TaskDialog {
     const recurrence = recurrenceRaw === "weekly" || recurrenceRaw === "monthly" ? recurrenceRaw : null;
     const tagsStr = (this.dialog.querySelector("#task-input-tags") as HTMLInputElement).value;
     const depsStr = (this.dialog.querySelector("#task-input-deps") as HTMLInputElement).value;
-    const description = (this.dialog.querySelector("#task-textarea-desc") as HTMLTextAreaElement).value;
+    const description = this.descriptionField?.getValue() ?? "";
 
     const tags = tagsStr.split(",").map(s => s.trim()).filter(Boolean);
     const dependencies = depsStr.split(",").map(s => s.trim()).filter(Boolean);

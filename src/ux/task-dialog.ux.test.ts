@@ -27,6 +27,13 @@ describe("UX — task dialog select mounts", () => {
     expect(src).toContain("firstTaskToast");
   });
 
+  it("mounts a live Markdown description field", () => {
+    const src = readSrc("components/task-dialog.ts");
+    expect(src).toContain("MarkdownLiveField");
+    expect(src).toContain("task-desc-mount");
+    expect(src).toContain("descriptionField");
+  });
+
   it("preserves more-details open state across form remounts", () => {
     const src = readSrc("components/task-dialog.ts");
     expect(src).toContain("moreDetailsOpen");
