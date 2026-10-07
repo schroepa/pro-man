@@ -20,7 +20,7 @@
 1. [Schnellstart](#schnellstart)
 2. [Architektur](#architektur)
 3. [Features](#features)
-4. [Vault & Persistenz](#vault--persistenz)
+4. [Vault & Persistenz](#vault--persistenz) → Team: [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md)
 5. [Issue-Keys](#issue-keys)
 6. [Design-System](#design-system) → detailliert in [`docs/DESIGN.md`](./docs/DESIGN.md)
 7. [Roadmap](#roadmap) → [`docs/ROADMAP.md`](./docs/ROADMAP.md)
@@ -47,6 +47,8 @@ Chrome/Edge empfohlen (File System Access API für Vault).
 Ordner verbinden: Sidebar → **Ordner verbinden** (nach Onboarding kompakt) → Ordner wählen (z. B. `vault-example/`). Beim ersten Start: Banner **Ordner verbinden** oder **Mit Beispieldaten starten**.
 
 **Team ≠ Kunden:** Aufgaben-Zuweisung läuft über Personen (Backoffice → Team & Personen oder „+ Person“ im Task-Dialog). Externe Entwickler/Freelancer sind Members, keine Kunden.
+
+**Kleines Team auf einem Share:** denselben Vault-Ordner auf NAS/SMB verbinden, Session-Person wählen („Ich bin …“), bei Fremd-Änderungen neu laden. Playbook: [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md).
 
 ---
 
@@ -129,6 +131,7 @@ mein-vault/
 - Root-`TASK-*.md` werden noch gelesen (Kompatibilität); neue Tasks landen unter `tasks/`.
 - Ohne Vault: Persistenz in `localStorage`.
 - Schema.org-Microdata auf Task-Karten; Frontmatter enthält `schemaOrg`.
+- **Team-Vault:** gemeinsamer Ordner auf zentralem Datenträger — siehe [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md). Soft Concurrent (Stale-Warnung), kein Sync-Server.
 
 ---
 

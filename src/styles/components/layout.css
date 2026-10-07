@@ -147,6 +147,92 @@
   color: var(--color-text-muted);
 }
 
+.sidebar-vault-team-hint {
+  margin: 0 0 var(--space-1);
+  font-size: 0.625rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  width: 100%;
+}
+
+.sidebar-session-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin: var(--space-1) 0;
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
+}
+
+.sidebar-vault-panel .sidebar-session-identity {
+  padding: 0;
+}
+
+.sidebar-session-identity-label {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sidebar-session-identity-mount {
+  width: 100%;
+}
+
+.sidebar-session-identity-mount .custom-select {
+  width: 100%;
+}
+
+.sidebar-session-identity-mount .custom-select-trigger {
+  width: 100%;
+  min-height: 28px;
+  font-size: 0.75rem;
+  justify-content: space-between;
+}
+
+.vault-stale-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--brand-9) 12%, var(--color-bg-surface));
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--brand-9) 35%, transparent);
+}
+
+.vault-stale-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.vault-stale-banner-text strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.vault-stale-reload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .vault-stale-banner {
+    flex-direction: column;
+    align-items: stretch;
+    margin: var(--space-2) var(--space-3) 0;
+  }
+}
+
 .vault-indicator {
   width: 8px;
   height: 8px;

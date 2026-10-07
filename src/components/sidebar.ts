@@ -3,6 +3,7 @@ import { t, getLanguage, setLanguage } from "../i18n";
 import { announcer } from "../a11y/announcer";
 import { TablerIcon } from "./icons";
 import { showToast } from "./toast";
+import { CustomSelect } from "./custom-select";
 import { closeMobileSidebar, toggleSidebar } from "../storage/sidebar-layout";
 import { isOnboarded } from "./onboarding-banner";
 
@@ -20,8 +21,9 @@ export function renderSidebar(container: HTMLElement): void {
   const lang = getLanguage();
   const onboarded = isOnboarded();
   const showDemoBadge = store.hasSampleData() && !isConnected;
-  /** Full panel only before onboard, when permission needed, or unsupported. */
-  const collapseVault = onboarded && !needsPermission && !isUnsupported;
+  /** Full panel before onboard, permission/unsupported, or team roster still default-only. */
+  const needsTeamSetup = isConnected && store.hasOnlyDefaultTeamRoster();
+  const collapseVault = onboarded && !needsPermission && !isUnsupported && !needsTeamSetup;
 
   let vaultTitle = t().vault.offlineTitle;
   let vaultHint = t().vault.offlineHint;
@@ -82,6 +84,7 @@ export function renderSidebar(container: HTMLElement): void {
           ${!isConnected && !isUnsupported ? `<span class="sidebar-vault-compact-cta">${t().vault.connectFolder}</span>` : ""}
         </span>
       </button>
+      ${isConnected ? renderSessionIdentityHTML() : ""}
     ` : `
     <div class="sidebar-vault-panel" data-state="${connectionState}">
       <div class="sidebar-vault-panel-title">
@@ -102,6 +105,13 @@ export function renderSidebar(container: HTMLElement): void {
           </button>
         ` : ""}
         ${isConnected ? `
+          <p class="sidebar-vault-team-hint">${escapeHtml(t().vault.teamSharedHint)}</p>
+          ${store.hasOnlyDefaultTeamRoster() ? `
+            <button type="button" id="sidebar-team-setup" class="sidebar-vault-action sidebar-vault-action-primary">
+              ${escapeHtml(t().vault.teamSetupHint)}
+            </button>
+          ` : ""}
+          ${renderSessionIdentityHTML()}
           <button id="sidebar-vault-reload" class="sidebar-vault-action" type="button" title="${t().actions.reloadVault}">
             ${TablerIcon.refresh({ size: 12 })}
             <span>${t().actions.reloadVault}</span>
@@ -267,7 +277,37 @@ export function renderSidebar(container: HTMLElement): void {
 
   sidebar.querySelector("#sidebar-vault-disconnect")?.addEventListener("click", async () => {
     await store.vault.disconnect();
+    store.onVaultDisconnected();
     showToast(t().vault.disconnectedToast, "info");
+    store.notify();
+  });
+
+  const identityMount = sidebar.querySelector<HTMLElement>("#sidebar-active-member-mount");
+  if (identityMount) {
+    const members = store.getMembers();
+    const activeId = store.getActiveMemberId() || "";
+    const identitySelect = new CustomSelect({
+      id: "sidebar-active-member",
+      prefixLabel: t().vault.iAm,
+      ariaLabel: t().vault.iAmHint,
+      selectedValue: activeId,
+      options: [
+        { value: "", label: t().vault.iAmUnset },
+        ...members.map(m => ({ value: m.id, label: m.name, color: m.color })),
+      ],
+      onChange: (value) => {
+        store.setActiveMemberId(value || null);
+      },
+    });
+    identityMount.appendChild(identitySelect.getElement());
+  }
+
+  sidebar.querySelector("#sidebar-team-setup")?.addEventListener("click", () => {
+    store.currentView = "backoffice";
+    try {
+      sessionStorage.setItem("proman_backoffice_tab", "team");
+    } catch { /* ignore */ }
+    closeMobileNav();
     store.notify();
   });
 
@@ -426,8 +466,18 @@ export function renderSidebar(container: HTMLElement): void {
   container.appendChild(sidebar);
 }
 
+function renderSessionIdentityHTML(): string {
+  return `
+    <div class="sidebar-session-identity">
+      <span class="sidebar-session-identity-label">${escapeHtml(t().vault.iAm)}</span>
+      <div id="sidebar-active-member-mount" class="sidebar-session-identity-mount"></div>
+    </div>
+  `;
+}
+
 function escapeHtml(text: string): string {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
 }
+

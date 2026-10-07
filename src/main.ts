@@ -12,6 +12,7 @@ import { initSquircleEngine } from "./utils/squircle";
 import { t } from "./i18n";
 import { initSidebarLayout, toggleSidebar } from "./storage/sidebar-layout";
 import { renderOnboardingBanner } from "./components/onboarding-banner";
+import { renderVaultStaleBanner } from "./components/vault-stale-banner";
 import { renderMobileBottomNav } from "./components/mobile-bottom-nav";
 import { initMobileGestures } from "./utils/mobile-gestures";
 import { getChromeSignature } from "./utils/chrome-signature";
@@ -157,11 +158,15 @@ function renderApp(): void {
     renderChrome();
   }
 
-  // Clear viewport and optionally show onboarding
+  // Clear viewport and optionally show onboarding / stale vault banner
   viewContainer.innerHTML = "";
   const banner = renderOnboardingBanner(() => renderApp());
   if (banner) {
     viewContainer.appendChild(banner);
+  }
+  const staleBanner = renderVaultStaleBanner();
+  if (staleBanner) {
+    viewContainer.appendChild(staleBanner);
   }
 
   const viewMount = document.createElement("div");

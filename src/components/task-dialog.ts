@@ -10,8 +10,6 @@ import {
   markFirstTaskCelebrated,
   isSampleTaskId,
 } from "../storage/demo-mode";
-import { DEFAULT_MEMBER_YOU_ID } from "../types/member";
-
 const ADD_MEMBER_VALUE = "__add_member__";
 
 export class TaskDialog {
@@ -102,7 +100,8 @@ export class TaskDialog {
     // New tasks start collapsed; edit starts open — remounts keep the user's choice.
     this.moreDetailsOpen = this.currentTaskId !== null;
     this.showAddMemberForm = false;
-    this.draftAssigneeId = task.assigneeId || "";
+    const isNewTask = this.currentTaskId === null;
+    this.draftAssigneeId = task.assigneeId || (isNewTask ? (store.getDefaultAssigneeId() || "") : "");
     this.renderForm(task);
     this.dialog.showModal();
 
@@ -122,9 +121,8 @@ export class TaskDialog {
   }
 
   private resolveCommentAuthor(): string {
-    const members = store.getMembers();
-    const you = members.find(m => m.id === DEFAULT_MEMBER_YOU_ID) || members[0];
-    return you?.name || t().tasks.commentAuthorMe;
+    const session = store.getSessionMember();
+    return session?.name || t().tasks.commentAuthorMe;
   }
 
   private renderForm(task: Task): void {

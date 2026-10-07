@@ -14,6 +14,10 @@ const LAST_VAULTS_KEY = "pro_man_last_vaults";
 
 export type VaultConnectionState = "connected" | "permission_needed" | "offline" | "unsupported";
 
+/** mtime + size stamp for a vault-relative path (Soft Concurrent freshness). */
+export type VaultFileStamp = { lastModified: number; size: number };
+export type VaultFingerprint = Record<string, VaultFileStamp>;
+
 const USER_ABORT = "USER_ABORT";
 
 export function isVaultPermissionError(err: unknown): boolean {
@@ -694,6 +698,80 @@ export class VaultStorage {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Snapshot of vault file mtimes/sizes for Soft Concurrent stale detection.
+   * Returns null when offline / no handle.
+   */
+  async captureFingerprint(): Promise<VaultFingerprint | null> {
+    if (!this.dirHandle) return null;
+    const fp: VaultFingerprint = {};
+
+    const stampFile = async (path: string, file: File): Promise<void> => {
+      fp[path] = { lastModified: file.lastModified, size: file.size };
+    };
+
+    try {
+      try {
+        const clientsHandle = await this.dirHandle.getFileHandle("clients.json");
+        const clientsFile = await clientsHandle.getFile();
+        await stampFile("clients.json", clientsFile);
+      } catch { /* missing ok */ }
+
+      const tasksDir = await this.getTasksDir(false);
+      if (tasksDir) {
+        for await (const entry of (tasksDir as any).values()) {
+          if (entry.kind === "file" && entry.name.endsWith(".md")) {
+            try {
+              const file = await entry.getFile();
+              await stampFile(`${TASKS_DIR}/${entry.name}`, file);
+            } catch { /* skip */ }
+          }
+        }
+        const archiveDir = await this.getTasksArchiveDir(false);
+        if (archiveDir) {
+          for await (const entry of (archiveDir as any).values()) {
+            if (entry.kind === "file" && entry.name.endsWith(".md")) {
+              try {
+                const file = await entry.getFile();
+                await stampFile(`${TASKS_DIR}/${TASKS_ARCHIVE_DIR}/${entry.name}`, file);
+              } catch { /* skip */ }
+            }
+          }
+        }
+      }
+
+      const docsDir = await this.getDocsDir(false);
+      if (docsDir) {
+        for await (const entry of (docsDir as any).values()) {
+          if (entry.kind === "file" && isDocFileName(entry.name)) {
+            try {
+              const file = await entry.getFile();
+              await stampFile(`${DOCS_DIR}/${entry.name}`, file);
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (err) {
+      this.noteWriteError(err);
+      return null;
+    }
+
+    return fp;
+  }
+
+  /** True when current disk stamps differ from baseline (added/removed/changed). */
+  isFingerprintStale(baseline: VaultFingerprint | null, current: VaultFingerprint | null): boolean {
+    if (!baseline || !current) return false;
+    const keys = new Set([...Object.keys(baseline), ...Object.keys(current)]);
+    for (const key of keys) {
+      const a = baseline[key];
+      const b = current[key];
+      if (!a || !b) return true;
+      if (a.lastModified !== b.lastModified || a.size !== b.size) return true;
+    }
+    return false;
   }
 
   private loadFallbackTasks(): Task[] {

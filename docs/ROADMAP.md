@@ -25,7 +25,7 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 | Notion-Import | geparkt | Einmal-Migration erledigt; kein Dauer-Feature |
 | Linear-API | geparkt | Cloud-Kopplung widerspricht Local-First-Fokus |
 
-**Zwischenlösung ohne CRDT:** denselben Vault-Ordner über OS-/Cloud-Sync (iCloud, Syncthing, …) spiegeln — Dateisync, keine gleichzeitige Bearbeitung.
+**Zwischenlösung ohne CRDT:** denselben Vault-Ordner auf NAS/SMB (oder OS-/Cloud-Sync) teilen — Soft Concurrent mit Stale-Guardrails; kein automatisches Merge. Details: [`docs/TEAM-VAULT.md`](./TEAM-VAULT.md).
 
 Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kriterien für Konflikte, Speicherformat und Obsidian-Kompatibilität klären, bevor Code entsteht.
 
@@ -33,6 +33,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Team-Vault (Soft Concurrent)**: Playbook [`docs/TEAM-VAULT.md`](./TEAM-VAULT.md); Session-Identität „Ich bin …“; Fingerprint/Stale-Banner + Save-Guard; Team-Setup-Hinweis — kein Sync-Server/CRDT
 - **Dashboard als Startseite (MVP)**: `currentView = "dashboard"` Default; Fokus-KPIs → Liste+Filter; Attention-Liste; Weiter Board/Liste/Favorit; Kanban ohne KPI-Leiste; Mobile-Nav Übersicht zuerst
 - **Docs-Markdown angleichen**: Docs-Editor auf `MarkdownLiveField` (eine Fläche, Auto-Grow, Blur→Render, Wikilinks)
 - **v0.3.1**: Aufgaben-Archiv (`tasks/archive/`), lesbare Task-Markdown, Live-Beschreibung, Markdown-Listen-Containment; Smoke-Pass manuell grün

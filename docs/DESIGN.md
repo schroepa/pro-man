@@ -219,6 +219,8 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 - Task-Dialog: Assignee-Select mit „+ Person“; Kind-Toggle (keine nativen `<select>`).
 - Backdrop-Close ignoriert `.custom-select-menu` (fixed/popover außerhalb der Dialog-Box).
 - Backoffice-Tab „Team & Personen“ für Anlegen/Bearbeiten/Löschen.
+- **Session-Identität:** Sidebar „Ich bin …“ (localStorage); Kommentare und Default-Assignee neuer Tasks nutzen dieses Member.
+- **Team-Vault / Soft Concurrent:** Banner bei fremdem Vault-Change; Speichern bei Stale mit Confirm (Default = Neu laden). Playbook: `docs/TEAM-VAULT.md`.
 
 ---
 

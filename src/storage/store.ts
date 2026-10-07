@@ -2,7 +2,12 @@ import { Task, TaskPriority, TaskStatus, TimeEntry, DEFAULT_COLUMNS, ColumnDefin
 import { Client, Project, ContactPerson } from "../types/client";
 import { DocItem } from "../types/doc";
 import { WorkspaceMember, DEFAULT_MEMBER_YOU_ID, MemberKind } from "../types/member";
-import { VaultStorage, getLastVaultNames, isVaultPermissionError } from "./file-system";
+import {
+  VaultStorage,
+  VaultFingerprint,
+  getLastVaultNames,
+  isVaultPermissionError,
+} from "./file-system";
 import { announcer } from "../a11y/announcer";
 import { t } from "../i18n";
 import { showToast } from "../components/toast";
@@ -21,6 +26,8 @@ export type ViewMode = "dashboard" | "kanban" | "list" | "gantt" | "calendar" | 
 
 const FAVORITES_KEY = "pro_man_favorite_projects";
 const MEMBERS_KEY = "pro_man_members";
+const ACTIVE_MEMBER_KEY = "proman_active_member_id";
+const VAULT_FRESHNESS_MS = 20_000;
 
 function cloneTask(task: Task): Task {
   return {
@@ -106,6 +113,15 @@ export class AppStore {
   public selectedTaskId: string | null = null;
   public selectedDocId: string | null = null;
 
+  /** Soft Concurrent: in-memory snapshot after last successful load/own write. */
+  private vaultFingerprint: VaultFingerprint | null = null;
+  private _vaultStale = false;
+  /** After user confirms “save anyway”, allow writes until reload. */
+  private allowStaleWrites = false;
+  private freshnessTimer: ReturnType<typeof setInterval> | null = null;
+  private freshnessBound = false;
+  private freshnessChecking = false;
+
   constructor() {
     this.storage = new VaultStorage();
     this.loadFavorites();
@@ -113,6 +129,170 @@ export class AppStore {
 
   get vault(): VaultStorage {
     return this.storage;
+  }
+
+  /** True when vault files on disk differ from the last loaded fingerprint. */
+  get vaultStale(): boolean {
+    return this._vaultStale;
+  }
+
+  /**
+   * Session person for this browser (localStorage). Used for comments and
+   * default assignee — not written into the vault.
+   */
+  getActiveMemberId(): string | null {
+    try {
+      const id = localStorage.getItem(ACTIVE_MEMBER_KEY);
+      if (!id) return null;
+      if (!this.members.has(id) || this.members.get(id)?.archived) return null;
+      return id;
+    } catch {
+      return null;
+    }
+  }
+
+  setActiveMemberId(memberId: string | null): void {
+    try {
+      if (!memberId) {
+        localStorage.removeItem(ACTIVE_MEMBER_KEY);
+      } else if (this.members.has(memberId)) {
+        localStorage.setItem(ACTIVE_MEMBER_KEY, memberId);
+      }
+    } catch { /* ignore */ }
+    this.notify();
+  }
+
+  getActiveMember(): WorkspaceMember | undefined {
+    const id = this.getActiveMemberId();
+    return id ? this.members.get(id) : undefined;
+  }
+
+  /** Prefer session member, else default "Ich", else first member. */
+  getSessionMember(): WorkspaceMember | undefined {
+    return (
+      this.getActiveMember() ||
+      this.members.get(DEFAULT_MEMBER_YOU_ID) ||
+      this.getMembers()[0]
+    );
+  }
+
+  /** Default assignee for new tasks from session identity. */
+  getDefaultAssigneeId(): string | undefined {
+    return this.getSessionMember()?.id;
+  }
+
+  /** Only the default placeholder "Ich" (or empty) — team roster not set up yet. */
+  hasOnlyDefaultTeamRoster(): boolean {
+    const members = this.getMembers();
+    if (members.length === 0) return true;
+    if (members.length === 1 && members[0].id === DEFAULT_MEMBER_YOU_ID) {
+      const name = members[0].name;
+      return name === t().members.defaultYou || name === "Ich" || name === "Me" || name === "You";
+    }
+    return false;
+  }
+
+  async refreshVaultFingerprint(): Promise<void> {
+    if (!this.storage.isConnected) {
+      this.vaultFingerprint = null;
+      this._vaultStale = false;
+      return;
+    }
+    this.vaultFingerprint = await this.storage.captureFingerprint();
+    this._vaultStale = false;
+  }
+
+  async checkVaultFreshness(): Promise<boolean> {
+    if (!this.storage.isConnected || this.freshnessChecking) return this._vaultStale;
+    this.freshnessChecking = true;
+    try {
+      const current = await this.storage.captureFingerprint();
+      if (!this.vaultFingerprint || !current) return this._vaultStale;
+      const stale = this.storage.isFingerprintStale(this.vaultFingerprint, current);
+      if (stale !== this._vaultStale) {
+        this._vaultStale = stale;
+        if (!stale) this.allowStaleWrites = false;
+        this.notify();
+      }
+      return this._vaultStale;
+    } finally {
+      this.freshnessChecking = false;
+    }
+  }
+
+  startVaultFreshnessWatch(): void {
+    this.stopVaultFreshnessWatch();
+    if (!this.storage.isConnected) return;
+
+    if (typeof window !== "undefined" && !this.freshnessBound) {
+      this.freshnessBound = true;
+      window.addEventListener("focus", this.onWindowFocusFreshness);
+      document.addEventListener("visibilitychange", this.onVisibilityFreshness);
+    }
+
+    this.freshnessTimer = setInterval(() => {
+      void this.checkVaultFreshness();
+    }, VAULT_FRESHNESS_MS);
+  }
+
+  stopVaultFreshnessWatch(): void {
+    if (this.freshnessTimer !== null) {
+      clearInterval(this.freshnessTimer);
+      this.freshnessTimer = null;
+    }
+  }
+
+  /** Call after vault.disconnect() so Soft Concurrent state is cleared. */
+  onVaultDisconnected(): void {
+    this.stopVaultFreshnessWatch();
+    this.vaultFingerprint = null;
+    this._vaultStale = false;
+    this.allowStaleWrites = false;
+  }
+
+  private onWindowFocusFreshness = (): void => {
+    void this.checkVaultFreshness();
+  };
+
+  private onVisibilityFreshness = (): void => {
+    if (document.visibilityState === "visible") {
+      void this.checkVaultFreshness();
+    }
+  };
+
+  /**
+   * Before vault writes: if stale and not acknowledged, ask the user.
+   * OK = save anyway; Cancel = reload and abort write.
+   */
+  async confirmWriteIfStale(): Promise<"proceed" | "reloaded" | "aborted"> {
+    if (!this.storage.isConnected) return "proceed";
+    await this.checkVaultFreshness();
+    if (!this._vaultStale || this.allowStaleWrites) return "proceed";
+
+    const force = typeof window !== "undefined"
+      ? window.confirm(t().vault.staleSaveConfirm)
+      : false;
+
+    if (force) {
+      this.allowStaleWrites = true;
+      return "proceed";
+    }
+
+    const result = await this.reloadAll();
+    if (result.ok) {
+      showToast(result.warning || t().vault.reloadedToast, result.warning ? "warning" : "success");
+      return "reloaded";
+    }
+    if (result.reason === "permission_denied") {
+      showToast(t().vault.permissionDeniedToast, "warning");
+    }
+    return "aborted";
+  }
+
+  private async afterVaultWrite(): Promise<void> {
+    if (!this.storage.isConnected) return;
+    await this.refreshVaultFingerprint();
+    this.allowStaleWrites = false;
   }
 
   subscribe(listener: () => void): () => void {
@@ -327,6 +507,11 @@ export class AppStore {
       return { ok: false, clearedTasks: 0 };
     }
 
+    const decision = await this.confirmWriteIfStale();
+    if (decision !== "proceed") return { ok: false, clearedTasks: 0 };
+    // Subsequent persistClients / task writes already acknowledged for this session.
+    this.allowStaleWrites = true;
+
     let clearedTasks = 0;
     for (const task of this.tasks.values()) {
       if (task.assigneeId === memberId) {
@@ -338,6 +523,9 @@ export class AppStore {
     }
 
     this.members.delete(memberId);
+    if (this.getActiveMemberId() === memberId) {
+      this.setActiveMemberId(null);
+    }
     await this.persistClients();
     this.notify();
     return { ok: true, clearedTasks };
@@ -649,6 +837,9 @@ export class AppStore {
 
       const loadWarn = this.storage.getLastLoadWarning();
       this.storage.clearLoadWarning();
+      await this.refreshVaultFingerprint();
+      this.allowStaleWrites = false;
+      this.startVaultFreshnessWatch();
       this.notify();
 
       if (loadWarn?.startsWith("LOAD_PARTIAL:")) {
@@ -984,6 +1175,9 @@ export class AppStore {
   }
 
   async persistClients(): Promise<void> {
+    const decision = await this.confirmWriteIfStale();
+    if (decision !== "proceed") return;
+
     await this.storage.saveClientsAndProjects({
       clients: this.getClients(),
       projects: this.getProjects(),
@@ -993,6 +1187,7 @@ export class AppStore {
       localStorage.setItem(MEMBERS_KEY, JSON.stringify(this.getMembers()));
     } catch {}
     reportVaultError(this.storage);
+    await this.afterVaultWrite();
   }
 
   async addClient(client: Client): Promise<void> {
@@ -1123,6 +1318,9 @@ export class AppStore {
   }
 
   async saveDoc(doc: DocItem): Promise<void> {
+    const decision = await this.confirmWriteIfStale();
+    if (decision !== "proceed") return;
+
     const existing = this.docs.get(doc.id);
     const isNew = !existing;
     const oldSnapshot = existing ? { ...existing, tags: [...existing.tags] } : null;
@@ -1145,6 +1343,7 @@ export class AppStore {
     };
 
     await this.executeCommand(cmd);
+    await this.afterVaultWrite();
   }
 
   async deleteDoc(docId: string): Promise<void> {
@@ -1563,6 +1762,9 @@ export class AppStore {
   }
 
   async saveOrUpdateTask(updatedTask: Task): Promise<void> {
+    const decision = await this.confirmWriteIfStale();
+    if (decision !== "proceed") return;
+
     let taskToSave = this.ensureIssueKey(updatedTask);
     const inActive = this.tasks.get(taskToSave.id);
     const inArchive = this.archivedTasks.get(taskToSave.id);
@@ -1632,6 +1834,7 @@ export class AppStore {
     };
 
     await this.executeCommand(cmd);
+    await this.afterVaultWrite();
     if (autoArchiveOnDone) {
       this.toastUnblocked(taskToSave.id);
       await this.spawnRecurringInstance({ ...taskToSave, status: "done" });
@@ -1640,6 +1843,9 @@ export class AppStore {
 
   /** Move task to vault `tasks/archive/` (never permanently delete user tickets). */
   async archiveTask(taskId: string): Promise<void> {
+    const decision = await this.confirmWriteIfStale();
+    if (decision !== "proceed") return;
+
     const task = this.tasks.get(taskId);
     if (!task) return;
 
@@ -1672,6 +1878,7 @@ export class AppStore {
     };
 
     await this.executeCommand(cmd);
+    await this.afterVaultWrite();
   }
 
   /** @deprecated Use archiveTask */
@@ -1680,6 +1887,9 @@ export class AppStore {
   }
 
   async restoreTask(taskId: string): Promise<void> {
+    const decision = await this.confirmWriteIfStale();
+    if (decision !== "proceed") return;
+
     const task = this.archivedTasks.get(taskId);
     if (!task) return;
 
@@ -1710,6 +1920,7 @@ export class AppStore {
     };
 
     await this.executeCommand(cmd);
+    await this.afterVaultWrite();
   }
 }
 

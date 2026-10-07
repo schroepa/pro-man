@@ -23,6 +23,13 @@ export function renderBackofficeView(container: HTMLElement): void {
       showNewClientForm = true;
       sessionStorage.removeItem("proman_backoffice_new_client");
     }
+    try {
+      const tabHint = sessionStorage.getItem("proman_backoffice_tab");
+      if (tabHint === "team" || tabHint === "clients" || tabHint === "theme") {
+        currentTab = tabHint;
+        sessionStorage.removeItem("proman_backoffice_tab");
+      }
+    } catch { /* ignore */ }
   } catch { /* ignore */ }
 
   const clients = store.getClients();
