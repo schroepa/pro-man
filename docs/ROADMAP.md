@@ -33,6 +33,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Team-Vault Hardening v1**: Confirm-Dialog (Primary=Neu laden), Content-Digest, Atomic Writes, Banner mit Pfaden + „Später“
 - **Team-Vault (Soft Concurrent)**: Playbook [`docs/TEAM-VAULT.md`](./TEAM-VAULT.md); Session-Identität „Ich bin …“; Fingerprint/Stale-Banner + Save-Guard; Team-Setup-Hinweis — kein Sync-Server/CRDT
 - **Dashboard als Startseite (MVP)**: `currentView = "dashboard"` Default; Fokus-KPIs → Liste+Filter; Attention-Liste; Weiter Board/Liste/Favorit; Kanban ohne KPI-Leiste; Mobile-Nav Übersicht zuerst
 - **Docs-Markdown angleichen**: Docs-Editor auf `MarkdownLiveField` (eine Fläche, Auto-Grow, Blur→Render, Wikilinks)

@@ -218,6 +218,26 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.vault-stale-banner-paths {
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.vault-stale-banner-paths code {
+  font-family: var(--font-family-mono);
+  font-size: 0.6875rem;
+}
+
+.vault-stale-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 .vault-stale-reload-btn {
   display: inline-flex;
   align-items: center;
@@ -230,6 +250,10 @@
     flex-direction: column;
     align-items: stretch;
     margin: var(--space-2) var(--space-3) 0;
+  }
+
+  .vault-stale-banner-actions {
+    justify-content: flex-end;
   }
 }
 

@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
+- **Team-Vault Hardening**: Confirm-Dialog (Primary=Neu laden), Content-Digest im Fingerprint, Atomic Writes (Temp→Replace), Banner mit betroffenen Pfaden + „Später“
 - **Team-Vault (Soft Concurrent)**: Kleine Teams am zentralen Share — Session-Identität („Ich bin …“), Stale-Banner bei Fremd-Änderungen, Save-Guard vor Überschreiben; Playbook [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md)
 - **Dashboard als Startseite**: ViewMode `dashboard` (Default) — Fokus-KPIs (Offen · Dringend/Überfällig · Diese Woche · In Arbeit), Heute/Überfällig-Liste, Weiter-Links; KPI-Klick → Liste mit Filter; Kanban-KPI-Leiste entfernt; Mobile-Nav: Übersicht zuerst
 - **Docs Live-Markdown**: Docs-Editor nutzt dieselbe Notion-artige Fläche wie die Task-Beschreibung (Klick zum Bearbeiten, Auto-Grow, formatiert nach Blur); Edit/Preview-Tabs entfernt; Wikilinks bleiben klickbar

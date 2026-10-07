@@ -14,11 +14,35 @@ const LAST_VAULTS_KEY = "pro_man_last_vaults";
 
 export type VaultConnectionState = "connected" | "permission_needed" | "offline" | "unsupported";
 
-/** mtime + size stamp for a vault-relative path (Soft Concurrent freshness). */
-export type VaultFileStamp = { lastModified: number; size: number };
+/** mtime + size + content digest for Soft Concurrent freshness. */
+export type VaultFileStamp = { lastModified: number; size: number; digest: string };
 export type VaultFingerprint = Record<string, VaultFileStamp>;
 
 const USER_ABORT = "USER_ABORT";
+const DIGEST_FULL_MAX = 65_536;
+const DIGEST_EDGE = 2_048;
+
+/** Fast non-crypto digest for Soft Concurrent content stamps. */
+export function contentDigest(text: string): string {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
+}
+
+async function digestFileContents(file: File): Promise<string> {
+  const size = file.size;
+  if (size <= DIGEST_FULL_MAX) {
+    const text = await file.text();
+    return contentDigest(`${size}\0${text}`);
+  }
+  const head = await file.slice(0, DIGEST_EDGE).text();
+  const tailStart = Math.max(0, size - DIGEST_EDGE);
+  const tail = await file.slice(tailStart).text();
+  return contentDigest(`${size}\0${head}\0${tail}`);
+}
 
 export function isVaultPermissionError(err: unknown): boolean {
   const e = err as { name?: string; message?: string } | null;
@@ -471,6 +495,53 @@ export class VaultStorage {
     return tasks;
   }
 
+  /**
+   * Write text via temp file then replace (reduces partial-write risk on NAS).
+   * Falls back to direct write if temp/move fails.
+   */
+  private async writeTextAtomic(
+    dir: FileSystemDirectoryHandle,
+    fileName: string,
+    contents: string
+  ): Promise<void> {
+    const tmpName = `.${fileName}.${Date.now().toString(36)}.tmp`;
+    try {
+      const tmpHandle = await dir.getFileHandle(tmpName, { create: true });
+      const tmpWritable = await (tmpHandle as FileSystemFileHandle & {
+        createWritable: () => Promise<FileSystemWritableFileStream>;
+        move?: (name: string) => Promise<void>;
+      }).createWritable();
+      await tmpWritable.write(contents);
+      await tmpWritable.close();
+
+      const movable = tmpHandle as FileSystemFileHandle & { move?: (name: string) => Promise<void> };
+      if (typeof movable.move === "function") {
+        await movable.move(fileName);
+        return;
+      }
+
+      const finalHandle = await dir.getFileHandle(fileName, { create: true });
+      const finalWritable = await (finalHandle as FileSystemFileHandle & {
+        createWritable: () => Promise<FileSystemWritableFileStream>;
+      }).createWritable();
+      await finalWritable.write(contents);
+      await finalWritable.close();
+      try {
+        await dir.removeEntry(tmpName);
+      } catch { /* ignore */ }
+    } catch {
+      try {
+        await dir.removeEntry(tmpName);
+      } catch { /* ignore */ }
+      const finalHandle = await dir.getFileHandle(fileName, { create: true });
+      const finalWritable = await (finalHandle as FileSystemFileHandle & {
+        createWritable: () => Promise<FileSystemWritableFileStream>;
+      }).createWritable();
+      await finalWritable.write(contents);
+      await finalWritable.close();
+    }
+  }
+
   async saveTask(task: Task): Promise<void> {
     if (!this.dirHandle) {
       if (task.archivedAt) {
@@ -490,10 +561,7 @@ export class VaultStorage {
         : await this.getTasksDir(true);
       if (!targetDir) throw new Error("tasks directory unavailable");
 
-      const fileHandle = await targetDir.getFileHandle(fileName, { create: true });
-      const writable = await (fileHandle as any).createWritable();
-      await writable.write(markdown);
-      await writable.close();
+      await this.writeTextAtomic(targetDir, fileName, markdown);
 
       // Ensure file exists in only one location
       const otherDir = task.archivedAt
@@ -615,10 +683,7 @@ export class VaultStorage {
 
       const fileName = `${doc.id}.md`;
       const markdown = docToMarkdown(doc);
-      const fileHandle = await docsDir.getFileHandle(fileName, { create: true });
-      const writable = await (fileHandle as any).createWritable();
-      await writable.write(markdown);
-      await writable.close();
+      await this.writeTextAtomic(docsDir, fileName, markdown);
     } catch (err: unknown) {
       this.noteWriteError(err);
       this.saveFallbackDoc(doc);
@@ -652,10 +717,7 @@ export class VaultStorage {
     }
 
     try {
-      const fileHandle = await this.dirHandle.getFileHandle("clients.json", { create: true });
-      const writable = await (fileHandle as any).createWritable();
-      await writable.write(JSON.stringify(data, null, 2));
-      await writable.close();
+      await this.writeTextAtomic(this.dirHandle, "clients.json", JSON.stringify(data, null, 2));
       if (data.members) {
         localStorage.setItem("pro_man_members", JSON.stringify(data.members));
       }
@@ -701,7 +763,7 @@ export class VaultStorage {
   }
 
   /**
-   * Snapshot of vault file mtimes/sizes for Soft Concurrent stale detection.
+   * Snapshot of vault file mtimes/sizes/digests for Soft Concurrent stale detection.
    * Returns null when offline / no handle.
    */
   async captureFingerprint(): Promise<VaultFingerprint | null> {
@@ -709,7 +771,8 @@ export class VaultStorage {
     const fp: VaultFingerprint = {};
 
     const stampFile = async (path: string, file: File): Promise<void> => {
-      fp[path] = { lastModified: file.lastModified, size: file.size };
+      const digest = await digestFileContents(file);
+      fp[path] = { lastModified: file.lastModified, size: file.size, digest };
     };
 
     try {
@@ -763,15 +826,33 @@ export class VaultStorage {
 
   /** True when current disk stamps differ from baseline (added/removed/changed). */
   isFingerprintStale(baseline: VaultFingerprint | null, current: VaultFingerprint | null): boolean {
-    if (!baseline || !current) return false;
+    return this.diffFingerprintPaths(baseline, current).length > 0;
+  }
+
+  /** Vault-relative paths that differ between baseline and current (sorted). */
+  diffFingerprintPaths(
+    baseline: VaultFingerprint | null,
+    current: VaultFingerprint | null
+  ): string[] {
+    if (!baseline || !current) return [];
     const keys = new Set([...Object.keys(baseline), ...Object.keys(current)]);
+    const changed: string[] = [];
     for (const key of keys) {
       const a = baseline[key];
       const b = current[key];
-      if (!a || !b) return true;
-      if (a.lastModified !== b.lastModified || a.size !== b.size) return true;
+      if (!a || !b) {
+        changed.push(key);
+        continue;
+      }
+      if (
+        a.lastModified !== b.lastModified ||
+        a.size !== b.size ||
+        a.digest !== b.digest
+      ) {
+        changed.push(key);
+      }
     }
-    return false;
+    return changed.sort((x, y) => x.localeCompare(y));
   }
 
   private loadFallbackTasks(): Task[] {

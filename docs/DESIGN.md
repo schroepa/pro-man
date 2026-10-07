@@ -220,7 +220,7 @@ Mono: Issue-Keys, IDs, Shortcuts, Code-Snippets im Backoffice.
 - Backdrop-Close ignoriert `.custom-select-menu` (fixed/popover außerhalb der Dialog-Box).
 - Backoffice-Tab „Team & Personen“ für Anlegen/Bearbeiten/Löschen.
 - **Session-Identität:** Sidebar „Ich bin …“ (localStorage); Kommentare und Default-Assignee neuer Tasks nutzen dieses Member.
-- **Team-Vault / Soft Concurrent:** Banner bei fremdem Vault-Change; Speichern bei Stale mit Confirm (Default = Neu laden). Playbook: `docs/TEAM-VAULT.md`.
+- **Team-Vault / Soft Concurrent:** Banner bei fremdem Vault-Change (Pfadliste, „Später“ dismiss); Speichern bei Stale über App-Dialog (Primary = Neu laden, Secondary = Trotzdem speichern). Playbook: `docs/TEAM-VAULT.md`.
 
 ---
 

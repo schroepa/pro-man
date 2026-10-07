@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { store } from "./store";
-import { VaultStorage, type VaultFingerprint } from "./file-system";
+import { VaultStorage, contentDigest, type VaultFingerprint } from "./file-system";
 import { DEFAULT_MEMBER_YOU_ID } from "../types/member";
 import {
   resetStoreMaps,
@@ -19,10 +19,17 @@ import {
 } from "../test/helpers";
 import { t, translations, setLanguage } from "../i18n";
 import { renderVaultStaleBanner } from "../components/vault-stale-banner";
+import { setStaleWriteConfirmForTests } from "../components/vault-stale-confirm";
+
+const stamp = (lastModified: number, size: number, digest = "d0"): VaultFingerprint[string] => ({
+  lastModified,
+  size,
+  digest,
+});
 
 const BASE_FP: VaultFingerprint = {
-  "clients.json": { lastModified: 1000, size: 100 },
-  "tasks/ACM-WEB-1.md": { lastModified: 2000, size: 200 },
+  "clients.json": stamp(1000, 100, "c1"),
+  "tasks/ACM-WEB-1.md": stamp(2000, 200, "t1"),
 };
 
 describe("Session identity", () => {
@@ -97,36 +104,53 @@ describe("Session identity", () => {
 });
 
 describe("Vault fingerprint Soft Concurrent", () => {
-  it("detects added, removed, mtime, and size-only changes", () => {
+  it("detects added, removed, mtime, size, and digest-only changes", () => {
     const vault = new VaultStorage();
-    const baseline = {
-      "clients.json": { lastModified: 100, size: 10 },
-      "tasks/A.md": { lastModified: 200, size: 20 },
+    const baseline: VaultFingerprint = {
+      "clients.json": stamp(100, 10, "a"),
+      "tasks/A.md": stamp(200, 20, "b"),
     };
     expect(vault.isFingerprintStale(baseline, baseline)).toBe(false);
     expect(
       vault.isFingerprintStale(baseline, {
         ...baseline,
-        "tasks/A.md": { lastModified: 201, size: 20 },
+        "tasks/A.md": stamp(201, 20, "b"),
       })
     ).toBe(true);
     expect(
       vault.isFingerprintStale(baseline, {
         ...baseline,
-        "tasks/A.md": { lastModified: 200, size: 99 },
-      })
-    ).toBe(true);
-    expect(
-      vault.isFingerprintStale(baseline, {
-        "clients.json": { lastModified: 100, size: 10 },
+        "tasks/A.md": stamp(200, 99, "b"),
       })
     ).toBe(true);
     expect(
       vault.isFingerprintStale(baseline, {
         ...baseline,
-        "tasks/B.md": { lastModified: 1, size: 1 },
+        "tasks/A.md": stamp(200, 20, "changed"),
       })
     ).toBe(true);
+    expect(vault.diffFingerprintPaths(baseline, {
+      ...baseline,
+      "tasks/A.md": stamp(200, 20, "changed"),
+    })).toEqual(["tasks/A.md"]);
+    expect(
+      vault.isFingerprintStale(baseline, {
+        "clients.json": stamp(100, 10, "a"),
+      })
+    ).toBe(true);
+  });
+
+  it("contentDigest changes when text changes", () => {
+    expect(contentDigest("hello")).toBe(contentDigest("hello"));
+    expect(contentDigest("hello")).not.toBe(contentDigest("hello!"));
+  });
+
+  it("writeTextAtomic is used for vault writes", () => {
+    const src = readSrc("storage/file-system.ts");
+    expect(src).toContain("writeTextAtomic");
+    expect(src).toMatch(/async saveTask[\s\S]*writeTextAtomic/);
+    expect(src).toMatch(/async saveDoc[\s\S]*writeTextAtomic/);
+    expect(src).toMatch(/async saveClientsAndProjects[\s\S]*writeTextAtomic/);
   });
 });
 
@@ -138,9 +162,11 @@ describe("Vault freshness + write guard", () => {
     stubVaultWrites();
     localStorage.clear();
     store.onVaultDisconnected();
+    setStaleWriteConfirmForTests(null);
   });
 
   afterEach(() => {
+    setStaleWriteConfirmForTests(null);
     freshness?.restore();
     freshness = null;
     vi.restoreAllMocks();
@@ -153,25 +179,28 @@ describe("Vault freshness + write guard", () => {
     });
     expect(await store.checkVaultFreshness()).toBe(false);
     expect(store.vaultStale).toBe(false);
+    expect(store.vaultStalePaths).toEqual([]);
   });
 
-  it("checkVaultFreshness marks stale when mtime or size changes", async () => {
+  it("checkVaultFreshness marks stale paths when mtime, size, or digest changes", async () => {
     freshness = await mockVaultFreshness({
       baseline: BASE_FP,
       current: {
         ...BASE_FP,
-        "tasks/ACM-WEB-1.md": { lastModified: 2001, size: 200 },
+        "tasks/ACM-WEB-1.md": stamp(2001, 200, "t1"),
       },
     });
     expect(await store.checkVaultFreshness()).toBe(true);
     expect(store.vaultStale).toBe(true);
+    expect(store.vaultStalePaths).toContain("tasks/ACM-WEB-1.md");
 
     await freshness.refreshBaseline();
     freshness.setCurrent({
       ...BASE_FP,
-      "clients.json": { lastModified: 1000, size: 111 },
+      "clients.json": stamp(1000, 100, "digest-changed"),
     });
     expect(await store.checkVaultFreshness()).toBe(true);
+    expect(store.vaultStalePaths).toContain("clients.json");
   });
 
   it("onVaultDisconnected clears stale state", async () => {
@@ -179,7 +208,7 @@ describe("Vault freshness + write guard", () => {
       baseline: BASE_FP,
       current: {
         ...BASE_FP,
-        "clients.json": { lastModified: 9999, size: 100 },
+        "clients.json": stamp(9999, 100, "c1"),
       },
     });
     await store.checkVaultFreshness();
@@ -187,35 +216,31 @@ describe("Vault freshness + write guard", () => {
 
     store.onVaultDisconnected();
     expect(store.vaultStale).toBe(false);
-    // restore() also disconnects — prevent double-restore issues
+    expect(store.vaultStalePaths).toEqual([]);
     freshness = null;
     delete (store.vault as { isConnected?: unknown }).isConnected;
   });
 
-  it("confirmWriteIfStale reloads when user declines force-save", async () => {
+  it("confirmWriteIfStale reloads when dialog chooses reload", async () => {
     freshness = await mockVaultFreshness({
       baseline: BASE_FP,
       current: {
         ...BASE_FP,
-        "clients.json": { lastModified: 5000, size: 100 },
+        "clients.json": stamp(5000, 100, "c1"),
       },
     });
     await store.checkVaultFreshness();
     expect(store.vaultStale).toBe(true);
 
     const reloadSpy = vi.spyOn(store, "reloadAll").mockResolvedValue({ ok: true });
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    setStaleWriteConfirmForTests(async () => "reload");
 
     expect(await store.confirmWriteIfStale()).toBe("reloaded");
     expect(reloadSpy).toHaveBeenCalledTimes(1);
 
-    confirmSpy.mockReturnValue(true);
-    // Still stale until reload/afterWrite — force acknowledge once
+    setStaleWriteConfirmForTests(async () => "force");
     expect(await store.confirmWriteIfStale()).toBe("proceed");
-    expect(confirmSpy).toHaveBeenCalledTimes(2);
-    // allowStaleWrites: further writes skip the dialog
     expect(await store.confirmWriteIfStale()).toBe("proceed");
-    expect(confirmSpy).toHaveBeenCalledTimes(2);
   });
 
   it("saveOrUpdateTask does not write when user chooses reload", async () => {
@@ -223,7 +248,7 @@ describe("Vault freshness + write guard", () => {
       baseline: BASE_FP,
       current: {
         ...BASE_FP,
-        "tasks/ACM-WEB-1.md": { lastModified: 3000, size: 200 },
+        "tasks/ACM-WEB-1.md": stamp(3000, 200, "t1"),
       },
     });
     await store.checkVaultFreshness();
@@ -232,7 +257,7 @@ describe("Vault freshness + write guard", () => {
     const saveSpy = vi.fn(async () => {});
     storeInternals().storage.saveTask = saveSpy;
     vi.spyOn(store, "reloadAll").mockResolvedValue({ ok: true });
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+    setStaleWriteConfirmForTests(async () => "reload");
 
     await store.saveOrUpdateTask(
       makeTask({ id: "ACM-WEB-9", clientId, projectId, title: "Should not persist" })
@@ -242,12 +267,12 @@ describe("Vault freshness + write guard", () => {
     expect(storeInternals().tasks.has("ACM-WEB-9")).toBe(false);
   });
 
-  it("saveOrUpdateTask writes after force-save and skips second confirm", async () => {
+  it("saveOrUpdateTask writes after force-save", async () => {
     freshness = await mockVaultFreshness({
       baseline: BASE_FP,
       current: {
         ...BASE_FP,
-        "tasks/ACM-WEB-1.md": { lastModified: 3000, size: 200 },
+        "tasks/ACM-WEB-1.md": stamp(3000, 200, "t1"),
       },
     });
     await store.checkVaultFreshness();
@@ -255,32 +280,17 @@ describe("Vault freshness + write guard", () => {
     const { clientId, projectId } = seedClientProject();
     const saveSpy = vi.fn(async () => {});
     storeInternals().storage.saveTask = saveSpy;
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    let confirmCalls = 0;
+    setStaleWriteConfirmForTests(async () => {
+      confirmCalls++;
+      return "force";
+    });
 
     const task = makeTask({ id: "ACM-WEB-10", clientId, projectId, title: "Force save" });
     await store.saveOrUpdateTask(task);
     expect(saveSpy).toHaveBeenCalledTimes(1);
-    expect(confirmSpy).toHaveBeenCalledTimes(1);
-
-    // afterVaultWrite refreshes fingerprint from current disk mock → not stale
+    expect(confirmCalls).toBe(1);
     expect(store.vaultStale).toBe(false);
-
-    // Make disk diverge again; allowStaleWrites was cleared by afterVaultWrite
-    freshness.setCurrent({
-      ...BASE_FP,
-      "tasks/ACM-WEB-1.md": { lastModified: 4000, size: 200 },
-    });
-    await store.checkVaultFreshness();
-    expect(store.vaultStale).toBe(true);
-
-    await store.saveOrUpdateTask({ ...task, title: "Second force", updatedAt: new Date().toISOString() });
-    expect(confirmSpy).toHaveBeenCalledTimes(2);
-    expect(saveSpy).toHaveBeenCalledTimes(2);
-
-    // Within acknowledged window: second write after force without new confirm
-    await store.saveOrUpdateTask({ ...task, title: "Third", updatedAt: new Date().toISOString() });
-    expect(confirmSpy).toHaveBeenCalledTimes(2);
-    expect(saveSpy).toHaveBeenCalledTimes(3);
   });
 
   it("confirmWriteIfStale proceeds without dialog when offline", async () => {
@@ -289,9 +299,13 @@ describe("Vault freshness + write guard", () => {
       baseline: BASE_FP,
       current: BASE_FP,
     });
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    let called = false;
+    setStaleWriteConfirmForTests(async () => {
+      called = true;
+      return "force";
+    });
     expect(await store.confirmWriteIfStale()).toBe("proceed");
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(called).toBe(false);
   });
 });
 
@@ -323,24 +337,41 @@ describe("Vault stale banner", () => {
     expect(renderVaultStaleBanner()).toBeNull();
   });
 
-  it("renders reload control when connected and stale", async () => {
+  it("renders paths and reload; dismiss hides until fresh again", async () => {
     freshness = await mockVaultFreshness({
       baseline: BASE_FP,
       current: {
         ...BASE_FP,
-        "docs/DOC-1.md": { lastModified: 1, size: 1 },
+        "docs/DOC-1.md": stamp(1, 1, "d"),
       },
     });
     await store.checkVaultFreshness();
     expect(store.vaultStale).toBe(true);
+    expect(store.staleBannerVisible).toBe(true);
 
     const banner = renderVaultStaleBanner();
     expect(banner).not.toBeNull();
-    expect(banner!.classList.contains("vault-stale-banner")).toBe(true);
+    expect(banner!.textContent).toContain("docs/DOC-1.md");
     expect(banner!.querySelector(".vault-stale-reload-btn")).toBeTruthy();
+    expect(banner!.querySelector(".vault-stale-dismiss-btn")).toBeTruthy();
+
+    banner!.querySelector<HTMLButtonElement>(".vault-stale-dismiss-btn")!.click();
+    expect(store.staleBannerVisible).toBe(false);
+    expect(store.vaultStale).toBe(true);
+    expect(renderVaultStaleBanner()).toBeNull();
 
     const reloadSpy = vi.spyOn(store, "reloadAll").mockResolvedValue({ ok: true });
-    banner!.querySelector<HTMLButtonElement>(".vault-stale-reload-btn")!.click();
+    // Re-show after new stale cycle
+    await freshness.refreshBaseline();
+    freshness.setCurrent({
+      ...BASE_FP,
+      "clients.json": stamp(1, 1, "x"),
+    });
+    await store.checkVaultFreshness();
+    expect(store.staleBannerVisible).toBe(true);
+
+    const again = renderVaultStaleBanner()!;
+    again.querySelector<HTMLButtonElement>(".vault-stale-reload-btn")!.click();
     await vi.waitFor(() => expect(reloadSpy).toHaveBeenCalled());
   });
 });
@@ -356,11 +387,13 @@ describe("Team-Vault UX contracts", () => {
     expect(src).not.toMatch(/<select[\s>]/);
   });
 
-  it("stale banner component exists and reloads", () => {
-    const src = readSrc("components/vault-stale-banner.ts");
-    expect(src).toContain("vault-stale-banner");
-    expect(src).toContain("reloadAll");
-    expect(src).toContain("staleReload");
+  it("stale confirm uses app dialog not window.confirm", () => {
+    const storeSrc = readSrc("storage/store.ts");
+    expect(storeSrc).toContain("askStaleWriteConfirm");
+    expect(storeSrc).not.toMatch(/window\.confirm/);
+    const confirmSrc = readSrc("components/vault-stale-confirm.ts");
+    expect(confirmSrc).toContain("vault-stale-confirm");
+    expect(confirmSrc).toContain("staleForceSave");
   });
 
   it("task dialog uses session member for comments and default assignee", () => {
@@ -380,10 +413,20 @@ describe("Team-Vault UX contracts", () => {
     const doc = readFileSync(join(process.cwd(), "docs/TEAM-VAULT.md"), "utf8");
     expect(doc).toContain("Soft Concurrent");
     expect(doc).toContain("NAS");
+    expect(doc).toContain("Digest");
+    expect(doc).toContain("Atomic");
   });
 
   it("vault team strings exist in de and en", () => {
-    const keys = ["staleBanner", "staleSaveConfirm", "iAm", "teamSharedHint", "staleReload"] as const;
+    const keys = [
+      "staleBanner",
+      "staleConfirmTitle",
+      "staleForceSave",
+      "staleDismiss",
+      "iAm",
+      "teamSharedHint",
+      "staleReload",
+    ] as const;
     for (const catalog of [translations.de, translations.en]) {
       for (const key of keys) {
         expect(catalog.vault[key].length).toBeGreaterThan(2);

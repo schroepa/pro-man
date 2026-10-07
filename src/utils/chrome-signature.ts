@@ -18,6 +18,8 @@ export function getChromeSignature(): string {
     store.vault.connectionState,
     store.vault.vaultName,
     String(store.vaultStale),
+    String(store.staleBannerVisible),
+    store.vaultStalePaths.join(","),
     store.getActiveMemberId() ?? "",
     store.getMembers().map(m => m.id).join(","),
     getLanguage(),

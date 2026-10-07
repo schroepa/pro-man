@@ -11,6 +11,7 @@ import {
 import { announcer } from "../a11y/announcer";
 import { t } from "../i18n";
 import { showToast } from "../components/toast";
+import { askStaleWriteConfirm } from "../components/vault-stale-confirm";
 import {
   isDemoCleared,
   markDemoCleared,
@@ -116,6 +117,9 @@ export class AppStore {
   /** Soft Concurrent: in-memory snapshot after last successful load/own write. */
   private vaultFingerprint: VaultFingerprint | null = null;
   private _vaultStale = false;
+  private _stalePaths: string[] = [];
+  /** Hide banner until vault becomes fresh again (writes still guarded). */
+  private _staleBannerDismissed = false;
   /** After user confirms “save anyway”, allow writes until reload. */
   private allowStaleWrites = false;
   private freshnessTimer: ReturnType<typeof setInterval> | null = null;
@@ -134,6 +138,23 @@ export class AppStore {
   /** True when vault files on disk differ from the last loaded fingerprint. */
   get vaultStale(): boolean {
     return this._vaultStale;
+  }
+
+  /** Paths that differ from the last loaded fingerprint (sorted). */
+  get vaultStalePaths(): string[] {
+    return this._stalePaths;
+  }
+
+  /** Banner visible when stale and not dismissed until next clean cycle. */
+  get staleBannerVisible(): boolean {
+    return this._vaultStale && !this._staleBannerDismissed;
+  }
+
+  /** Hide stale banner until vault is fresh again (does not allow silent writes). */
+  dismissStaleBannerUntilNextCheck(): void {
+    if (!this._vaultStale) return;
+    this._staleBannerDismissed = true;
+    this.notify();
   }
 
   /**
@@ -196,10 +217,14 @@ export class AppStore {
     if (!this.storage.isConnected) {
       this.vaultFingerprint = null;
       this._vaultStale = false;
+      this._stalePaths = [];
+      this._staleBannerDismissed = false;
       return;
     }
     this.vaultFingerprint = await this.storage.captureFingerprint();
     this._vaultStale = false;
+    this._stalePaths = [];
+    this._staleBannerDismissed = false;
   }
 
   async checkVaultFreshness(): Promise<boolean> {
@@ -208,10 +233,24 @@ export class AppStore {
     try {
       const current = await this.storage.captureFingerprint();
       if (!this.vaultFingerprint || !current) return this._vaultStale;
-      const stale = this.storage.isFingerprintStale(this.vaultFingerprint, current);
-      if (stale !== this._vaultStale) {
-        this._vaultStale = stale;
-        if (!stale) this.allowStaleWrites = false;
+      const paths = this.storage.diffFingerprintPaths(this.vaultFingerprint, current);
+      const stale = paths.length > 0;
+      const wasStale = this._vaultStale;
+      const pathsChanged =
+        paths.length !== this._stalePaths.length ||
+        paths.some((p, i) => p !== this._stalePaths[i]);
+
+      if (stale) {
+        this._stalePaths = paths;
+        if (!wasStale) this._staleBannerDismissed = false;
+      } else {
+        this._stalePaths = [];
+        this._staleBannerDismissed = false;
+        this.allowStaleWrites = false;
+      }
+
+      this._vaultStale = stale;
+      if (stale !== wasStale || (stale && pathsChanged && !this._staleBannerDismissed)) {
         this.notify();
       }
       return this._vaultStale;
@@ -247,6 +286,8 @@ export class AppStore {
     this.stopVaultFreshnessWatch();
     this.vaultFingerprint = null;
     this._vaultStale = false;
+    this._stalePaths = [];
+    this._staleBannerDismissed = false;
     this.allowStaleWrites = false;
   }
 
@@ -261,19 +302,17 @@ export class AppStore {
   };
 
   /**
-   * Before vault writes: if stale and not acknowledged, ask the user.
-   * OK = save anyway; Cancel = reload and abort write.
+   * Before vault writes: if stale and not acknowledged, ask via app dialog.
+   * Primary = reload; secondary = force save.
    */
   async confirmWriteIfStale(): Promise<"proceed" | "reloaded" | "aborted"> {
     if (!this.storage.isConnected) return "proceed";
     await this.checkVaultFreshness();
     if (!this._vaultStale || this.allowStaleWrites) return "proceed";
 
-    const force = typeof window !== "undefined"
-      ? window.confirm(t().vault.staleSaveConfirm)
-      : false;
+    const choice = await askStaleWriteConfirm(this._stalePaths);
 
-    if (force) {
+    if (choice === "force") {
       this.allowStaleWrites = true;
       return "proceed";
     }

@@ -61,10 +61,13 @@ ProMan hat **keine** ACL: wer Schreibzugriff auf den Ordner hat, kann alles änd
 
 ## Soft Concurrent — Limits
 
-ProMan erkennt Änderungen am Vault (mtime/Größe) und warnt vor dem Überschreiben. Das ist **kein** Live-Collab:
+ProMan erkennt Änderungen am Vault und warnt vor dem Überschreiben. Das ist **kein** Live-Collab:
 
+- **Fingerprint:** mtime + Größe + kurzer Inhalts-Digest (auch bei launischen NAS-mtimes).
+- **Banner** nennt betroffene Dateien; „Später“ blendet nur den Hinweis aus — Speichern bleibt geschützt.
+- **Speichern bei Stale:** Dialog mit Primäraktion **Neu laden**; Secondary **Trotzdem speichern** (last-write-wins).
+- **Atomic writes:** Tasks, Docs und `clients.json` werden über Temp→Replace geschrieben (weniger Partial-Writes auf Shares).
 - Keine Cursors, keine Präsenz, kein automatisches Merge.
-- Parallele Edits derselben Datei können Daten verlieren, wenn „Trotzdem speichern“ gewählt wird.
 - UI-Prefs (Theme, Favoriten, Sidebar) bleiben **pro Browser** — sie liegen nicht im Vault.
 
 Multi-Device-Sync und CRDT bleiben bewusst geparkt (`docs/ROADMAP.md`).
