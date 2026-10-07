@@ -19,6 +19,11 @@ dialog.task-dialog {
   corner-shape: squircle;
 }
 
+/* Author `display` must not override the UA closed-dialog rule (iPhone blank screen). */
+dialog.task-dialog:not([open]) {
+  display: none;
+}
+
 dialog.task-dialog[open] {
   animation: motion-dialog-in var(--duration-enter) var(--ease-emphasized) both;
 }
@@ -213,8 +218,8 @@ dialog.task-dialog[open]::backdrop {
     grid-template-columns: 1fr;
   }
 
-  /* App-like full-height sheet */
-  dialog.task-dialog {
+  /* App-like full-height sheet — only when open (never force display on closed <dialog>) */
+  dialog.task-dialog[open] {
     width: 100vw;
     max-width: 100vw;
     height: 100dvh;

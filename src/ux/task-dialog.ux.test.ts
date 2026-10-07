@@ -62,3 +62,15 @@ describe("UX — motion tokens available for snappy feedback", () => {
     expect(motion).toMatch(/motion-slide-down|@keyframes/);
   });
 });
+
+describe("UX — closed task dialog must not cover the mobile viewport", () => {
+  it("hides closed dialogs and only applies mobile sheet display when open", () => {
+    const css = readSrc("styles/components/dialog.css");
+    expect(css).toMatch(/dialog\.task-dialog:not\(\[open\]\)\s*\{[\s\S]*?display:\s*none/);
+    // Full-height sheet flex must be gated on [open] — bare display:flex overrides UA hide on iPhone
+    expect(css).toMatch(/@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog\[open\]\s*\{[\s\S]*display:\s*flex/);
+    expect(css).not.toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog\s*\{[\s\S]*display:\s*flex/,
+    );
+  });
+});
