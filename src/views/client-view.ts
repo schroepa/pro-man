@@ -1,8 +1,26 @@
 import { store, deriveCodeFromName } from "../storage/store";
 import type { Client, ContactPerson, Project } from "../types/client";
+import type { KnowledgeCategory } from "../types/knowledge";
 import { TablerIcon } from "../components/icons";
 import { showToast } from "../components/toast";
 import { t } from "../i18n";
+
+type CategoryI18nKey = keyof ReturnType<typeof t>["knowledge"]["categories"];
+
+const CATEGORY_I18N_KEY: Record<KnowledgeCategory, CategoryI18nKey> = {
+  colors: "colors",
+  typography: "typography",
+  "design-system": "designSystem",
+  "blocks-sections": "blocksSections",
+  "screens-views": "screensViews",
+  "mission-vision": "missionVision",
+  logic: "logic",
+  other: "other",
+};
+
+function knowledgeCategoryLabel(category: KnowledgeCategory): string {
+  return t().knowledge.categories[CATEGORY_I18N_KEY[category]];
+}
 
 export function renderClientView(container: HTMLElement): void {
   container.innerHTML = "";
@@ -34,9 +52,11 @@ export function renderClientView(container: HTMLElement): void {
   const projects = store.getProjects(client.id);
   const tasks = store.getAllRawTasks().filter(task => task.clientId === client.id);
   const docs = store.getDocs(client.id);
+  const knowledgeItems = store.getKnowledge(client.id).slice(0, 8);
   const openTasks = tasks.filter(task => task.status !== "done");
   const contacts = client.contacts || [];
   const i18n = t().client;
+  const knI18n = t().knowledge;
 
   const wrapper = document.createElement("div");
   wrapper.className = "client-page";
@@ -219,6 +239,23 @@ export function renderClientView(container: HTMLElement): void {
             </button>
           </form>
         </section>
+
+        <section class="client-section" aria-labelledby="client-knowledge-title">
+          <div class="client-section-header">
+            <h2 id="client-knowledge-title" class="client-section-title">${escapeHtml(knI18n.sectionTitle)}</h2>
+            <button type="button" class="btn btn-ghost" id="client-knowledge-open-all">
+              ${escapeHtml(knI18n.openAll)}
+            </button>
+          </div>
+          <div class="client-knowledge-list">
+            ${knowledgeItems.map(item => `
+              <button type="button" class="client-knowledge-row" data-knowledge-id="${escapeAttr(item.id)}">
+                <span class="client-knowledge-title">${escapeHtml(item.title || knI18n.untitled)}</span>
+                <span class="client-knowledge-category">${escapeHtml(knowledgeCategoryLabel(item.category))}</span>
+              </button>
+            `).join("") || `<p class="client-empty-hint">${escapeHtml(knI18n.noItems)}</p>`}
+          </div>
+        </section>
       </div>
     </div>
   `;
@@ -242,6 +279,24 @@ function bindClientView(root: HTMLElement, client: Client): void {
     store.selectedProjectId = null;
     store.currentView = "docs";
     store.notify();
+  });
+
+  const openKnowledge = (knowledgeId?: string) => {
+    store.selectedClientId = client.id;
+    store.selectedProjectId = null;
+    if (knowledgeId) store.selectedKnowledgeId = knowledgeId;
+    store.currentView = "knowledge";
+    store.notify();
+  };
+
+  root.querySelector("#client-knowledge-open-all")?.addEventListener("click", () => {
+    openKnowledge();
+  });
+
+  root.querySelectorAll<HTMLButtonElement>(".client-knowledge-row").forEach(btn => {
+    btn.addEventListener("click", () => {
+      openKnowledge(btn.dataset.knowledgeId);
+    });
   });
 
   root.querySelectorAll<HTMLButtonElement>(".client-project-row").forEach(btn => {

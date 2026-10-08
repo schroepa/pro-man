@@ -1,14 +1,16 @@
 import { store } from "../storage/store";
-import { t } from "../i18n";
+import { getLanguage, t } from "../i18n";
 import { toggleSidebar } from "../storage/sidebar-layout";
 import { bestFuzzyScore } from "../utils/fuzzy-match";
 import { getCommandRecents, pushCommandRecent } from "../storage/command-recents";
+import { knowledgeTemplate } from "../storage/knowledge-templates";
+import type { KnowledgeCategory } from "../types/knowledge";
 
 export type PaletteOpenTask = (taskId: string) => void;
 
 const SEARCH_DEBOUNCE_MS = 150;
 
-type PaletteGroup = "recent" | "actions" | "views" | "tasks" | "archive" | "docs" | "clients";
+type PaletteGroup = "recent" | "actions" | "views" | "tasks" | "archive" | "docs" | "knowledge" | "clients";
 
 interface PaletteItem {
   id: string;
@@ -21,7 +23,55 @@ interface PaletteItem {
 }
 
 const EMPTY_GROUP_ORDER: PaletteGroup[] = ["recent", "actions", "views"];
-const QUERY_GROUP_ORDER: PaletteGroup[] = ["tasks", "archive", "docs", "clients", "actions", "views"];
+const QUERY_GROUP_ORDER: PaletteGroup[] = ["tasks", "archive", "docs", "knowledge", "clients", "actions", "views"];
+
+type CategoryI18nKey = keyof ReturnType<typeof t>["knowledge"]["categories"];
+
+const CATEGORY_I18N_KEY: Record<KnowledgeCategory, CategoryI18nKey> = {
+  colors: "colors",
+  typography: "typography",
+  "design-system": "designSystem",
+  "blocks-sections": "blocksSections",
+  "screens-views": "screensViews",
+  "mission-vision": "missionVision",
+  logic: "logic",
+  other: "other",
+};
+
+function knowledgeCategoryLabel(category: KnowledgeCategory): string {
+  return t().knowledge.categories[CATEGORY_I18N_KEY[category]];
+}
+
+function createNewKnowledgeFromPalette(): void {
+  const clients = store.getClients();
+  const clientId = store.selectedClientId || (clients.length > 0 ? clients[0].id : null);
+  if (!clientId) {
+    store.currentView = "knowledge";
+    store.notify();
+    return;
+  }
+
+  const category: KnowledgeCategory = "other";
+  const newId = `KN-${String(Math.floor(100 + Math.random() * 900))}`;
+  const locale = getLanguage();
+  const newItem = {
+    id: newId,
+    clientId,
+    projectId: store.selectedProjectId || undefined,
+    category,
+    title: t().knowledge.untitled,
+    content: knowledgeTemplate(category, locale),
+    tags: [] as string[],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  void store.saveKnowledge(newItem);
+  store.selectedClientId = clientId;
+  store.selectedKnowledgeId = newItem.id;
+  store.currentView = "knowledge";
+  store.notify();
+}
 
 export class CommandPalette {
   private dialog: HTMLDialogElement;
@@ -194,6 +244,7 @@ export class CommandPalette {
     if (group === "views") return c.groupViews;
     if (group === "tasks") return c.groupTasks;
     if (group === "archive") return c.groupArchive;
+    if (group === "knowledge") return c.groupKnowledge;
     if (group === "clients") return c.groupClients;
     return c.groupDocs;
   }
@@ -220,6 +271,14 @@ export class CommandPalette {
         fields: [i18n.actions.newDoc, "new doc", "dokument"],
         score: 0,
         action: () => this.onNewDoc(),
+      },
+      {
+        id: "action-new-knowledge",
+        label: i18n.actions.newKnowledge,
+        group: "actions",
+        fields: [i18n.actions.newKnowledge, "new knowledge", "wissen", "knowledge"],
+        score: 0,
+        action: () => createNewKnowledgeFromPalette(),
       },
       {
         id: "action-shortcuts",
@@ -305,6 +364,14 @@ export class CommandPalette {
         action: () => { store.currentView = "docs"; store.notify(); },
       },
       {
+        id: "view-knowledge",
+        label: show(i18n.views.knowledge),
+        group: "views",
+        fields: [i18n.views.knowledge, "knowledge", "wissen"],
+        score: 0,
+        action: () => { store.currentView = "knowledge"; store.notify(); },
+      },
+      {
         id: "view-backoffice",
         label: show(i18n.views.backoffice),
         shortcut: "5",
@@ -380,6 +447,27 @@ export class CommandPalette {
       },
     }));
 
+    const knowledge: PaletteItem[] = store.getKnowledge().map(item => {
+      const catLabel = knowledgeCategoryLabel(item.category);
+      const title = item.title || i18n.knowledge.untitled;
+      return {
+        id: `knowledge-${item.id}`,
+        label: title,
+        shortcut: catLabel,
+        group: "knowledge" as const,
+        fields: [title, item.id, item.category, catLabel, ...(item.tags || [])],
+        score: 0,
+        action: () => {
+          pushCommandRecent({ kind: "knowledge", id: item.id });
+          store.selectedClientId = item.clientId;
+          store.selectedProjectId = item.projectId || null;
+          store.selectedKnowledgeId = item.id;
+          store.currentView = "knowledge";
+          store.notify();
+        },
+      };
+    });
+
     const clients: PaletteItem[] = store.getClients().map(client => ({
       id: `client-${client.id}`,
       label: i18n.command.clientLabel.replace("{name}", client.name),
@@ -415,6 +503,27 @@ export class CommandPalette {
             this.onOpenTask?.(task.id);
           },
         });
+      } else if (recent.kind === "knowledge") {
+        const item = store.getKnowledgeItem(recent.id);
+        if (!item) continue;
+        const title = item.title || i18n.knowledge.untitled;
+        const catLabel = knowledgeCategoryLabel(item.category);
+        recents.push({
+          id: `recent-knowledge-${item.id}`,
+          label: title,
+          shortcut: catLabel,
+          group: "recent",
+          fields: [title, catLabel],
+          score: 0,
+          action: () => {
+            pushCommandRecent({ kind: "knowledge", id: item.id });
+            store.selectedClientId = item.clientId;
+            store.selectedProjectId = item.projectId || null;
+            store.selectedKnowledgeId = item.id;
+            store.currentView = "knowledge";
+            store.notify();
+          },
+        });
       } else {
         const doc = store.getDocs().find(d => d.id === recent.id);
         if (!doc) continue;
@@ -435,7 +544,7 @@ export class CommandPalette {
       }
     }
 
-    return [...recents, ...actions, ...views, ...tasks, ...archivedTasks, ...docs, ...clients];
+    return [...recents, ...actions, ...views, ...tasks, ...archivedTasks, ...docs, ...knowledge, ...clients];
   }
 
   private filter(query: string): void {

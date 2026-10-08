@@ -1,7 +1,7 @@
 const RECENTS_KEY = "proman_cmd_recents";
 const MAX_RECENTS = 8;
 
-export type CommandRecentKind = "task" | "doc";
+export type CommandRecentKind = "task" | "doc" | "knowledge";
 
 export interface CommandRecent {
   kind: CommandRecentKind;
@@ -18,7 +18,7 @@ export function getCommandRecents(): CommandRecent[] {
       .filter(
         (e): e is CommandRecent =>
           !!e &&
-          (e.kind === "task" || e.kind === "doc") &&
+          (e.kind === "task" || e.kind === "doc" || e.kind === "knowledge") &&
           typeof e.id === "string" &&
           e.id.length > 0
       )
