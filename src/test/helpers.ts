@@ -57,6 +57,7 @@ type StoreMaps = {
   projects: Map<string, Project>;
   members: Map<string, WorkspaceMember>;
   docs: Map<string, unknown>;
+  knowledge: Map<string, unknown>;
   storage: {
     saveTask: (task: Task) => Promise<void>;
     archiveTask: (task: Task) => Promise<void>;
@@ -77,6 +78,7 @@ export function resetStoreMaps(): void {
   s.projects.clear();
   s.members?.clear();
   s.docs?.clear();
+  s.knowledge?.clear();
   store.clearFilters();
   store.currentView = "dashboard";
   // clearFilters schedules a coalesced notify — flush so later tests see a clean rAF queue
@@ -115,6 +117,9 @@ export function stubVaultWrites(): void {
   (s.storage as { saveClientsAndProjects?: () => Promise<void> }).saveClientsAndProjects = async () => {};
   (s.storage as { saveDoc?: () => Promise<void> }).saveDoc = async () => {};
   (s.storage as { deleteDoc?: () => Promise<void> }).deleteDoc = async () => {};
+  (s.storage as { saveKnowledge?: () => Promise<void> }).saveKnowledge = async () => {};
+  (s.storage as { deleteKnowledge?: () => Promise<void> }).deleteKnowledge = async () => {};
+  (s.storage as { loadAllKnowledge?: () => Promise<unknown[]> }).loadAllKnowledge = async () => [];
 }
 
 export type VaultFreshnessMock = {

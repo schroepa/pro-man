@@ -1,7 +1,9 @@
 import { Task, TaskPriority, TaskStatus, TimeEntry, DEFAULT_COLUMNS, ColumnDefinition } from "../types/task";
 import { Client, Project, ContactPerson } from "../types/client";
 import { DocItem } from "../types/doc";
+import { KnowledgeItem, KnowledgeListEntry } from "../types/knowledge";
 import { WorkspaceMember, DEFAULT_MEMBER_YOU_ID, MemberKind } from "../types/member";
+import { knowledgeTemplate } from "./knowledge-templates";
 import {
   VaultStorage,
   VaultFingerprint,
@@ -23,7 +25,7 @@ import {
   hasOwnTasks,
 } from "./demo-mode";
 
-export type ViewMode = "dashboard" | "kanban" | "list" | "gantt" | "calendar" | "docs" | "backoffice" | "client";
+export type ViewMode = "dashboard" | "kanban" | "list" | "gantt" | "calendar" | "docs" | "knowledge" | "backoffice" | "client";
 
 const FAVORITES_KEY = "pro_man_favorite_projects";
 const MEMBERS_KEY = "pro_man_members";
@@ -89,6 +91,7 @@ export class AppStore {
   private clients: Map<string, Client> = new Map();
   private projects: Map<string, Project> = new Map();
   private docs: Map<string, DocItem> = new Map();
+  private knowledge: Map<string, KnowledgeItem> = new Map();
   private members: Map<string, WorkspaceMember> = new Map();
 
   private storage: VaultStorage;
@@ -113,6 +116,7 @@ export class AppStore {
   
   public selectedTaskId: string | null = null;
   public selectedDocId: string | null = null;
+  public selectedKnowledgeId: string | null = null;
 
   /** Soft Concurrent: in-memory snapshot after last successful load/own write. */
   private vaultFingerprint: VaultFingerprint | null = null;
@@ -413,6 +417,17 @@ export class AppStore {
       docs.forEach(d => this.docs.set(d.id, d));
     }
 
+    const knowledgeItems = await this.storage.loadAllKnowledge();
+    if (knowledgeItems.length === 0 && !isDemoCleared()) {
+      this.initDefaultKnowledge();
+      for (const item of this.knowledge.values()) {
+        await this.storage.saveKnowledge(item);
+      }
+    } else {
+      this.knowledge.clear();
+      knowledgeItems.forEach(k => this.knowledge.set(k.id, k));
+    }
+
     this.notify();
   }
 
@@ -711,6 +726,33 @@ export class AppStore {
     defaultDocs.forEach(d => this.docs.set(d.id, d));
   }
 
+  private initDefaultKnowledge(): void {
+    const defaultKnowledge: KnowledgeItem[] = [
+      {
+        id: "KN-001",
+        clientId: "cli-acme",
+        category: "colors",
+        title: "Acme Farbpalette",
+        content: knowledgeTemplate("colors", "de"),
+        tags: ["brand", "design"],
+        createdAt: "2026-10-01T10:00:00.000Z",
+        updatedAt: "2026-10-05T12:00:00.000Z",
+      },
+      {
+        id: "KN-002",
+        clientId: "cli-acme",
+        projectId: "prj-web-redesign",
+        category: "screens-views",
+        title: "Portal Screens & Views",
+        content: knowledgeTemplate("screens-views", "de"),
+        tags: ["portal", "ux"],
+        createdAt: "2026-10-02T14:00:00.000Z",
+        updatedAt: "2026-10-05T16:00:00.000Z",
+      },
+    ];
+    defaultKnowledge.forEach(k => this.knowledge.set(k.id, k));
+  }
+
   private createSampleTasks(): void {
     const samples: Task[] = [
       {
@@ -872,6 +914,17 @@ export class AppStore {
         }
       } else {
         docs.forEach(d => this.docs.set(d.id, d));
+      }
+
+      const knowledgeItems = await this.storage.loadAllKnowledge();
+      this.knowledge.clear();
+      if (knowledgeItems.length === 0 && !this.storage.isConnected && !isDemoCleared()) {
+        this.initDefaultKnowledge();
+        for (const item of this.knowledge.values()) {
+          await this.storage.saveKnowledge(item);
+        }
+      } else {
+        knowledgeItems.forEach(k => this.knowledge.set(k.id, k));
       }
 
       const loadWarn = this.storage.getLastLoadWarning();
@@ -1272,10 +1325,11 @@ export class AppStore {
   async deleteClient(clientId: string, options?: { cascade?: boolean }): Promise<{ ok: boolean; blockedBy?: string }> {
     const linkedTasks = this.getAllRawTasks().filter(t => t.clientId === clientId);
     const linkedDocs = Array.from(this.docs.values()).filter(d => d.clientId === clientId);
-    if ((linkedTasks.length > 0 || linkedDocs.length > 0) && !options?.cascade) {
+    const linkedKnowledge = Array.from(this.knowledge.values()).filter(k => k.clientId === clientId);
+    if ((linkedTasks.length > 0 || linkedDocs.length > 0 || linkedKnowledge.length > 0) && !options?.cascade) {
       return {
         ok: false,
-        blockedBy: `${linkedTasks.length} Aufgaben, ${linkedDocs.length} Docs`,
+        blockedBy: `${linkedTasks.length} Aufgaben, ${linkedDocs.length} Docs, ${linkedKnowledge.length} Wissen`,
       };
     }
 
@@ -1285,6 +1339,9 @@ export class AppStore {
       }
       for (const doc of linkedDocs) {
         await this.deleteDoc(doc.id);
+      }
+      for (const item of linkedKnowledge) {
+        await this.deleteKnowledge(item.id);
       }
     }
 
@@ -1314,10 +1371,11 @@ export class AppStore {
   async deleteProject(projectId: string, options?: { cascade?: boolean }): Promise<{ ok: boolean; blockedBy?: string }> {
     const linkedTasks = this.getAllRawTasks().filter(t => t.projectId === projectId);
     const linkedDocs = Array.from(this.docs.values()).filter(d => d.projectId === projectId);
-    if ((linkedTasks.length > 0 || linkedDocs.length > 0) && !options?.cascade) {
+    const linkedKnowledge = Array.from(this.knowledge.values()).filter(k => k.projectId === projectId);
+    if ((linkedTasks.length > 0 || linkedDocs.length > 0 || linkedKnowledge.length > 0) && !options?.cascade) {
       return {
         ok: false,
-        blockedBy: `${linkedTasks.length} Aufgaben, ${linkedDocs.length} Docs`,
+        blockedBy: `${linkedTasks.length} Aufgaben, ${linkedDocs.length} Docs, ${linkedKnowledge.length} Wissen`,
       };
     }
 
@@ -1327,6 +1385,9 @@ export class AppStore {
       }
       for (const doc of linkedDocs) {
         await this.deleteDoc(doc.id);
+      }
+      for (const item of linkedKnowledge) {
+        await this.deleteKnowledge(item.id);
       }
     }
 
@@ -1400,6 +1461,96 @@ export class AppStore {
       undo: async () => {
         this.docs.set(docId, snapshot);
         await this.storage.saveDoc(snapshot);
+      },
+    };
+
+    await this.executeCommand(cmd);
+  }
+
+  // --- Knowledge Hub Queries & Mutations ---
+  getKnowledge(clientId?: string | null, projectId?: string | null): KnowledgeItem[] {
+    let list = Array.from(this.knowledge.values());
+    if (projectId) {
+      list = list.filter(k => k.projectId === projectId);
+      if (clientId) {
+        list = list.filter(k => k.clientId === clientId);
+      }
+    } else if (clientId) {
+      list = list.filter(k => k.clientId === clientId && !k.projectId);
+    }
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      list = list.filter(k => k.title.toLowerCase().includes(q) || k.content.toLowerCase().includes(q));
+    }
+    return list;
+  }
+
+  getKnowledgeForProjectView(clientId: string, projectId: string): KnowledgeListEntry[] {
+    const projectItems = Array.from(this.knowledge.values())
+      .filter(k => k.clientId === clientId && k.projectId === projectId)
+      .map(item => ({ item, readOnly: false }));
+    const clientItems = Array.from(this.knowledge.values())
+      .filter(k => k.clientId === clientId && !k.projectId)
+      .map(item => ({ item, readOnly: true }));
+    return [...projectItems, ...clientItems].sort((a, b) => {
+      const cat = a.item.category.localeCompare(b.item.category);
+      if (cat !== 0) return cat;
+      return a.item.title.localeCompare(b.item.title);
+    });
+  }
+
+  getKnowledgeItem(id: string): KnowledgeItem | undefined {
+    return this.knowledge.get(id);
+  }
+
+  canEditKnowledge(item: KnowledgeItem): boolean {
+    return !(this.selectedProjectId && !item.projectId);
+  }
+
+  async saveKnowledge(item: KnowledgeItem): Promise<void> {
+    const decision = await this.confirmWriteIfStale();
+    if (decision !== "proceed") return;
+
+    const existing = this.knowledge.get(item.id);
+    const isNew = !existing;
+    const oldSnapshot = existing ? { ...existing, tags: [...existing.tags] } : null;
+
+    const cmd: Command = {
+      description: isNew ? `Wissen "${item.title}" erstellt` : `Wissen "${item.title}" gespeichert`,
+      execute: async () => {
+        this.knowledge.set(item.id, item);
+        await this.storage.saveKnowledge(item);
+      },
+      undo: async () => {
+        if (isNew) {
+          this.knowledge.delete(item.id);
+          await this.storage.deleteKnowledge(item.id);
+        } else if (oldSnapshot) {
+          this.knowledge.set(oldSnapshot.id, oldSnapshot);
+          await this.storage.saveKnowledge(oldSnapshot);
+        }
+      },
+    };
+
+    await this.executeCommand(cmd);
+    await this.afterVaultWrite();
+  }
+
+  async deleteKnowledge(id: string): Promise<void> {
+    const item = this.knowledge.get(id);
+    if (!item) return;
+    const snapshot = { ...item, tags: [...item.tags] };
+
+    const cmd: Command = {
+      description: `Wissen "${item.title}" gelöscht`,
+      execute: async () => {
+        this.knowledge.delete(id);
+        await this.storage.deleteKnowledge(id);
+        if (this.selectedKnowledgeId === id) this.selectedKnowledgeId = null;
+      },
+      undo: async () => {
+        this.knowledge.set(id, snapshot);
+        await this.storage.saveKnowledge(snapshot);
       },
     };
 
@@ -1681,6 +1832,7 @@ export class AppStore {
     this.selectedClientId = null;
     this.selectedProjectId = null;
     this.selectedDocId = null;
+    this.selectedKnowledgeId = null;
     markDemoCleared();
     this.notify();
   }
