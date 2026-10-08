@@ -1,0 +1,96 @@
+/* ==========================================================================
+   KNOWLEDGE HUB — extends docs layout classes
+   ========================================================================== */
+
+.knowledge-hub--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.knowledge-empty-state {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-6);
+  max-width: 28rem;
+}
+
+.knowledge-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.knowledge-client-badge {
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-muted, rgba(0, 0, 0, 0.06));
+  padding: 1px 6px;
+  border-radius: var(--radius-sm, 4px);
+  white-space: nowrap;
+}
+
+.knowledge-readonly-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-muted, rgba(0, 0, 0, 0.04));
+  border-radius: var(--radius-md);
+}
+
+.knowledge-readonly-hint {
+  margin: 0;
+  flex: 1;
+  min-width: 12rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.knowledge-content-mount .md-live-field--knowledge {
+  flex: 1;
+  min-height: 280px;
+}
+
+.knowledge-content-mount .md-live-field--knowledge .md-live-view {
+  min-height: 260px;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.knowledge-content-mount .md-live-field--knowledge .md-live-source {
+  min-height: 260px;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.knowledge-content-mount .md-live-field--knowledge .markdown-rendered-content {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.knowledge-content-mount.is-readonly .md-live-field--knowledge {
+  pointer-events: none;
+}
+
+.knowledge-content-mount.is-readonly .md-live-field--knowledge .md-wikilink {
+  pointer-events: auto;
+}
+
+.knowledge-hub .custom-select.is-disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.knowledge-hub .doc-title-input:disabled {
+  opacity: 0.85;
+  cursor: default;
+}
