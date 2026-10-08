@@ -42,7 +42,7 @@ npm test
 npm run build
 ```
 
-**Vault prüfen (ohne Terminal):** Backoffice → Tab **Prüfen & Bericht** (auch von Übersicht „Vault prüfen“ oder ⌘K). Markdown/CSV-Export und **Für KI teilen**.
+**Workspace-Check (ohne Terminal):** Backoffice → Tab **Workspace-Check** (auch von Übersicht oder ⌘K). Findings in Klartext inkl. nächstem Schritt; Markdown/CSV-Export und **Für KI teilen**.
 
 Optional CLI + MCP (Python ≥3.11): [`tools/README.md`](./tools/README.md) · Assistenten: [`docs/AI.md`](./docs/AI.md).
 
