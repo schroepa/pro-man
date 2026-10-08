@@ -5,6 +5,7 @@ export const FIRST_TASK_CELEBRATED_KEY = "proman_first_task_celebrated";
 
 const SAMPLE_TASK_IDS = new Set(["TASK-001", "TASK-002", "TASK-003", "TASK-004"]);
 const SAMPLE_DOC_IDS = new Set(["DOC-001", "DOC-002"]);
+const SAMPLE_KNOWLEDGE_IDS = new Set(["KN-001", "KN-002"]);
 export const SAMPLE_CLIENT_IDS = new Set(["cli-acme", "cli-techstart", "cli-internal"]);
 export const SAMPLE_PROJECT_IDS = new Set([
   "prj-web-redesign",
@@ -44,6 +45,10 @@ export function isSampleDocId(id: string): boolean {
   return SAMPLE_DOC_IDS.has(id);
 }
 
+export function isSampleKnowledgeId(id: string): boolean {
+  return SAMPLE_KNOWLEDGE_IDS.has(id);
+}
+
 export function isSampleClientId(id: string): boolean {
   return SAMPLE_CLIENT_IDS.has(id);
 }
@@ -52,16 +57,20 @@ export function isSampleProjectId(id: string): boolean {
   return SAMPLE_PROJECT_IDS.has(id);
 }
 
-/** True when at least one seeded sample task or doc is still present. */
+/** True when at least one seeded sample task, doc, or knowledge item is still present. */
 export function hasSampleWorkspaceData(
   taskIds: Iterable<string>,
-  docIds: Iterable<string> = []
+  docIds: Iterable<string> = [],
+  knowledgeIds: Iterable<string> = []
 ): boolean {
   for (const id of taskIds) {
     if (SAMPLE_TASK_IDS.has(id)) return true;
   }
   for (const id of docIds) {
     if (SAMPLE_DOC_IDS.has(id)) return true;
+  }
+  for (const id of knowledgeIds) {
+    if (SAMPLE_KNOWLEDGE_IDS.has(id)) return true;
   }
   return false;
 }

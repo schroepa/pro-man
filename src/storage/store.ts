@@ -19,6 +19,7 @@ import {
   markDemoCleared,
   isSampleTaskId,
   isSampleDocId,
+  isSampleKnowledgeId,
   isSampleClientId,
   isSampleProjectId,
   hasSampleWorkspaceData,
@@ -1789,14 +1790,14 @@ export class AppStore {
   }
 
   hasSampleData(): boolean {
-    return hasSampleWorkspaceData(this.tasks.keys(), this.docs.keys());
+    return hasSampleWorkspaceData(this.tasks.keys(), this.docs.keys(), this.knowledge.keys());
   }
 
   hasOwnTasks(): boolean {
     return hasOwnTasks(this.tasks.keys());
   }
 
-  /** Remove seeded sample tasks/docs/clients and keep an empty local workspace. */
+  /** Remove seeded sample tasks/docs/knowledge/clients and keep an empty local workspace. */
   async clearDemoData(): Promise<void> {
     const taskIds = [...this.tasks.keys()].filter(isSampleTaskId);
     for (const id of taskIds) {
@@ -1810,18 +1811,27 @@ export class AppStore {
       await this.storage.deleteDoc(id);
     }
 
+    const knowledgeIds = [...this.knowledge.keys()].filter(isSampleKnowledgeId);
+    for (const id of knowledgeIds) {
+      this.knowledge.delete(id);
+      await this.storage.deleteKnowledge(id);
+    }
+
     const remainingTasks = [...this.tasks.values()];
     const remainingDocs = [...this.docs.values()];
+    const remainingKnowledge = [...this.knowledge.values()];
     for (const id of [...this.projects.keys()].filter(isSampleProjectId)) {
       const inUse =
         remainingTasks.some(t => t.projectId === id) ||
-        remainingDocs.some(d => d.projectId === id);
+        remainingDocs.some(d => d.projectId === id) ||
+        remainingKnowledge.some(k => k.projectId === id);
       if (!inUse) this.projects.delete(id);
     }
     for (const id of [...this.clients.keys()].filter(isSampleClientId)) {
       const inUse =
         remainingTasks.some(t => t.clientId === id) ||
         remainingDocs.some(d => d.clientId === id) ||
+        remainingKnowledge.some(k => k.clientId === id) ||
         [...this.projects.values()].some(p => p.clientId === id);
       if (!inUse) this.clients.delete(id);
     }
