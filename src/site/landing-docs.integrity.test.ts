@@ -36,14 +36,27 @@ describe("landing + docs content integrity", () => {
     expect(root).toMatch(/location\.replace/);
   });
 
-  it("AIDA landings link to app and docs", () => {
+  it("conversion landings link to app and docs with dual CTAs", () => {
     for (const locale of LOCALES) {
       const html = readFileSync(join(ROOT, `${locale}/index.html`), "utf8");
       expect(html).toContain('href="../app/index.html"');
       expect(html).toContain('href="./docs/index.html"');
       expect(html).toMatch(/landing-hero/);
       expect(html).toMatch(/id="interest"/);
+      expect(html).toMatch(/id="compare"/);
+      expect(html).toMatch(/id="tour"/);
+      expect(html).toMatch(/id="start"/);
+      // Hero dual path: primary app + secondary docs
+      expect(html).toMatch(/landing-hero[\s\S]*?href="\.\.\/app\/index\.html"[\s\S]*?href="\.\/docs\/index\.html"/);
+      expect(html).toMatch(/og-image\.svg/);
+      expect(html).toContain("/brand/lockup-horizontal-light.svg");
     }
+  });
+
+  it("ships marketing brand lockup and og image", () => {
+    expect(existsSync(join(ROOT, "public/brand/lockup-horizontal-light.svg"))).toBe(true);
+    expect(existsSync(join(ROOT, "public/brand/lockup-horizontal-dark.svg"))).toBe(true);
+    expect(existsSync(join(ROOT, "public/og-image.svg"))).toBe(true);
   });
 
   it("tutorial markdown has unique slugs and required frontmatter", () => {

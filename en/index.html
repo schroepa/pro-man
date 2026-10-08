@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="ProMan — local-first project management without cloud lock-in. Kanban, Gantt, docs, and knowledge in one Markdown workspace." />
+  <meta name="description" content="ProMan — local-first project management without cloud lock-in. Kanban, Gantt, docs, and knowledge in one Markdown workspace for solo and small teams." />
   <title>ProMan — Local-First Workspace</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:title" content="ProMan — Local-First Workspace" />
-  <meta property="og:description" content="Project management on your device. Your Markdown stays yours. No account, no telemetry." />
-  <meta property="og:image" content="/og-image.png" />
+  <meta property="og:description" content="A project workspace — on your device. Your Markdown stays yours. No account, no telemetry." />
+  <meta property="og:image" content="/og-image.svg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="ProMan — Local-First Workspace" />
-  <meta name="twitter:description" content="Project management on your device. Your Markdown stays yours." />
-  <meta name="twitter:image" content="/og-image.png" />
+  <meta name="twitter:description" content="A project workspace — on your device. Your Markdown stays yours." />
+  <meta name="twitter:image" content="/og-image.svg" />
   <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/src/styles/fonts.css" />
   <link rel="stylesheet" href="/src/styles/tokens.css" />
@@ -39,59 +39,187 @@
 
   <main id="main" class="site-main">
     <section class="landing-hero" aria-labelledby="brand-title">
-      <p class="landing-brand-mark" id="brand-title">ProMan</p>
-      <h1 class="landing-headline">Your project workspace — local, clear, no cloud lock-in</h1>
-      <p class="landing-lead">
-        Kanban, list, Gantt, calendar, docs, and knowledge in one tool.
-        Data as Markdown on your device or team share.
-      </p>
-      <div class="landing-cta-row">
-        <a class="site-btn site-btn-primary" href="../app/index.html">Open app</a>
-        <a class="site-btn site-btn-secondary" href="#interest">How it works</a>
+      <canvas class="landing-hero-graph" data-vault-graph aria-hidden="true"></canvas>
+      <div class="landing-hero-copy">
+        <p class="landing-brand-mark" id="brand-title">ProMan</p>
+        <h1 class="landing-headline">A project workspace — on your device</h1>
+        <p class="landing-lead">
+          Board, timeline, docs, and client knowledge in one place.
+          For solo studios and small teams — without another SaaS seat.
+        </p>
+        <div class="landing-cta-row">
+          <a class="site-btn site-btn-primary" href="../app/index.html">Open app</a>
+          <a class="site-btn site-btn-secondary" href="./docs/index.html">Read tutorials</a>
+        </div>
+        <p class="landing-chrome-note">Best in Chrome or Edge — for direct folder access.</p>
       </div>
-      <p class="landing-chrome-note">Best in Chrome or Edge — for direct folder access.</p>
+      <div class="landing-hero-visual" aria-hidden="true">
+        <div class="mock-window mock-window--hero">
+          <div class="mock-window-chrome">
+            <span></span><span></span><span></span>
+            <p class="mock-window-title">Board · Acme Redesign</p>
+          </div>
+          <div class="mock-board">
+            <div class="mock-col">
+              <p class="mock-col-label">Backlog</p>
+              <div class="mock-card"><span class="mock-card-key">ACM-12</span><span class="mock-card-title">Landing wireframes</span></div>
+              <div class="mock-card mock-card--dim"><span class="mock-card-key">ACM-14</span><span class="mock-card-title">Copy review</span></div>
+            </div>
+            <div class="mock-col">
+              <p class="mock-col-label">In progress</p>
+              <div class="mock-card mock-card--active"><span class="mock-card-key">ACM-08</span><span class="mock-card-title">Hero composition</span><div class="mock-card-meta"><span class="mock-avatar">PK</span></div></div>
+              <div class="mock-card"><span class="mock-card-key">ACM-09</span><span class="mock-card-title">Type tokens</span></div>
+            </div>
+            <div class="mock-col">
+              <p class="mock-col-label">Review</p>
+              <div class="mock-card"><span class="mock-card-key">ACM-03</span><span class="mock-card-title">Client briefing</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="interest" class="landing-section" aria-labelledby="interest-title">
       <h2 id="interest-title">Less tool chaos. More clarity.</h2>
-      <p>Small teams and solo studios don’t need another SaaS seat — they need a workspace that stays with them.</p>
+      <p>
+        Solo, you need clarity without admin overhead. As a studio, you need a shared place —
+        that stays with you, not in someone else’s cloud.
+      </p>
       <ul class="landing-points">
         <li>
           <h3>Instead of five tabs</h3>
-          <p>Board, timeline, notes, and client knowledge in one place — no hopping between tools.</p>
+          <p>Kanban, list, Gantt, calendar, docs, and knowledge in one workspace — no hopping between tools.</p>
         </li>
         <li>
-          <h3>Instead of cloud lock-in</h3>
-          <p>No account, no telemetry. Your files stay folders on disk or the NAS.</p>
+          <h3>Instead of another SaaS seat</h3>
+          <p>No account, no seats, no telemetry. Files stay folders on disk or the NAS.</p>
         </li>
         <li>
           <h3>Instead of scattered notes</h3>
-          <p>Markdown that Obsidian and Git understand — with ProMan as the surface.</p>
+          <p>Markdown that Obsidian and Git understand — ProMan is the surface, the vault stays yours.</p>
         </li>
       </ul>
     </section>
 
-    <section class="landing-section" aria-labelledby="desire-title">
-      <h2 id="desire-title">What day-to-day looks like</h2>
+    <section id="compare" class="landing-section landing-compare" aria-labelledby="compare-title">
+      <h2 id="compare-title">Why not another SaaS?</h2>
+      <p>Notion, Trello, and Jira solve work — and lock data, accounts, and workflows to a vendor.</p>
+      <dl class="landing-compare-list">
+        <div class="landing-compare-row">
+          <dt>Accounts &amp; seats</dt>
+          <dd><span class="landing-compare-them">SaaS: login, licenses, onboarding</span><span class="landing-compare-us">ProMan: open and work — no account</span></dd>
+        </div>
+        <div class="landing-compare-row">
+          <dt>Data ownership</dt>
+          <dd><span class="landing-compare-them">SaaS: data in their cloud</span><span class="landing-compare-us">ProMan: Markdown files on your side</span></dd>
+        </div>
+        <div class="landing-compare-row">
+          <dt>Offline &amp; folders</dt>
+          <dd><span class="landing-compare-them">SaaS: browser + sync required</span><span class="landing-compare-us">ProMan: vault folder locally or on a share</span></dd>
+        </div>
+        <div class="landing-compare-row">
+          <dt>Small team</dt>
+          <dd><span class="landing-compare-them">SaaS: sync server &amp; workspace admin</span><span class="landing-compare-us">ProMan: same folder, “I am …”, reload</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <section id="tour" class="landing-section" aria-labelledby="tour-title">
+      <h2 id="tour-title">What day-to-day looks like</h2>
       <p>Three scenes instead of a feature dump — so you know what you’re getting.</p>
-      <div class="landing-scenes">
-        <article class="landing-scene">
-          <h3>From board to task</h3>
-          <p>Drag cards, filter by client and project, open details with description, subtasks, and time logs — all local.</p>
+
+      <div class="landing-tour">
+        <article class="landing-tour-item">
+          <div class="landing-tour-copy">
+            <h3>From board to task</h3>
+            <p>Drag cards, filter by client and project, open details with subtasks and time logs — all local, for solo and studio.</p>
+          </div>
+          <div class="landing-tour-visual" aria-hidden="true">
+            <div class="mock-window">
+              <div class="mock-window-chrome"><span></span><span></span><span></span><p class="mock-window-title">Task · ACM-08</p></div>
+              <div class="mock-task">
+                <p class="mock-task-title">Hero composition</p>
+                <p class="mock-task-body">First viewport: brand dominant, one headline, dual CTAs…</p>
+                <ul class="mock-task-subs"><li></li><li></li><li></li></ul>
+              </div>
+            </div>
+          </div>
         </article>
-        <article class="landing-scene">
-          <h3>A folder is your vault</h3>
-          <p>Connect a folder once. Tasks, docs, and knowledge live as readable files — even without ProMan.</p>
+
+        <article class="landing-tour-item landing-tour-item--reverse">
+          <div class="landing-tour-copy">
+            <h3>A folder is your vault</h3>
+            <p>Connect a folder once. Tasks, docs, and knowledge live as readable files — even without ProMan, with Git or Obsidian.</p>
+          </div>
+          <div class="landing-tour-visual" aria-hidden="true">
+            <div class="mock-window">
+              <div class="mock-window-chrome"><span></span><span></span><span></span><p class="mock-window-title">Vault</p></div>
+              <ul class="mock-vault">
+                <li class="mock-vault-folder">tasks/</li>
+                <li class="mock-vault-file">ACM-08.md</li>
+                <li class="mock-vault-file">ACM-12.md</li>
+                <li class="mock-vault-folder">docs/</li>
+                <li class="mock-vault-file">briefing.md</li>
+                <li class="mock-vault-folder">knowledge/</li>
+              </ul>
+            </div>
+          </div>
         </article>
-        <article class="landing-scene">
-          <h3>Small team on a share</h3>
-          <p>Open the same vault on the NAS, pick “I am …”, reload when others change files. No sync server.</p>
+
+        <article class="landing-tour-item">
+          <div class="landing-tour-copy">
+            <h3>Small team on a share</h3>
+            <p>Open the same vault on the NAS, pick a session person, reload when others change files — no sync server.</p>
+          </div>
+          <div class="landing-tour-visual" aria-hidden="true">
+            <div class="mock-window">
+              <div class="mock-window-chrome"><span></span><span></span><span></span><p class="mock-window-title">Session</p></div>
+              <div class="mock-team">
+                <p class="mock-team-label">I am …</p>
+                <div class="mock-team-row mock-team-row--active"><span class="mock-avatar">PK</span> Patrick</div>
+                <div class="mock-team-row"><span class="mock-avatar mock-avatar--2">AM</span> Anna</div>
+                <div class="mock-team-row"><span class="mock-avatar mock-avatar--3">JL</span> Jonas</div>
+              </div>
+            </div>
+          </div>
         </article>
       </div>
+    </section>
+
+    <section id="start" class="landing-section" aria-labelledby="start-title">
+      <h2 id="start-title">Start in three steps</h2>
+      <p>No signup. No setup marathon.</p>
+      <ol class="landing-steps">
+        <li>
+          <span class="landing-step-num" aria-hidden="true">1</span>
+          <h3>Open the app</h3>
+          <p>Launch in the browser — Chrome or Edge recommended for vault access.</p>
+        </li>
+        <li>
+          <span class="landing-step-num" aria-hidden="true">2</span>
+          <h3>Demo or folder</h3>
+          <p>Explore with sample data or connect your vault folder right away.</p>
+        </li>
+        <li>
+          <span class="landing-step-num" aria-hidden="true">3</span>
+          <h3>Get to work</h3>
+          <p>Board, docs, knowledge — and your team on the same share when you need it.</p>
+        </li>
+      </ol>
+      <p class="landing-steps-more">
+        <a href="./docs/index.html">Full walkthrough in the tutorials</a>
+      </p>
+    </section>
+
+    <section class="landing-section landing-trust-section" aria-labelledby="trust-title">
+      <h2 id="trust-title">Stays with you</h2>
+      <p>Local-first means your files, your control — including if you take privacy and Markdown seriously.</p>
       <ul class="landing-trust">
         <li>No account</li>
         <li>No telemetry</li>
         <li>Markdown stays yours</li>
+        <li>Obsidian- &amp; Git-friendly</li>
+        <li>Chrome / Edge for vault</li>
       </ul>
     </section>
 

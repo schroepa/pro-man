@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="ProMan  Local-First Workspace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F7F5F0"/>
+      <stop offset="55%" stop-color="#EFEBE3"/>
+      <stop offset="100%" stop-color="#E8E2D8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="15%" cy="0%" r="55%">
+      <stop offset="0%" stop-color="#C25E1A" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#C25E1A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g transform="translate(96,180) scale(1.1)">
+    <path fill="#14120E" d="M0 0L78 0L108 30L86 52L64 30L32 30L32 70L0 70Z"/>
+    <path fill="#C25E1A" d="M144 100L66 100L36 70L58 48L80 70L112 70L112 30L144 30Z"/>
+  </g>
+  <text x="280" y="250" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="72" font-weight="700" letter-spacing="-0.04em" fill="#14120E">ProMan</text>
+  <text x="280" y="320" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="32" font-weight="500" fill="#5C574E">Local-First Project Workspace</text>
+  <text x="280" y="380" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="24" fill="#7A746A">Kanban · Gantt · Docs · Markdown auf deinem Gerät</text>
+</svg>

@@ -8,7 +8,7 @@ Stand: **v0.3.1** (Warm Obsidian + Geist)
 
 ## 1. Design-Prinzipien
 
-1. **Local-First UI** — ruhig, werkzeugartig, keine Marketing-Ästhetik.
+1. **Local-First UI** — ruhig, werkzeugartig in der App; Marketing-Seiten (`/de/`, `/en/`) dürfen Atmosphere und Product-Mocks nutzen, bleiben aber auf denselben Tokens.
 2. **Zero-Border (ruhende Flächen)** — Hierarchie über Surface-Stufen, Typo und Elevation; keine schweren Rahmen an Cards/Inputs im Ruhezustand.
 3. **Figure/Ground** — Floating UI (Menus, Popovers, Dialoge) muss klar über dem Board liegen.
 4. **Tintfield-kompatibel** — 12-stufige Skalen (`--neutral-*`, `--brand-*`) austauschbar.
@@ -173,7 +173,8 @@ Assets unter `public/brand/` und Favicon/OG im `public/`-Root. Regeln: `public/b
 | Sidebar | `lockup-horizontal-light/dark.svg` (Höhe 22 px, Theme folgt `data-theme`) |
 | Favicon | `favicon.svg` (auto Light/Dark via `prefers-color-scheme`) + `favicon.ico` |
 | PWA | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` |
-| Social / OG | `og-image.png` (1200×630) |
+| Social / OG | `og-image.svg` (1200×630 ViewBox) |
+| Marketing-Header | `lockup-horizontal-light.svg` |
 
 Light-Variante nur auf hellem Grund, Dark-Variante nur auf dunklem. Bildmarke min. 16 px; horizontaler Lockup min. 96 px Breite. Nicht verzerren, umfärben oder Module verschieben.
 

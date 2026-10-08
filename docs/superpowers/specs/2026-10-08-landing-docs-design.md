@@ -40,14 +40,11 @@ Neue User über eine AIDA-Landing willkommen heißen und das Produkt erklären; 
 
 Marketing-Nav: Logo · Docs · Sprache (DE/EN) · Primary-CTA „App öffnen“ → `/app/`.
 
-## Landing (AIDA)
+## Landing
 
-- **Attention:** Full-bleed Hero — Brand dominant, eine Headline, ein Satz, Primary `/app/`, Secondary Scroll zu Interest; Chrome-Hinweis dezent
-- **Interest:** Problem → Lösung (Tool-Chaos, Cloud-Lock-in, verstreute Notizen → lokaler Workspace)
-- **Desire:** 2–3 Produktszenen + Trust (kein Account, keine Telemetrie, Markdown bleibt dein)
-- **Action:** Abschluss-CTA + Link zu Docs
+> **Aktualisiert:** Conversion-Landing — siehe [`2026-10-08-conversion-landing-design.md`](./2026-10-08-conversion-landing-design.md).
 
-Visuell: Brand/Tokens (Geist, Copper, Warm Obsidian); Marketing darf Atmosphere nutzen. App bleibt werkzeugartig.
+Kurz: Unified Narrative (Solo + kleines Team), schlanker SaaS-Vergleich, Product-Mocks, Dual-CTAs App + Docs. Visuell: Brand/Tokens (Geist, Copper, Warm Obsidian); Marketing darf Atmosphere nutzen. App bleibt werkzeugartig.
 
 ## Docs / Tutorials (MVP)
 

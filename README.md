@@ -45,7 +45,7 @@ npm run build    # inkl. npm run build:docs (Tutorials → HTML)
 | URL | Inhalt |
 |---|---|
 | `/` | Locale-Redirect (`de` / `en`) |
-| `/de/`, `/en/` | AIDA-Landing |
+| `/de/`, `/en/` | Conversion-Landing |
 | `/de/docs/`, `/en/docs/` | Tutorials (Quelle: `content/docs/`) |
 | `/app/` | SPA (Kanban, Docs, Vault, …) |
 
@@ -68,7 +68,7 @@ Ordner verbinden: Sidebar → **Ordner verbinden** (nach Onboarding kompakt) →
 ```
 index.html                # Locale-Redirect → /de|en/
 app/index.html            # SPA Entry
-de|en/index.html          # AIDA-Landing
+de|en/index.html          # Conversion-Landing
 content/docs/{de,en}/     # User-Tutorials (Markdown → HTML via build:docs)
 site/shared/              # Marketing/Docs Shell (CSS/JS)
 src/                      # App (main, views, storage, styles, i18n, …)

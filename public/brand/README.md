@@ -11,6 +11,6 @@ UI-Subset des Logo-Pakets v1.1. Vollständige Varianten (PNG, Mono) liegen im De
 | `app-icon-{light,dark}.svg` | App-Icon-Vorlage |
 | `avatar-{light,dark}.png` | Social Avatar 800 px |
 
-Favicon/PWA/OG liegen im `public/`-Root (`favicon.svg`, `icon-*.png`, `og-image.png`).
+Favicon/PWA/OG liegen im `public/`-Root (`favicon.svg`, `icon-*.png`, `og-image.svg`).
 
 **Regel:** `light` = dunkle Tinte auf hellem Grund; `dark` = helle Tinte auf dunklem Grund. Mindestbreite Lockup horizontal: 96 px.
