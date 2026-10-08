@@ -1,7 +1,9 @@
 import { Task } from "../types/task";
 import { DocItem } from "../types/doc";
+import { KnowledgeItem } from "../types/knowledge";
 import { taskToMarkdown, markdownToTask } from "./serializer";
 import { docToMarkdown, markdownToDoc } from "./doc-serializer";
+import { knowledgeToMarkdown, markdownToKnowledge } from "./knowledge-serializer";
 
 const DB_NAME = "pro_man_storage";
 const STORE_NAME = "handles";
@@ -9,6 +11,7 @@ const HANDLE_KEY = "vault_dir_handle";
 const TASKS_DIR = "tasks";
 const TASKS_ARCHIVE_DIR = "archive";
 const DOCS_DIR = "docs";
+const KNOWLEDGE_DIR = "knowledge";
 const ATTACHMENTS_DIR = "attachments";
 const LAST_VAULTS_KEY = "pro_man_last_vaults";
 
@@ -118,6 +121,10 @@ function isTaskFileName(name: string): boolean {
 }
 
 function isDocFileName(name: string): boolean {
+  return name.endsWith(".md");
+}
+
+function isKnowledgeFileName(name: string): boolean {
   return name.endsWith(".md");
 }
 
@@ -302,6 +309,7 @@ export class VaultStorage {
       const tasksDir = await this.dirHandle.getDirectoryHandle(TASKS_DIR, { create: true });
       await tasksDir.getDirectoryHandle(TASKS_ARCHIVE_DIR, { create: true });
       await this.dirHandle.getDirectoryHandle(DOCS_DIR, { create: true });
+      await this.dirHandle.getDirectoryHandle(KNOWLEDGE_DIR, { create: true });
       await this.dirHandle.getDirectoryHandle(ATTACHMENTS_DIR, { create: true });
     } catch (err) {
       console.warn("Could not ensure vault structure", err);
@@ -372,6 +380,15 @@ export class VaultStorage {
     if (!this.dirHandle) return null;
     try {
       return await this.dirHandle.getDirectoryHandle(DOCS_DIR, { create });
+    } catch {
+      return null;
+    }
+  }
+
+  private async getKnowledgeDir(create = false): Promise<FileSystemDirectoryHandle | null> {
+    if (!this.dirHandle) return null;
+    try {
+      return await this.dirHandle.getDirectoryHandle(KNOWLEDGE_DIR, { create });
     } catch {
       return null;
     }
@@ -707,6 +724,67 @@ export class VaultStorage {
     }
   }
 
+  async loadAllKnowledge(): Promise<KnowledgeItem[]> {
+    if (!this.dirHandle) {
+      return this.loadFallbackKnowledge();
+    }
+
+    const items: KnowledgeItem[] = [];
+    const knowledgeDir = await this.getKnowledgeDir(false);
+    if (!knowledgeDir) return this.loadFallbackKnowledge();
+
+    for await (const entry of (knowledgeDir as any).values()) {
+      if (entry.kind === "file" && isKnowledgeFileName(entry.name)) {
+        try {
+          const file = await entry.getFile();
+          const text = await file.text();
+          const fallbackId = entry.name.replace(/\.md$/, "");
+          items.push(markdownToKnowledge(text, fallbackId));
+        } catch (err) {
+          console.warn(`Failed to parse knowledge file ${entry.name}`, err);
+        }
+      }
+    }
+    return items;
+  }
+
+  async saveKnowledge(item: KnowledgeItem): Promise<void> {
+    if (!this.dirHandle) {
+      this.saveFallbackKnowledge(item);
+      return;
+    }
+
+    try {
+      await this.ensureVaultStructure();
+      const knowledgeDir = await this.getKnowledgeDir(true);
+      if (!knowledgeDir) throw new Error("knowledge/ directory unavailable");
+
+      const fileName = `${item.id}.md`;
+      const markdown = knowledgeToMarkdown(item);
+      await this.writeTextAtomic(knowledgeDir, fileName, markdown);
+    } catch (err: unknown) {
+      this.noteWriteError(err);
+      this.saveFallbackKnowledge(item);
+      throw err;
+    }
+  }
+
+  async deleteKnowledge(id: string): Promise<void> {
+    if (!this.dirHandle) {
+      this.deleteFallbackKnowledge(id);
+      return;
+    }
+
+    try {
+      const knowledgeDir = await this.getKnowledgeDir(false);
+      if (knowledgeDir) {
+        await (knowledgeDir as any).removeEntry(`${id}.md`);
+      }
+    } catch (err) {
+      console.warn(`Could not delete knowledge ${id}`, err);
+    }
+  }
+
   async saveClientsAndProjects(data: { clients: any[]; projects: any[]; members?: any[] }): Promise<void> {
     if (!this.dirHandle) {
       localStorage.setItem("pro_man_clients_data", JSON.stringify(data));
@@ -812,6 +890,18 @@ export class VaultStorage {
             try {
               const file = await entry.getFile();
               await stampFile(`${DOCS_DIR}/${entry.name}`, file);
+            } catch { /* skip */ }
+          }
+        }
+      }
+
+      const knowledgeDir = await this.getKnowledgeDir(false);
+      if (knowledgeDir) {
+        for await (const entry of (knowledgeDir as any).values()) {
+          if (entry.kind === "file" && isKnowledgeFileName(entry.name)) {
+            try {
+              const file = await entry.getFile();
+              await stampFile(`${KNOWLEDGE_DIR}/${entry.name}`, file);
             } catch { /* skip */ }
           }
         }
@@ -931,5 +1021,31 @@ export class VaultStorage {
   private deleteFallbackDoc(docId: string): void {
     const docs = this.loadFallbackDocs().filter(d => d.id !== docId);
     localStorage.setItem("pro_man_fallback_docs", JSON.stringify(docs));
+  }
+
+  private loadFallbackKnowledge(): KnowledgeItem[] {
+    const raw = localStorage.getItem("pro_man_fallback_knowledge");
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveFallbackKnowledge(item: KnowledgeItem): void {
+    const items = this.loadFallbackKnowledge();
+    const idx = items.findIndex(k => k.id === item.id);
+    if (idx !== -1) {
+      items[idx] = item;
+    } else {
+      items.push(item);
+    }
+    localStorage.setItem("pro_man_fallback_knowledge", JSON.stringify(items));
+  }
+
+  private deleteFallbackKnowledge(id: string): void {
+    const items = this.loadFallbackKnowledge().filter(k => k.id !== id);
+    localStorage.setItem("pro_man_fallback_knowledge", JSON.stringify(items));
   }
 }
