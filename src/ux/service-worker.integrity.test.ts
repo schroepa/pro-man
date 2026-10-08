@@ -6,8 +6,8 @@ import { ROOT, readSrc } from "../test/helpers";
 describe("service worker — no stale HTML shell on mobile", () => {
   const sw = readFileSync(join(ROOT, "public/sw.js"), "utf8");
 
-  it("uses shell cache v3+", () => {
-    expect(sw).toMatch(/const CACHE = "proman-shell-v[3-9]/);
+  it("uses shell cache v4+", () => {
+    expect(sw).toMatch(/const CACHE = "proman-shell-v[4-9]/);
   });
 
   it("does not cache HTML / navigations (network-only)", () => {
@@ -30,12 +30,17 @@ describe("service worker — no stale HTML shell on mobile", () => {
     expect(helper).toContain("controllerchange");
   });
 
-  it("ships an inline boot recovery watchdog in index.html", () => {
-    const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  it("ships an inline boot recovery watchdog in app/index.html", () => {
+    const html = readFileSync(join(ROOT, "app/index.html"), "utf8");
     expect(html).toContain("__PROMAN_BOOTED__");
     expect(html).toContain("proman_sw_recovery");
     expect(html).toContain("serviceWorker.getRegistrations");
     expect(html).toContain("caches.delete");
+  });
+
+  it("registers the service worker with /app/ scope", () => {
+    const helper = readSrc("utils/service-worker.ts");
+    expect(helper).toMatch(/scope:\s*["']\/app\/["']/);
   });
 
   it("keeps content-visibility off touch phones", () => {

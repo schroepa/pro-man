@@ -76,6 +76,13 @@ describe("renderMarkdown", () => {
     expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("<strong>ok</strong>");
   });
+
+  it("allows same-origin absolute path links", () => {
+    const html = renderMarkdown("Siehe [Docs](/de/docs/index.html) und [App](/app/index.html).");
+    expect(html).toContain('href="/de/docs/index.html"');
+    expect(html).toContain('href="/app/index.html"');
+    expect(html).not.toContain('target="_blank"');
+  });
 });
 
 describe("markdown description CSS containment", () => {

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ProMan — lokales Projektmanagement ohne Cloud-Lock-in. Kanban, Gantt, Docs und Wissen in einem Markdown-Workspace." />
+  <title>ProMan — Local-First Workspace</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="de_DE" />
+  <meta property="og:title" content="ProMan — Local-First Workspace" />
+  <meta property="og:description" content="Projektmanagement auf deinem Gerät. Markdown bleibt dein. Kein Account, keine Telemetrie." />
+  <meta property="og:image" content="/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ProMan — Local-First Workspace" />
+  <meta name="twitter:description" content="Projektmanagement auf deinem Gerät. Markdown bleibt dein." />
+  <meta name="twitter:image" content="/og-image.png" />
+  <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/src/styles/fonts.css" />
+  <link rel="stylesheet" href="/src/styles/tokens.css" />
+  <link rel="stylesheet" href="/src/styles/reset.css" />
+  <link rel="stylesheet" href="../site/shared/site.css" />
+</head>
+<body class="site-body">
+  <a class="site-skip" href="#main">Zum Inhalt springen</a>
+  <header class="site-header">
+    <a class="site-brand" href="./index.html">
+      <img src="/brand/lockup-horizontal-light.svg" alt="ProMan" width="140" height="28" />
+    </a>
+    <nav class="site-nav" aria-label="Hauptnavigation">
+      <a href="./docs/index.html">Docs</a>
+      <span class="site-lang" aria-label="Sprache">
+        <a href="./index.html" data-set-locale="de" aria-current="true">DE</a>
+        <a href="../en/index.html" data-set-locale="en">EN</a>
+      </span>
+      <a class="site-btn site-btn-primary" href="../app/index.html">App öffnen</a>
+    </nav>
+  </header>
+
+  <main id="main" class="site-main">
+    <section class="landing-hero" aria-labelledby="brand-title">
+      <p class="landing-brand-mark" id="brand-title">ProMan</p>
+      <h1 class="landing-headline">Dein Projektworkspace — lokal, klar, ohne Cloud-Zwang</h1>
+      <p class="landing-lead">
+        Kanban, Liste, Gantt, Kalender, Docs und Wissen in einem Tool.
+        Daten als Markdown auf deinem Gerät oder Team-Share.
+      </p>
+      <div class="landing-cta-row">
+        <a class="site-btn site-btn-primary" href="../app/index.html">App öffnen</a>
+        <a class="site-btn site-btn-secondary" href="#interest">So funktioniert’s</a>
+      </div>
+      <p class="landing-chrome-note">Am besten in Chrome oder Edge — für den direkten Ordnerzugriff.</p>
+    </section>
+
+    <section id="interest" class="landing-section" aria-labelledby="interest-title">
+      <h2 id="interest-title">Weniger Tool-Chaos. Mehr Überblick.</h2>
+      <p>Kleine Teams und Solo-Studios brauchen kein weiteres SaaS-Abo — sie brauchen einen Workspace, der bei ihnen bleibt.</p>
+      <ul class="landing-points">
+        <li>
+          <h3>Statt fünf Tabs</h3>
+          <p>Board, Timeline, Notizen und Kundenwissen an einem Ort — ohne zwischen Tools zu springen.</p>
+        </li>
+        <li>
+          <h3>Statt Cloud-Lock-in</h3>
+          <p>Kein Account, keine Telemetrie. Deine Dateien bleiben Ordner auf der Festplatte oder dem NAS.</p>
+        </li>
+        <li>
+          <h3>Statt verstreuter Notizen</h3>
+          <p>Markdown, das Obsidian und Git verstehen — und ProMan als Oberfläche nutzt.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="landing-section" aria-labelledby="desire-title">
+      <h2 id="desire-title">So sieht der Alltag aus</h2>
+      <p>Drei Szenen statt Feature-Listen — damit du weißt, was du bekommst.</p>
+      <div class="landing-scenes">
+        <article class="landing-scene">
+          <h3>Vom Board zur Aufgabe</h3>
+          <p>Zieh Karten, filter nach Kunde und Projekt, öffne Details mit Beschreibung, Subtasks und Zeiterfassung — alles lokal.</p>
+        </article>
+        <article class="landing-scene">
+          <h3>Ein Ordner ist dein Vault</h3>
+          <p>Verbinde einen Ordner einmal. Tasks, Docs und Wissen liegen als lesbare Dateien bereit — auch ohne ProMan.</p>
+        </article>
+        <article class="landing-scene">
+          <h3>Kleines Team auf einem Share</h3>
+          <p>Denselben Vault auf dem NAS öffnen, „Ich bin …“ wählen, bei Fremd-Änderungen neu laden. Ohne Sync-Server.</p>
+        </article>
+      </div>
+      <ul class="landing-trust">
+        <li>Kein Account</li>
+        <li>Keine Telemetrie</li>
+        <li>Markdown bleibt dein</li>
+      </ul>
+    </section>
+
+    <section class="landing-close" aria-labelledby="action-title">
+      <h2 id="action-title">Bereit zum Ausprobieren?</h2>
+      <p>Starte mit Beispieldaten oder verbinde direkt deinen Ordner. Tutorials helfen beim Einstieg.</p>
+      <div class="landing-cta-row">
+        <a class="site-btn site-btn-primary" href="../app/index.html">App öffnen</a>
+        <a class="site-btn site-btn-secondary" href="./docs/index.html">Tutorials lesen</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>ProMan — Local-First Project Management</span>
+    <span>
+      <a href="./docs/index.html">Docs</a> ·
+      <a href="../app/index.html">App</a> ·
+      <a href="../en/index.html" data-set-locale="en">English</a>
+    </span>
+  </footer>
+  <script src="../site/shared/site.js" type="module"></script>
+</body>
+</html>

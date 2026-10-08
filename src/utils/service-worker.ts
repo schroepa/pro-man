@@ -71,6 +71,7 @@ export async function registerServiceWorker(): Promise<void> {
     });
 
     const reg = await navigator.serviceWorker.register("/sw.js", {
+      scope: "/app/",
       updateViaCache: "none",
     });
 

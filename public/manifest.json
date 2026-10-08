@@ -1,7 +1,8 @@
 {
   "name": "Pro-Man",
   "short_name": "Pro-Man",
-  "start_url": "/",
+  "start_url": "/app/",
+  "scope": "/app/",
   "display": "standalone",
   "background_color": "#FAF9F7",
   "theme_color": "#FAF9F7",

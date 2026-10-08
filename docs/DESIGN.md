@@ -135,7 +135,7 @@ Dateien: `public/fonts/Geist-Variable.woff2` (~68 KB), `GeistMono-Variable.wof
 |---|---|
 | Self-host | gleiche Origin, kein Google Fonts |
 | `font-display: swap` | kein FOIT |
-| Preload | **nur** Geist Sans in `index.html` |
+| Preload | **nur** Geist Sans in `app/index.html` (und Marketing-Seiten) |
 | Mono | CSS-Discovery, kein Preload |
 | Fallback | System-Stack bis Swap |
 | `font-synthesis: none` | keine Fake-Bold/Italic |

@@ -21,11 +21,16 @@ function formatInline(raw: string): string {
   html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
   html = html.replace(/~~([^~]+)~~/g, "<del>$1</del>");
 
-  // Links [text](url) — only http(s)
+  // Links [text](url) — http(s) or same-origin absolute paths
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text: string, href: string) => {
     const safe = href.trim();
-    if (!/^https?:\/\//i.test(safe)) return text;
-    return `<a href="${safe}" target="_blank" rel="noopener noreferrer" class="md-link">${text}</a>`;
+    if (/^https?:\/\//i.test(safe)) {
+      return `<a href="${safe}" target="_blank" rel="noopener noreferrer" class="md-link">${text}</a>`;
+    }
+    if (safe.startsWith("/") && !safe.startsWith("//")) {
+      return `<a href="${safe}" class="md-link">${text}</a>`;
+    }
+    return text;
   });
 
   // Wikilinks [[Title]]

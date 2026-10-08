@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Local-First, Accessible Project Management mit Kanban-Board, Gantt-Timeline und Docs Hub." />
+  <title>Pro-Man — Local-First Workspace</title>
+
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#FAF9F7" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#11100F" media="(prefers-color-scheme: dark)" />
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Pro-Man — Local-First Workspace" />
+  <meta property="og:description" content="Local-First Project Management mit Kanban, Gantt, Docs und Backoffice." />
+  <meta property="og:image" content="/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pro-Man — Local-First Workspace" />
+  <meta name="twitter:description" content="Local-First Project Management mit Kanban, Gantt, Docs und Backoffice." />
+  <meta name="twitter:image" content="/og-image.png" />
+
+  <!-- Schema.org WebApplication Metadata -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Pro-Man",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires HTML5, File System Access API support recommended",
+    "featureList": [
+      "Kanban Board with keyboard and pointer drag-and-drop",
+      "Interactive Gantt Chart with bar drag, end resize and dependency curves",
+      "Docs Hub with Markdown editor (vault and localStorage)",
+      "Client and project hierarchy with multi-filtering and search",
+      "Local-First Markdown YAML storage (tasks/, docs/, clients.json)",
+      "Accessibility basics: skip link, live region, focus rings",
+      "File System Access API with localStorage fallback"
+    ]
+  }
+  </script>
+
+  <!-- Critical font: start download in parallel with CSS (Sans only) -->
+  <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+
+  <!-- CSS Stylesheets — fonts first so @font-face is discovered early -->
+  <link rel="stylesheet" href="../src/styles/fonts.css" />
+  <link rel="stylesheet" href="../src/styles/tokens.css" />
+  <link rel="stylesheet" href="../src/styles/reset.css" />
+  <link rel="stylesheet" href="../src/styles/base.css" />
+  <link rel="stylesheet" href="../src/styles/components/motion.css" />
+  <link rel="stylesheet" href="../src/styles/components/layout.css" />
+  <link rel="stylesheet" href="../src/styles/components/topbar.css" />
+  <link rel="stylesheet" href="../src/styles/components/custom-select.css" />
+  <link rel="stylesheet" href="../src/styles/components/board.css" />
+  <link rel="stylesheet" href="../src/styles/components/dashboard.css" />
+  <link rel="stylesheet" href="../src/styles/components/list.css" />
+  <link rel="stylesheet" href="../src/styles/components/gantt.css" />
+  <link rel="stylesheet" href="../src/styles/components/calendar.css" />
+  <link rel="stylesheet" href="../src/styles/components/docs.css" />
+  <link rel="stylesheet" href="../src/styles/components/knowledge.css" />
+  <link rel="stylesheet" href="../src/styles/components/backoffice.css" />
+  <link rel="stylesheet" href="../src/styles/components/client.css" />
+  <link rel="stylesheet" href="../src/styles/components/dialog.css" />
+  <link rel="stylesheet" href="../src/styles/components/command-palette.css" />
+  <link rel="stylesheet" href="../src/styles/components/toast.css" />
+  <link rel="stylesheet" href="../src/styles/components/mobile-nav.css" />
+</head>
+<body>
+  <!-- Accessible Skip Link (WCAG 2.4.1) -->
+  <a href="#main-content" class="skip-link">Direkt zum Inhalt springen</a>
+
+  <!-- ClickUp-Style Root Layout -->
+  <div class="app-root">
+    <div id="sidebar-container"></div>
+    <div class="app-main-layout">
+      <div id="topbar-container"></div>
+      <main id="main-content" class="app-content-viewport" tabindex="-1">
+        <div id="view-container"></div>
+      </main>
+    </div>
+    <div id="mobile-nav-container" class="mobile-nav-host"></div>
+  </div>
+
+  <!-- Screen Reader Live Announcements (WCAG 4.1.3) -->
+  <div id="live-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Application Bootstrap -->
+  <script type="module" src="../src/main.ts"></script>
+
+  <!--
+    Inline watchdog: if the module bundle never boots (classic iOS symptom after a
+    deploy — stale SW HTML → missing hashed assets → only canvas background),
+    wipe Cache Storage + unregister SW and reload once.
+  -->
+  <script>
+    (function () {
+      var FAIL = "proman_sw_recovery";
+      setTimeout(function () {
+        if (window.__PROMAN_BOOTED__) return;
+        try {
+          if (sessionStorage.getItem(FAIL) === "1") return;
+          sessionStorage.setItem(FAIL, "1");
+        } catch (e) { /* ignore */ }
+
+        var done = function () { location.reload(); };
+        var tasks = [];
+        if ("caches" in window) {
+          tasks.push(caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }));
+        }
+        if ("serviceWorker" in navigator) {
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+        Promise.all(tasks).then(done).catch(done);
+      }, 4000);
+    })();
+  </script>
+</body>
+</html>

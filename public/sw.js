@@ -1,5 +1,5 @@
 /* ProMan shell SW — never cache HTML; only fingerprinted static assets. */
-const CACHE = "proman-shell-v3";
+const CACHE = "proman-shell-v4";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());

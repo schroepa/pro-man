@@ -130,8 +130,8 @@ describe("design integrity — font loading performance", () => {
     expect(fonts).not.toMatch(/fonts\.googleapis|fonts\.gstatic/);
   });
 
-  it("preloads only Geist Sans (not Mono) in index.html", () => {
-    const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  it("preloads only Geist Sans (not Mono) in app/index.html", () => {
+    const html = readFileSync(join(ROOT, "app/index.html"), "utf8");
     expect(html).toMatch(/rel="preload"[^>]*Geist-Variable\.woff2/);
     expect(html).not.toMatch(/rel="preload"[^>]*GeistMono/);
     expect(html).toMatch(/fonts\.css/);
@@ -145,8 +145,8 @@ describe("design integrity — font loading performance", () => {
 });
 
 describe("design integrity — a11y primitives present", () => {
-  it("index.html includes skip link and live announcer", () => {
-    const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  it("app/index.html includes skip link and live announcer", () => {
+    const html = readFileSync(join(ROOT, "app/index.html"), "utf8");
     expect(html).toMatch(/class="skip-link"/);
     expect(html).toMatch(/id="live-announcer"/);
     expect(html).toMatch(/aria-live="polite"/);
