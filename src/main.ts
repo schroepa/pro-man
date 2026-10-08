@@ -130,6 +130,11 @@ async function mountActiveView(viewMount: HTMLElement): Promise<void> {
       if (gen !== viewRenderGen || store.currentView !== view) return;
       viewMount.innerHTML = "";
       renderDocsView(viewMount);
+    } else if (view === "knowledge") {
+      const { renderKnowledgeView } = await import("./views/knowledge-view");
+      if (gen !== viewRenderGen || store.currentView !== view) return;
+      viewMount.innerHTML = "";
+      renderKnowledgeView(viewMount);
     } else if (view === "backoffice") {
       const { renderBackofficeView } = await import("./views/backoffice-view");
       if (gen !== viewRenderGen || store.currentView !== view) return;

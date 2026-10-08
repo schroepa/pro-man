@@ -170,6 +170,10 @@ export function renderSidebar(container: HTMLElement): void {
             ${TablerIcon.fileText({ size: 16 })}
             <span>${t().views.docs}</span>
           </button>
+          <button class="sidebar-nav-item ${store.currentView === "knowledge" ? "active" : ""}" data-nav="knowledge">
+            ${TablerIcon.sparkles({ size: 16 })}
+            <span>${t().views.knowledge}</span>
+          </button>
           <button class="sidebar-nav-item ${store.currentView === "backoffice" ? "active" : ""}" data-nav="backoffice">
             ${TablerIcon.buildingStore({ size: 16 })}
             <span>${t().views.backoffice}</span>
@@ -369,6 +373,8 @@ export function renderSidebar(container: HTMLElement): void {
         store.currentView = "calendar";
       } else if (nav === "docs") {
         store.currentView = "docs";
+      } else if (nav === "knowledge") {
+        store.currentView = "knowledge";
       } else if (nav === "backoffice") {
         store.currentView = "backoffice";
       }

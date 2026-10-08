@@ -31,7 +31,11 @@ export function renderMobileBottomNav(container: HTMLElement): void {
   nav.dataset.testid = "mobile-bottom-nav";
 
   const current = store.currentView;
-  const moreActive = current === "backoffice" || current === "calendar" || current === "gantt";
+  const moreActive =
+    current === "backoffice" ||
+    current === "calendar" ||
+    current === "gantt" ||
+    current === "knowledge";
 
   for (const item of items()) {
     const btn = document.createElement("button");
