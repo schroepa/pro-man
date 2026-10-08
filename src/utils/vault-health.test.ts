@@ -4,10 +4,61 @@ import type { DocItem } from "../types/doc";
 import { makeTask } from "../test/helpers";
 import {
   computeVaultHealth,
+  explainFinding,
   extractWikilinks,
   lintVaultData,
+  renderAiBriefing,
   renderHealthMarkdown,
+  type FindingCopy,
 } from "./vault-health";
+
+const findingCopy: FindingCopy = {
+  levelMust: "Sofort klären",
+  levelSoon: "Bald ansehen",
+  openItem: "Öffnen",
+  findings: {
+    orphanClient: {
+      title: "Kunde fehlt",
+      meaning: "„{subject}“ hängt an einem Kunden, den es so nicht mehr gibt.",
+      action: "Eintrag öffnen.",
+    },
+    orphanProject: {
+      title: "Projekt fehlt",
+      meaning: "„{subject}“ hängt an einem Projekt, das nicht existiert.",
+      action: "Eintrag öffnen.",
+    },
+    clientProjectMismatch: {
+      title: "Mismatch",
+      meaning: "Bei „{subject}“ passt Projekt „{detail}“ nicht zu {related}.",
+      action: "Korrigieren.",
+    },
+    duplicateId: {
+      title: "Doppelte ID",
+      meaning: "ID „{subject}“ doppelt ({related}).",
+      action: "Bereinigen.",
+    },
+    duplicateIssueKey: {
+      title: "Doppelte Nummer",
+      meaning: "Nummer „{subject}“ doppelt ({related}).",
+      action: "Eindeutig machen.",
+    },
+    orphanDependency: {
+      title: "Abhängigkeit fehlt",
+      meaning: "„{subject}“ wartet auf „{detail}“.",
+      action: "Abhängigkeit prüfen.",
+    },
+    brokenWikilink: {
+      title: "Link ohne Ziel",
+      meaning: "In „{subject}“ fehlt Dokument „{detail}“.",
+      action: "Link oder Doc anpassen.",
+    },
+    unknown: {
+      title: "Auffälligkeit",
+      meaning: "{subject}",
+      action: "Prüfen.",
+    },
+  },
+};
 
 const clients: Client[] = [
   { id: "cli-acme", name: "Acme", color: "#000", code: "ACM" },
@@ -102,9 +153,16 @@ describe("vault-health", () => {
     expect(codes.has("duplicate-issue-key")).toBe(true);
     expect(codes.has("broken-wikilink")).toBe(true);
     expect(codes.has("orphan-dependency")).toBe(true);
-    expect(issues.some(i => i.message.includes("Existiert-Nicht"))).toBe(true);
-    expect(issues.some(i => i.message.includes("[[Anforderungsspezifikation Portal]]"))).toBe(false);
-    expect(issues.some(i => i.message.includes("[[Tot]]"))).toBe(true);
+    expect(issues.some(i => i.detail === "Existiert-Nicht")).toBe(true);
+    expect(issues.some(i => i.detail === "Anforderungsspezifikation Portal")).toBe(false);
+    expect(issues.some(i => i.detail === "Tot")).toBe(true);
+
+    const orphan = issues.find(i => i.code === "orphan-client")!;
+    const explained = explainFinding(orphan, findingCopy);
+    expect(explained.title).toBe("Kunde fehlt");
+    expect(explained.levelLabel).toBe("Sofort klären");
+    expect(explained.meaning).toContain("hängt an einem Kunden");
+    expect(explained.meaning).not.toContain("clientId");
   });
 
   it("renders markdown report with sections", () => {
@@ -118,5 +176,68 @@ describe("vault-health", () => {
     expect(md).toContain("## Überfällig");
     expect(md).toContain("## Cycle-Status");
     expect(md).toContain("## Prüfung");
+  });
+
+  it("renders AI briefing with schema, open tasks, docs and knowledge index", () => {
+    const md = renderAiBriefing(
+      {
+        clients,
+        projects,
+        docs,
+        knowledge: [
+          {
+            id: "KN-1",
+            clientId: "cli-acme",
+            category: "colors",
+            title: "Acme Palette",
+            content: "Primary blue",
+            tags: ["brand"],
+            createdAt: "2026-10-01T00:00:00.000Z",
+            updatedAt: "2026-10-01T00:00:00.000Z",
+          },
+        ],
+        members: [{ id: "mem-alice", name: "Alice" }],
+        tasks: [
+          makeTask({
+            id: "T-1",
+            issueKey: "ACM-WEB-1",
+            title: "Open work",
+            status: "in-progress",
+            priority: "high",
+            dueDate: "2026-10-10",
+            clientId: "cli-acme",
+            projectId: "prj-web",
+            assigneeId: "mem-alice",
+            dependencies: ["T-0"],
+          }),
+          makeTask({
+            id: "T-2",
+            title: "Done skip",
+            status: "done",
+            clientId: "cli-acme",
+            projectId: "prj-web",
+          }),
+        ],
+      },
+      new Date("2026-10-08T12:00:00.000Z")
+    );
+
+    expect(md).toContain("# ProMan KI-Briefing");
+    expect(md).toContain("## Schema");
+    expect(md).toContain("tasks/<ISSUE-KEY>.md");
+    expect(md).toContain("## Offene Tasks");
+    expect(md).toContain("ACM-WEB-1");
+    expect(md).toContain("Alice");
+    expect(md).toContain("T-0");
+    const openSection = md.slice(md.indexOf("## Offene Tasks"), md.indexOf("## Docs"));
+    expect(openSection).toContain("ACM-WEB-1");
+    expect(openSection).not.toContain("Done skip");
+    expect(md).toContain("## Docs");
+    expect(md).toContain("DOC-1");
+    expect(md).toContain("Anforderungsspezifikation Portal");
+    expect(md).toContain("## Wissen");
+    expect(md).toContain("KN-1");
+    expect(md).toContain("Acme Palette");
+    expect(md).toContain("## Wochen-Digest");
   });
 });

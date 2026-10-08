@@ -17,11 +17,12 @@ describe("Vault health UX", () => {
     } catch { /* ignore */ }
   });
 
-  it("renders Prüfen-tab panel in backoffice", () => {
+  it("renders Workspace-Check with plain-language overdue, without technical codes", () => {
     const { clientId, projectId } = seedClientProject();
     const s = store as unknown as { tasks: Map<string, ReturnType<typeof makeTask>> };
     s.tasks.set("T-1", makeTask({
       id: "T-1",
+      title: "Login-Seite überarbeiten",
       clientId,
       projectId,
       status: "todo",
@@ -38,8 +39,12 @@ describe("Vault health UX", () => {
 
     const panel = root.querySelector("[data-testid='vault-health-panel']");
     expect(panel).toBeTruthy();
-    expect(root.textContent).toMatch(/Prüfen|Check/);
-    expect(root.textContent).toContain("ACM-WEB-9");
+    expect(root.textContent).toMatch(/Workspace-Check|Workspace check/);
+    expect(root.textContent).toContain("Login-Seite überarbeiten");
+    expect(root.textContent).toMatch(/überfällig|overdue/i);
+    expect(root.textContent).toMatch(/Was tun\?|What to do\?|Als Nächstes|Next:/);
+    expect(root.textContent).not.toMatch(/orphan-client|duplicate-issue-key|clientId/);
+    expect(root.querySelector("#vault-export-ai")).toBeTruthy();
     expect(root.querySelector("#vault-export-md")).toBeTruthy();
     expect(root.querySelector("#vault-export-csv")).toBeTruthy();
   });

@@ -13,7 +13,7 @@ from .vault import load_vault
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="promantools",
-        description="Read-only ProMan vault tools: reports and lint.",
+        description="ProMan vault tools: report, lint, and local MCP server.",
     )
     parser.add_argument("--version", action="version", version=f"promantools {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -47,12 +47,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Exit 1 on warnings as well as errors",
     )
 
+    sub.add_parser(
+        "mcp",
+        help="Run local MCP server (stdio). Vault via PROMAN_VAULT. Requires: pip install -e '.[mcp]'",
+    )
+
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "mcp":
+        from .mcp_server import main as mcp_main
+
+        mcp_main()
+        return 0
 
     try:
         vault = load_vault(args.vault)

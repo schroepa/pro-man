@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+tools/.venv/
+**/.venv/
 
 # Production build
 dist/

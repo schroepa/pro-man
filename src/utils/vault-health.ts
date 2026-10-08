@@ -4,14 +4,108 @@
 import type { Task } from "../types/task";
 import type { Client, Project } from "../types/client";
 import type { DocItem } from "../types/doc";
+import type { KnowledgeItem } from "../types/knowledge";
 
 export type LintSeverity = "error" | "warning";
 
+export type LintCode =
+  | "orphan-client"
+  | "orphan-project"
+  | "client-project-mismatch"
+  | "duplicate-id"
+  | "duplicate-issue-key"
+  | "orphan-dependency"
+  | "broken-wikilink";
+
 export interface LintIssue {
   severity: LintSeverity;
-  code: string;
+  code: LintCode | string;
+  /** Technical / export fallback line */
   message: string;
   ref?: string;
+  /** Human subject (task or doc title / key) */
+  subject?: string;
+  /** Extra detail: missing id, wiki title, dependency key, … */
+  detail?: string;
+  /** Related keys / ids listed for duplicates */
+  related?: string;
+}
+
+/** Localized strings needed to explain a finding to non-technical users. */
+export interface FindingCopy {
+  levelMust: string;
+  levelSoon: string;
+  openItem: string;
+  findings: {
+    orphanClient: { title: string; meaning: string; action: string };
+    orphanProject: { title: string; meaning: string; action: string };
+    clientProjectMismatch: { title: string; meaning: string; action: string };
+    duplicateId: { title: string; meaning: string; action: string };
+    duplicateIssueKey: { title: string; meaning: string; action: string };
+    orphanDependency: { title: string; meaning: string; action: string };
+    brokenWikilink: { title: string; meaning: string; action: string };
+    unknown: { title: string; meaning: string; action: string };
+  };
+}
+
+export interface ExplainedFinding {
+  levelLabel: string;
+  title: string;
+  meaning: string;
+  action: string;
+  severity: LintSeverity;
+  code: string;
+  ref?: string;
+}
+
+function fill(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => vars[key] ?? "");
+}
+
+/** Turn a lint code into plain-language title / meaning / next step. */
+export function explainFinding(issue: LintIssue, copy: FindingCopy): ExplainedFinding {
+  const levelLabel = issue.severity === "error" ? copy.levelMust : copy.levelSoon;
+  const subject = issue.subject || issue.ref || "—";
+  const detail = issue.detail || "—";
+  const related = issue.related || detail;
+  const f = copy.findings;
+
+  const pick = (block: { title: string; meaning: string; action: string }) => ({
+    levelLabel,
+    title: block.title,
+    meaning: fill(block.meaning, { subject, detail, related }),
+    action: fill(block.action, { subject, detail, related }),
+    severity: issue.severity,
+    code: issue.code,
+    ref: issue.ref,
+  });
+
+  switch (issue.code) {
+    case "orphan-client":
+      return pick(f.orphanClient);
+    case "orphan-project":
+      return pick(f.orphanProject);
+    case "client-project-mismatch":
+      return pick(f.clientProjectMismatch);
+    case "duplicate-id":
+      return pick(f.duplicateId);
+    case "duplicate-issue-key":
+      return pick(f.duplicateIssueKey);
+    case "orphan-dependency":
+      return pick(f.orphanDependency);
+    case "broken-wikilink":
+      return pick(f.brokenWikilink);
+    default:
+      return {
+        levelLabel,
+        title: f.unknown.title,
+        meaning: issue.message || fill(f.unknown.meaning, { subject, detail, related }),
+        action: f.unknown.action,
+        severity: issue.severity,
+        code: issue.code,
+        ref: issue.ref,
+      };
+  }
 }
 
 export interface OverdueRow {
@@ -68,6 +162,16 @@ export interface VaultHealthInput {
   clients: Client[];
   projects: Project[];
   docs: DocItem[];
+}
+
+export interface AiBriefingMember {
+  id: string;
+  name: string;
+}
+
+export interface AiBriefingInput extends VaultHealthInput {
+  knowledge?: KnowledgeItem[];
+  members?: AiBriefingMember[];
 }
 
 const WIKILINK_RE = /\[\[([^\]]+)\]\]/g;
@@ -267,12 +371,15 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
   const allTasks = [...input.tasks, ...(input.archivedTasks || [])];
 
   for (const task of allTasks) {
+    const subject = task.title || taskLabel(task);
     if (task.clientId && !clients.has(task.clientId)) {
       issues.push({
         severity: "error",
         code: "orphan-client",
         message: `Unbekannte clientId „${task.clientId}“ bei ${taskLabel(task)}`,
         ref: task.id,
+        subject,
+        detail: task.clientId,
       });
     }
     if (task.projectId && !projects.has(task.projectId)) {
@@ -281,6 +388,8 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
         code: "orphan-project",
         message: `Unbekannte projectId „${task.projectId}“ bei ${taskLabel(task)}`,
         ref: task.id,
+        subject,
+        detail: task.projectId,
       });
     }
     if (
@@ -290,22 +399,29 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
       projects.get(task.projectId)!.clientId &&
       projects.get(task.projectId)!.clientId !== task.clientId
     ) {
+      const project = projects.get(task.projectId)!;
       issues.push({
         severity: "warning",
         code: "client-project-mismatch",
         message: `Projekt „${task.projectId}“ gehört nicht zu Kunde „${task.clientId}“ (${taskLabel(task)})`,
         ref: task.id,
+        subject,
+        detail: project.name || task.projectId,
+        related: clientName(clients, task.clientId),
       });
     }
   }
 
   for (const doc of input.docs) {
+    const subject = doc.title || doc.id;
     if (doc.clientId && !clients.has(doc.clientId)) {
       issues.push({
         severity: "error",
         code: "orphan-client",
         message: `Unbekannte clientId „${doc.clientId}“ bei Doc ${doc.id}`,
         ref: doc.id,
+        subject,
+        detail: doc.clientId,
       });
     }
     if (doc.projectId && !projects.has(doc.projectId)) {
@@ -314,6 +430,8 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
         code: "orphan-project",
         message: `Unbekannte projectId „${doc.projectId}“ bei Doc ${doc.id}`,
         ref: doc.id,
+        subject,
+        detail: doc.projectId,
       });
     }
   }
@@ -333,6 +451,8 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
         code: "duplicate-id",
         message: `Doppelte Task-id „${id}“`,
         ref: id,
+        subject: id,
+        related: [...new Set(refs)].join(", "),
       });
     }
   }
@@ -345,6 +465,8 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
           code: "duplicate-issue-key",
           message: `Doppelter issueKey „${key}“ in: ${unique.join(", ")}`,
           ref: key,
+          subject: key,
+          related: unique.join(", "),
         });
       }
     }
@@ -363,6 +485,8 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
           code: "orphan-dependency",
           message: `Abhängigkeit „${dep}“ nicht gefunden (${taskLabel(task)})`,
           ref: task.id,
+          subject: task.title || taskLabel(task),
+          detail: dep,
         });
       }
     }
@@ -382,6 +506,8 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
           code: "broken-wikilink",
           message: `Wikilink [[${link}]] ohne Doc-Treffer (${taskLabel(task)})`,
           ref: task.id,
+          subject: task.title || taskLabel(task),
+          detail: link,
         });
       }
     }
@@ -394,6 +520,8 @@ export function lintVaultData(input: VaultHealthInput): LintIssue[] {
           code: "broken-wikilink",
           message: `Wikilink [[${link}]] ohne Doc-Treffer (Doc ${doc.id})`,
           ref: doc.id,
+          subject: doc.title || doc.id,
+          detail: link,
         });
       }
     }
@@ -484,6 +612,115 @@ export function renderHealthMarkdown(snap: VaultHealthSnapshot): string {
     lines.push("| Kunde | Projekt | Gebucht (h) | Estimate (h) | Tasks |", "|---|---|---:|---:|---:|");
     for (const r of snap.timeRows) {
       lines.push(`| ${r.client} | ${r.project} | ${r.hours} | ${r.estimateHours} | ${r.taskCount} |`);
+    }
+    lines.push("");
+  }
+
+  lines.push("## Wochen-Digest", "");
+  for (const section of snap.digest) {
+    lines.push(`### ${section.heading}`, "");
+    if (!section.tasks.length) {
+      lines.push("_—_", "");
+      continue;
+    }
+    for (const t of section.tasks) {
+      lines.push(`- **${t.key}** ${t.title} (${t.status}, fällig ${t.dueDate}, ${t.client})`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n").trimEnd() + "\n";
+}
+
+/**
+ * One pasteable Markdown for AI assistants: schema + open tasks + indexes + digest.
+ * Task bodies stay out (use MCP / get_task); see docs/AI.md.
+ */
+export function renderAiBriefing(input: AiBriefingInput, asOf: Date = new Date()): string {
+  const clients = new Map(input.clients.map(c => [c.id, c]));
+  const projects = new Map(input.projects.map(p => [p.id, p]));
+  const members = new Map((input.members || []).map(m => [m.id, m.name]));
+  const knowledge = input.knowledge || [];
+  const active = input.tasks.filter(t => !t.archivedAt && t.status !== "done");
+  const snap = computeVaultHealth(input, asOf);
+
+  const lines: string[] = [
+    "# ProMan KI-Briefing",
+    "",
+    `- Stand: ${snap.asOf}`,
+    `- Offene Tasks: ${active.length} · aktiv gesamt: ${snap.activeCount} · archiviert: ${snap.archivedCount}`,
+    `- Docs: ${input.docs.length} · Wissen: ${knowledge.length}`,
+    "",
+    "> Paste an Claude/Cursor. Vollständige Bodies: Vault-Ordner oder MCP `get_task` / `get_doc`.",
+    "> Schema-Details: `docs/AI.md`.",
+    "",
+    "## Schema",
+    "",
+    "```",
+    "mein-vault/",
+    "  clients.json              # clients[], projects[], members[]",
+    "  tasks/<ISSUE-KEY>.md      # aktive Aufgaben (YAML + Markdown)",
+    "  tasks/archive/            # archiviert",
+    "  docs/DOC-*.md",
+    "  knowledge/KN-*.md",
+    "  attachments/",
+    "```",
+    "",
+    "- Status: `todo` · `in-progress` · `in-review` · `done`",
+    "- Priority: `urgent` · `high` · `normal` · `low`",
+    "- Issue-Key: `CLIENT[-PROJECT]-N` (Feld `issueKey`)",
+    "- Members ≠ Kunden; Zuweisung über `assigneeId`",
+    "",
+    "## Offene Tasks",
+    "",
+  ];
+
+  if (!active.length) {
+    lines.push("_Keine offenen Tasks._", "");
+  } else {
+    lines.push(
+      "| Key | Titel | Status | Prio | Fällig | Assignee | Kunde | Abhängig von |",
+      "|---|---|---|---|---|---|---|---|"
+    );
+    const sorted = [...active].sort((a, b) => {
+      const da = parseDay(a.dueDate) || "9999-99-99";
+      const db = parseDay(b.dueDate) || "9999-99-99";
+      return da.localeCompare(db) || displayKey(a).localeCompare(displayKey(b));
+    });
+    for (const task of sorted) {
+      const assignee = task.assigneeId
+        ? (members.get(task.assigneeId) || task.assigneeId)
+        : "—";
+      const deps = task.dependencies?.length ? task.dependencies.join(", ") : "—";
+      lines.push(
+        `| ${displayKey(task)} | ${task.title} | ${task.status} | ${task.priority} | ${task.dueDate || "—"} | ${assignee} | ${clientName(clients, task.clientId)} | ${deps} |`
+      );
+    }
+    lines.push("");
+  }
+
+  lines.push("## Docs", "");
+  if (!input.docs.length) {
+    lines.push("_Keine Docs._", "");
+  } else {
+    lines.push("| ID | Titel | Kunde | Projekt |", "|---|---|---|---|");
+    for (const doc of input.docs) {
+      lines.push(
+        `| ${doc.id} | ${doc.title} | ${clientName(clients, doc.clientId || undefined)} | ${projectName(projects, doc.projectId || undefined)} |`
+      );
+    }
+    lines.push("");
+  }
+
+  lines.push("## Wissen", "");
+  if (!knowledge.length) {
+    lines.push("_Kein Wissen._", "");
+  } else {
+    lines.push("| ID | Titel | Kategorie | Kunde |", "|---|---|---|---|");
+    for (const kn of knowledge) {
+      lines.push(
+        `| ${kn.id} | ${kn.title} | ${kn.category} | ${clientName(clients, kn.clientId)} |`
+      );
     }
     lines.push("");
   }

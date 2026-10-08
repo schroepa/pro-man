@@ -36,13 +36,152 @@
   color: var(--color-text-muted);
 }
 
+.vault-health-summary .vault-health-next {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.vault-health-summary .vault-health-counts {
+  margin-top: var(--space-1);
+}
+
 .vault-health-summary-icon {
   flex-shrink: 0;
   margin-top: 2px;
 }
 
 .vault-health-section .backoffice-section-title {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+
+.vault-health-section-hint {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.vault-health-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.vault-health-card {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.vault-health-card-error {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, #c44 70%, transparent);
+}
+
+.vault-health-card-warning {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--status-review-solid) 70%, transparent);
+}
+
+.vault-health-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.vault-health-card-title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.vault-health-card-block {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+  color: var(--color-text-primary);
+}
+
+.vault-health-card-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.vault-health-card-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.vault-health-overdue-list,
+.vault-health-cycle-list,
+.vault-health-time-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.vault-health-overdue-item,
+.vault-health-cycle-item,
+.vault-health-time-item {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.vault-health-overdue-title {
+  font-size: var(--font-size-sm);
+}
+
+.vault-health-overdue-meta,
+.vault-health-time-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.vault-health-overdue-badge {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, #c44 14%, transparent);
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-sm);
+}
+
+.vault-health-cycle-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.vault-health-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-bg-canvas) 80%, var(--color-text-muted));
+  overflow: hidden;
+}
+
+.vault-health-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--status-done-solid, var(--color-primary-500));
 }
 
 .vault-health-empty {

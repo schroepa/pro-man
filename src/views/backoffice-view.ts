@@ -10,8 +10,11 @@ import { t } from "../i18n";
 import {
   computeVaultHealth,
   downloadTextFile,
+  explainFinding,
+  renderAiBriefing,
   renderHealthCsv,
   renderHealthMarkdown,
+  type FindingCopy,
   type VaultHealthSnapshot,
 } from "../utils/vault-health";
 
@@ -93,6 +96,10 @@ export function renderBackofficeView(container: HTMLElement): void {
             <span>${escapeHtml(t().members.addPerson)}</span>
           </button>
         ` : currentTab === "vault" ? `
+          <button type="button" id="vault-export-ai" class="btn btn-primary">
+            ${TablerIcon.download({ size: 14, strokeWidth: 2 })}
+            <span>${escapeHtml(vh.exportAi)}</span>
+          </button>
           <button type="button" id="vault-export-md" class="btn btn-secondary">
             ${TablerIcon.download({ size: 14, strokeWidth: 2 })}
             <span>${escapeHtml(vh.exportMd)}</span>
@@ -1307,6 +1314,16 @@ function attachThemeEventListeners(wrapper: HTMLElement, container: HTMLElement)
   sliderPad?.addEventListener("input", updateGeometryDemo);
 }
 
+function findingCopyFromI18n(): FindingCopy {
+  const vh = t().vaultHealth;
+  return {
+    levelMust: vh.levelMust,
+    levelSoon: vh.levelSoon,
+    openItem: vh.openItem,
+    findings: vh.findings,
+  };
+}
+
 function buildVaultHealthSnapshot(): VaultHealthSnapshot {
   const vh = t().vaultHealth;
   return computeVaultHealth(
@@ -1327,132 +1344,126 @@ function buildVaultHealthSnapshot(): VaultHealthSnapshot {
   );
 }
 
+function statusLabel(status: string): string {
+  const map = t().statuses as Record<string, string>;
+  return map[status] || status;
+}
+
+function daysOverdueLabel(days: number, vh: ReturnType<typeof t>["vaultHealth"]): string {
+  if (days === 1) return vh.colDaysOne;
+  return vh.colDaysValue.replace("{n}", String(days));
+}
+
 function renderVaultHealthTabHTML(): string {
   const vh = t().vaultHealth;
   const snap = buildVaultHealthSnapshot();
-  const summaryText = snap.errorCount + snap.warningCount === 0
+  const attentionCount = snap.errorCount + snap.warningCount;
+  const summaryText = attentionCount === 0
     ? vh.summaryOk
-    : vh.summaryIssues
-      .replace("{errors}", String(snap.errorCount))
-      .replace("{warnings}", String(snap.warningCount));
-  const overdueText = vh.summaryOverdue.replace("{n}", String(snap.overdue.length));
+    : vh.summaryIssues.replace("{n}", String(attentionCount));
+  const summaryHint = attentionCount === 0 ? vh.summaryOkHint : vh.summaryIssuesHint;
+  const nextStep = snap.overdue.length > 0
+    ? vh.summaryNextOverdue.replace("{n}", String(snap.overdue.length))
+    : attentionCount > 0
+      ? vh.summaryNextFindings
+      : vh.summaryNextOk;
   const statusClass = snap.errorCount > 0
     ? "vault-health-summary is-error"
-    : snap.warningCount > 0
+    : snap.warningCount > 0 || snap.overdue.length > 0
       ? "vault-health-summary is-warning"
       : "vault-health-summary is-ok";
+  const copy = findingCopyFromI18n();
 
-  const lintRows = snap.issues.length === 0
+  const findingCards = snap.issues.length === 0
     ? `<p class="vault-health-empty">${escapeHtml(vh.emptyLint)}</p>`
-    : `
-      <div class="vault-health-table-wrap">
-        <table class="vault-health-table">
-          <thead>
-            <tr>
-              <th>${escapeHtml(vh.colSeverity)}</th>
-              <th>${escapeHtml(vh.colCode)}</th>
-              <th>${escapeHtml(vh.colMessage)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${snap.issues.map(issue => `
-              <tr class="vault-health-row-${issue.severity}">
-                <td><span class="vault-health-pill vault-health-pill-${issue.severity}">${escapeHtml(issue.severity)}</span></td>
-                <td><code>${escapeHtml(issue.code)}</code></td>
-                <td>${escapeHtml(issue.message)}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
+    : `<div class="vault-health-cards" role="list">
+        ${snap.issues.map(issue => {
+          const explained = explainFinding(issue, copy);
+          const openBtn = issue.ref
+            ? `<button type="button" class="btn btn-secondary btn-sm vault-health-open" data-open-task-key="${escapeAttr(issue.ref)}">${escapeHtml(vh.openItem)}</button>`
+            : "";
+          return `
+            <article class="vault-health-card vault-health-card-${issue.severity}" role="listitem">
+              <header class="vault-health-card-header">
+                <span class="vault-health-pill vault-health-pill-${issue.severity}">${escapeHtml(explained.levelLabel)}</span>
+                <h3 class="vault-health-card-title">${escapeHtml(explained.title)}</h3>
+              </header>
+              <p class="vault-health-card-block">
+                <span class="vault-health-card-label">${escapeHtml(vh.meaningLabel)}</span>
+                ${escapeHtml(explained.meaning)}
+              </p>
+              <p class="vault-health-card-block">
+                <span class="vault-health-card-label">${escapeHtml(vh.actionLabel)}</span>
+                ${escapeHtml(explained.action)}
+              </p>
+              ${openBtn ? `<div class="vault-health-card-actions">${openBtn}</div>` : ""}
+            </article>
+          `;
+        }).join("")}
       </div>`;
 
   const overdueRows = snap.overdue.length === 0
     ? `<p class="vault-health-empty">${escapeHtml(vh.emptyOverdue)}</p>`
     : `
-      <div class="vault-health-table-wrap">
-        <table class="vault-health-table">
-          <thead>
-            <tr>
-              <th>${escapeHtml(vh.colKey)}</th>
-              <th>${escapeHtml(vh.colTitle)}</th>
-              <th>${escapeHtml(vh.colDue)}</th>
-              <th>${escapeHtml(vh.colDays)}</th>
-              <th>${escapeHtml(vh.colStatus)}</th>
-              <th>${escapeHtml(vh.colClient)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${snap.overdue.map(row => `
-              <tr>
-                <td><button type="button" class="vault-health-link" data-open-task-key="${escapeAttr(row.key)}" title="${escapeAttr(vh.openTask)}">${escapeHtml(row.key)}</button></td>
-                <td>${escapeHtml(row.title)}</td>
-                <td>${escapeHtml(row.dueDate)}</td>
-                <td>${row.daysOverdue}</td>
-                <td>${escapeHtml(row.status)}</td>
-                <td>${escapeHtml(row.client)}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>`;
+      <ul class="vault-health-overdue-list" role="list">
+        ${snap.overdue.map(row => `
+          <li class="vault-health-overdue-item">
+            <button type="button" class="vault-health-link vault-health-overdue-title" data-open-task-key="${escapeAttr(row.key)}" title="${escapeAttr(vh.openTask)}">
+              ${escapeHtml(row.title)}
+            </button>
+            <div class="vault-health-overdue-meta">
+              <span class="vault-health-overdue-badge">${escapeHtml(daysOverdueLabel(row.daysOverdue, vh))}</span>
+              <span>${escapeHtml(vh.colDue)} ${escapeHtml(row.dueDate)}</span>
+              <span>${escapeHtml(statusLabel(row.status))}</span>
+              <span>${escapeHtml(row.client)}</span>
+            </div>
+          </li>
+        `).join("")}
+      </ul>`;
 
   const cycleRows = snap.cycles.length === 0
     ? `<p class="vault-health-empty">${escapeHtml(vh.emptyCycles)}</p>`
-    : `
-      <div class="vault-health-table-wrap">
-        <table class="vault-health-table">
-          <thead>
-            <tr>
-              <th>${escapeHtml(vh.colCycle)}</th>
-              <th>${escapeHtml(vh.colTasks)}</th>
-              <th>Todo</th>
-              <th>Progress</th>
-              <th>Review</th>
-              <th>Done</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${snap.cycles.map(c => `
-              <tr>
-                <td>${escapeHtml(c.cycle)}</td>
-                <td>${c.total}</td>
-                <td>${c.todo}</td>
-                <td>${c.inProgress}</td>
-                <td>${c.inReview}</td>
-                <td>${c.done}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>`;
+    : `<ul class="vault-health-cycle-list" role="list">
+        ${snap.cycles.map(c => {
+          const label = c.cycle === "(ohne Cycle)" ? vh.cycleNoLabel : c.cycle;
+          const open = c.total - c.done;
+          const progress = vh.cycleProgress
+            .replace("{done}", String(c.done))
+            .replace("{total}", String(c.total))
+            .replace("{open}", String(open));
+          const pct = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
+          return `
+            <li class="vault-health-cycle-item">
+              <div class="vault-health-cycle-head">
+                <strong>${escapeHtml(label)}</strong>
+                <span class="vault-health-muted">${escapeHtml(progress)}</span>
+              </div>
+              <div class="vault-health-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="${escapeAttr(label)}">
+                <span class="vault-health-progress-bar" style="width: ${pct}%"></span>
+              </div>
+            </li>
+          `;
+        }).join("")}
+      </ul>`;
 
   const timeRows = snap.timeRows.length === 0
     ? `<p class="vault-health-empty">${escapeHtml(vh.emptyTime)}</p>`
     : `
-      <div class="vault-health-table-wrap">
-        <table class="vault-health-table">
-          <thead>
-            <tr>
-              <th>${escapeHtml(vh.colClient)}</th>
-              <th>${escapeHtml(vh.colProject)}</th>
-              <th>${escapeHtml(vh.colHours)}</th>
-              <th>${escapeHtml(vh.colEstimate)}</th>
-              <th>${escapeHtml(vh.colTasks)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${snap.timeRows.map(r => `
-              <tr>
-                <td>${escapeHtml(r.client)}</td>
-                <td>${escapeHtml(r.project)}</td>
-                <td>${r.hours}</td>
-                <td>${r.estimateHours}</td>
-                <td>${r.taskCount}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>`;
+      <ul class="vault-health-time-list" role="list">
+        ${snap.timeRows.map(r => `
+          <li class="vault-health-time-item">
+            <div>
+              <strong>${escapeHtml(r.client)}</strong>
+              <span class="vault-health-muted"> · ${escapeHtml(r.project)}</span>
+            </div>
+            <div class="vault-health-time-meta">
+              <span>${escapeHtml(vh.colHours)}: ${escapeHtml(vh.colHoursUnit.replace("{n}", String(r.hours)))}</span>
+              <span>${escapeHtml(vh.colEstimate)}: ${escapeHtml(vh.colHoursUnit.replace("{n}", String(r.estimateHours)))}</span>
+              <span>${r.taskCount} ${escapeHtml(vh.colTasks.toLowerCase())}</span>
+            </div>
+          </li>
+        `).join("")}
+      </ul>`;
 
   const digestHtml = snap.digest.map(section => `
     <div class="vault-health-digest-block">
@@ -1462,9 +1473,8 @@ function renderVaultHealthTabHTML(): string {
         : `<ul class="vault-health-digest-list">
             ${section.tasks.map(task => `
               <li>
-                <button type="button" class="vault-health-link" data-open-task-key="${escapeAttr(task.key)}">${escapeHtml(task.key)}</button>
-                <span>${escapeHtml(task.title)}</span>
-                <span class="vault-health-muted">${escapeHtml(task.status)} · ${escapeHtml(task.dueDate)} · ${escapeHtml(task.client)}</span>
+                <button type="button" class="vault-health-link" data-open-task-key="${escapeAttr(task.key)}">${escapeHtml(task.title)}</button>
+                <span class="vault-health-muted">${escapeHtml(statusLabel(task.status))} · ${escapeHtml(vh.colDue)} ${escapeHtml(task.dueDate)} · ${escapeHtml(task.client)}</span>
               </li>
             `).join("")}
           </ul>`}
@@ -1475,39 +1485,50 @@ function renderVaultHealthTabHTML(): string {
     <div class="vault-health" data-testid="vault-health-panel">
       <div class="${statusClass}" role="status">
         <div class="vault-health-summary-icon" aria-hidden="true">
-          ${snap.errorCount > 0
+          ${snap.errorCount > 0 || snap.overdue.length > 0
             ? TablerIcon.alertTriangle({ size: 18 })
             : TablerIcon.circleCheck({ size: 18 })}
         </div>
         <div>
           <strong>${escapeHtml(summaryText)}</strong>
-          <p>${escapeHtml(overdueText)} · ${escapeHtml(vh.metaActive)} ${snap.activeCount} · ${escapeHtml(vh.metaArchived)} ${snap.archivedCount} · ${escapeHtml(vh.metaAsOf)} ${escapeHtml(snap.asOf)}</p>
+          <p>${escapeHtml(summaryHint)}</p>
+          <p class="vault-health-next">${escapeHtml(nextStep)}</p>
+          <p class="vault-health-counts">${escapeHtml(vh.summaryCounts
+            .replace("{active}", String(snap.activeCount))
+            .replace("{asOf}", snap.asOf))}${snap.overdue.length
+              ? ` · ${escapeHtml(vh.summaryOverdue.replace("{n}", String(snap.overdue.length)))}`
+              : ""}</p>
         </div>
       </div>
 
       <section class="backoffice-section vault-health-section" aria-labelledby="vh-lint">
         <h2 id="vh-lint" class="backoffice-section-title">${escapeHtml(vh.sectionLint)}</h2>
-        ${lintRows}
+        <p class="vault-health-section-hint">${escapeHtml(vh.sectionLintHint)}</p>
+        ${findingCards}
       </section>
 
       <section class="backoffice-section vault-health-section" aria-labelledby="vh-overdue">
         <h2 id="vh-overdue" class="backoffice-section-title">${escapeHtml(vh.sectionOverdue)}</h2>
+        <p class="vault-health-section-hint">${escapeHtml(vh.sectionOverdueHint)}</p>
         ${overdueRows}
+      </section>
+
+      <section class="backoffice-section vault-health-section" aria-labelledby="vh-digest">
+        <h2 id="vh-digest" class="backoffice-section-title">${escapeHtml(vh.sectionDigest)}</h2>
+        <p class="vault-health-section-hint">${escapeHtml(vh.sectionDigestHint)}</p>
+        ${digestHtml}
       </section>
 
       <section class="backoffice-section vault-health-section" aria-labelledby="vh-cycles">
         <h2 id="vh-cycles" class="backoffice-section-title">${escapeHtml(vh.sectionCycles)}</h2>
+        <p class="vault-health-section-hint">${escapeHtml(vh.sectionCyclesHint)}</p>
         ${cycleRows}
       </section>
 
       <section class="backoffice-section vault-health-section" aria-labelledby="vh-time">
         <h2 id="vh-time" class="backoffice-section-title">${escapeHtml(vh.sectionTime)}</h2>
+        <p class="vault-health-section-hint">${escapeHtml(vh.sectionTimeHint)}</p>
         ${timeRows}
-      </section>
-
-      <section class="backoffice-section vault-health-section" aria-labelledby="vh-digest">
-        <h2 id="vh-digest" class="backoffice-section-title">${escapeHtml(vh.sectionDigest)}</h2>
-        ${digestHtml}
       </section>
     </div>
   `;
@@ -1515,6 +1536,21 @@ function renderVaultHealthTabHTML(): string {
 
 function attachVaultHealthListeners(wrapper: HTMLElement): void {
   const vh = t().vaultHealth;
+  wrapper.querySelector("#vault-export-ai")?.addEventListener("click", () => {
+    const asOf = new Date();
+    const md = renderAiBriefing({
+      tasks: store.getAllRawTasks(),
+      archivedTasks: store.getArchivedTasks(),
+      clients: store.getClients(),
+      projects: store.getProjects(),
+      docs: store.getDocs(),
+      knowledge: store.getKnowledge(),
+      members: store.getMembers().map(m => ({ id: m.id, name: m.name })),
+    }, asOf);
+    const day = `${asOf.getFullYear()}-${String(asOf.getMonth() + 1).padStart(2, "0")}-${String(asOf.getDate()).padStart(2, "0")}`;
+    downloadTextFile(`proman-ai-briefing-${day}.md`, md, "text/markdown;charset=utf-8");
+    showToast(vh.exportedAi, "success");
+  });
   wrapper.querySelector("#vault-export-md")?.addEventListener("click", () => {
     const snap = buildVaultHealthSnapshot();
     downloadTextFile(`proman-vault-report-${snap.asOf}.md`, renderHealthMarkdown(snap), "text/markdown;charset=utf-8");

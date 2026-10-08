@@ -5,7 +5,10 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
-- **Vault prüfen & Bericht (In-App)**: Backoffice-Tab „Prüfen & Bericht“ — Integrität, Überfällig, Cycle, Zeit, Wochen-Digest; Markdown/CSV-Export per Klick; Einstieg von Übersicht und ⌘K (kein Terminal nötig)
+- **Für KI teilen**: Backoffice → Prüfen & Bericht — ein Markdown-Briefing (Schema, offene Tasks, Docs-/Wissen-Index, Wochen-Digest) zum Pasten an Claude/Cursor
+- **Lokaler MCP-Server**: `proman-mcp` / `promantools mcp` unter `tools/` — list/get/create/update Tasks & Docs, Report, Lint; Vault via `PROMAN_VAULT` (optional `pip install -e ".[mcp]"`)
+- **Workspace-Check (menschenlesbar)**: Backoffice-Tab erklärt Findings in Klartext (Was heißt das? / Was tun?), Überfällige mit „seit X Tagen“, Cycle als Fortschrittsbalken, Wochenüberblick; technische Codes nur noch im Export; Einstieg von Übersicht und ⌘K
+- **Vault prüfen & Bericht (In-App)**: Backoffice-Tab — Integrität, Überfällig, Cycle, Zeit, Wochen-Digest; Markdown/CSV-Export per Klick; Einstieg von Übersicht und ⌘K (kein Terminal nötig)
 - **promantools (Python CLI)**: Read-only Vault-Companion unter `tools/` — `report` (Überfällig, Cycle, Zeit, Wochen-Digest als Markdown/CSV) und `lint` (Frontmatter, Orphans, doppelte Issue-Keys, Wikilinks, Dependencies); siehe [`tools/README.md`](./tools/README.md)
 - **Wissensmodul (Epic A)**: Kunden-/projektgebundenes Wissen (`knowledge/*.md`) getrennt von Docs — Kategorien + Templates, B3-Merge (Kunde read-only in Projektansicht), Sidebar-Ansicht, Kunden-Sektion, ⌘K-Gruppe; Beispiel-Vault `vault-example/knowledge/`
 - **Pro-Man Branding**: Eigenes Logo (Lockup horizontal) in der Sidebar; Favicon (SVG/ICO/Apple Touch), PWA-Icons, Open-Graph-Bild; Schreibweise „Pro-Man“
@@ -19,6 +22,8 @@ Alle nennenswerten Änderungen an ProMan.
 - **Team-Vault Regressionstests**: Soft Concurrent Freshness/Write-Guard/Banner + Session-Identität absichern (`mockVaultFreshness`, 21 Tests)
 
 ### Docs
+- **KI-Assistenten**: [`docs/AI.md`](./docs/AI.md) — Vault-Layout, Task-Format, Briefing-Export, MCP-Setup für Claude/Cursor
+- **promantools README**: MCP-Config-Snippets, Schreib-API, Extr `.[mcp]`
 - **Team-Vault Playbook**: Setup auf NAS/SMB, Rollen, Arbeitsregeln, Soft-Concurrent-Limits; Verweise in README/ROADMAP/DESIGN
 
 ## [0.3.1] — 2026-10-07

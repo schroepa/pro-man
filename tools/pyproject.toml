@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "promantools"
-version = "0.1.0"
-description = "Read-only CLI for ProMan vaults: reports and lint"
+version = "0.2.0"
+description = "ProMan vault CLI (report/lint) + optional local MCP server"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -14,9 +14,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+mcp = ["mcp>=1.2,<2"]
 
 [project.scripts]
 promantools = "promantools.cli:main"
+proman-mcp = "promantools.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

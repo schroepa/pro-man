@@ -13,7 +13,8 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 | # | Thema | Warum |
 |---|---|---|
 | 1 | **Alltag mit echtem Vault** | SWT-/Notion-Daten im Flow schärfen (Filter, Tags, Projekte) — Reibung aus dem echten Arbeiten |
-| 2 | **Epic B — Anforderungen** | Anforderungen an Projekten (später Assets); Knowledge-IDs aus A als Anker |
+| 2 | **MCP v1.1** | Knowledge-Tools, Archivieren, Briefing-Tool am MCP; Host-Configs dokumentiert |
+| 3 | **Epic B — Anforderungen** | Anforderungen an Projekten (später Assets); Knowledge-IDs aus A als Anker |
 
 ---
 
@@ -35,6 +36,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **KI-Zugang**: [`docs/AI.md`](./AI.md); In-App **Für KI teilen**; lokaler MCP (`proman-mcp`) mit Read/Write Tasks+Docs
 - **Vault prüfen (In-App)**: Backoffice-Tab + Dashboard/⌘K-Einstieg; gleiche Report/Lint-Idee wie promantools, ohne Terminal
 - **promantools MVP**: Python-CLI `tools/` — Vault-Report (Überfällig/Cycle/Zeit/Digest) + Lint (read-only)
 - **Wissensmodul (Epic A)**: `KnowledgeItem` + `knowledge/`, Kategorien/Templates, B3-Merge, Sidebar + Kunden-Sektion + ⌘K, i18n de/en, Beispiel-Vault

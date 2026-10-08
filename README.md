@@ -20,7 +20,7 @@
 1. [Schnellstart](#schnellstart)
 2. [Architektur](#architektur)
 3. [Features](#features)
-4. [Vault & Persistenz](#vault--persistenz) → Team: [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md)
+4. [Vault & Persistenz](#vault--persistenz) → Team: [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md) · KI: [`docs/AI.md`](./docs/AI.md)
 5. [Issue-Keys](#issue-keys)
 6. [Design-System](#design-system) → detailliert in [`docs/DESIGN.md`](./docs/DESIGN.md)
 7. [Roadmap](#roadmap) → [`docs/ROADMAP.md`](./docs/ROADMAP.md)
@@ -42,9 +42,9 @@ npm test
 npm run build
 ```
 
-**Vault prüfen (ohne Terminal):** Backoffice → Tab **Prüfen & Bericht** (auch von Übersicht „Vault prüfen“ oder ⌘K). Markdown/CSV-Export per Button.
+**Vault prüfen (ohne Terminal):** Backoffice → Tab **Prüfen & Bericht** (auch von Übersicht „Vault prüfen“ oder ⌘K). Markdown/CSV-Export und **Für KI teilen**.
 
-Optional CLI (Python ≥3.11) für Automation: [`tools/README.md`](./tools/README.md).
+Optional CLI + MCP (Python ≥3.11): [`tools/README.md`](./tools/README.md) · Assistenten: [`docs/AI.md`](./docs/AI.md).
 
 Chrome/Edge empfohlen (File System Access API für Vault).
 
@@ -139,6 +139,7 @@ mein-vault/
 - Ohne Vault: Persistenz in `localStorage`.
 - Schema.org-Microdata auf Task-Karten; Frontmatter enthält `schemaOrg`.
 - **Team-Vault:** gemeinsamer Ordner auf zentralem Datenträger — siehe [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md). Soft Concurrent (Stale-Warnung), kein Sync-Server.
+- **KI-Assistenten:** Vault-Schema, Ticket-Format, erlaubte Schreibaktionen — [`docs/AI.md`](./docs/AI.md).
 
 ---
 
