@@ -216,7 +216,8 @@
 }
 
 .client-contacts-list,
-.client-projects-list {
+.client-projects-list,
+.client-knowledge-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -224,7 +225,8 @@
 }
 
 .client-contact-row,
-.client-project-row {
+.client-project-row,
+.client-knowledge-row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -233,7 +235,8 @@
   background: var(--color-bg-muted);
 }
 
-.client-project-row {
+.client-project-row,
+.client-knowledge-row {
   width: 100%;
   border: none;
   cursor: pointer;
@@ -243,8 +246,26 @@
   transition: background-color 120ms ease;
 }
 
-.client-project-row:hover {
+.client-project-row:hover,
+.client-knowledge-row:hover {
   background: var(--color-bg-hover, var(--color-primary-50));
+}
+
+.client-knowledge-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.client-knowledge-category {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .client-contact-info {

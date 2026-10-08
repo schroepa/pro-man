@@ -1,6 +1,6 @@
 # ProMan
 
-**Local-First Project Management** — Kanban, Liste, Gantt, Kalender, Docs und Backoffice. Speicherung als Markdown (Obsidian-kompatibel) über die File System Access API. Vanilla TypeScript + Vite, kein Backend, keine Telemetrie.
+**Local-First Project Management** — Kanban, Liste, Gantt, Kalender, Docs, Wissen und Backoffice. Speicherung als Markdown (Obsidian-kompatibel) über die File System Access API. Vanilla TypeScript + Vite, kein Backend, keine Telemetrie.
 
 | | |
 |---|---|
@@ -59,9 +59,9 @@ src/
   main.ts                 # Bootstrap, View-Routing, Shortcuts
   a11y/                   # Live-Announcer + A11y-Tests
   components/             # Topbar, Sidebar, Dialog, Select, Toast, Palette, Cards
-  views/                  # Kanban, List, Gantt, Calendar, Docs, Client, Backoffice
-  storage/                # AppStore, Vault FS, Serializer, Theme, Sidebar-Layout
-  types/                  # Task, Client, Project, Doc, Member
+  views/                  # Kanban, List, Gantt, Calendar, Docs, Knowledge, Client, Backoffice
+  storage/                # AppStore, Vault FS, Serializer (Tasks/Docs/Knowledge), Theme, Sidebar-Layout
+  types/                  # Task, Client, Project, Doc, Knowledge, Member
   styles/                 # fonts.css, tokens.css, reset, base, components/*
   i18n/                   # de / en
   design/                 # Design-Integritäts-Tests
@@ -70,7 +70,7 @@ src/
 public/
   fonts/                  # Geist-Variable.woff2, GeistMono-Variable.woff2
   sw.js                   # PWA: hashed assets only (HTML never cached)
-vault-example/            # Beispiel-Vault
+vault-example/            # Beispiel-Vault (tasks/, docs/, knowledge/)
 docs/                     # Lebende Design- & Architekturdoku
 ```
 
@@ -94,14 +94,15 @@ Datenfluss: Views/Components → `AppStore` → Serializer → `VaultStorage` (F
 | **Gantt** | Bar-Drag, Start-/End-Resize, Zoom, Today |
 | **Kalender** | Monatsraster nach `dueDate` |
 | **Docs** | Markdown, Auto-Save, Wikilinks, Parent-Hierarchie, Print-CSS |
-| **Kunde** | Eigene Seite pro Client: Stammdaten, Kontakte, Projekte, KPIs; CTAs zu Board/Docs |
+| **Wissen** | Kategorien + Templates, Kunden-/Projekt-Scope, B3-Merge (Kunde read-only im Projekt), Live-Markdown |
+| **Kunde** | Eigene Seite pro Client: Stammdaten, Kontakte, Projekte, Wissen-Sektion, KPIs; CTAs zu Board/Docs/Wissen |
 | **Backoffice** | Kunden anlegen/löschen, Theme-Presets (Tintfield), Squircle-Tester |
 
 Weitere Module:
 
 - **Filter:** Client, Projekt, Priorität, Schnellfilter, Status, Zuweisung, Cycle — Progressive Disclosure im Filter-Popover
 - **Kunden-Navigation:** Sidebar-Klick / Breadcrumb / ⌘K „Kunde: …“ öffnet die Kunden-Seite (nicht nur Board-Filter)
-- **⌘K Command Palette** + Shortcut-Hilfe
+- **⌘K Command Palette** (Tasks, Docs, Wissen, Views) + Shortcut-Hilfe
 - **Assignees / Members**, Favoriten-Projekte
 - **Task-Dialog:** CustomSelects (keine nativen `<select>`), Anhänge, Kommentare, Zeiterfassung, Recurrence, Git-URL, Duplizieren
 - **Undo/Redo** für Task-CRUD/Status/Reorder
@@ -124,7 +125,8 @@ mein-vault/
   clients.json            # clients, projects, members
   tasks/<ISSUE-KEY>.md    # kompaktes YAML + `# Titel` + Beschreibung (menschenlesbar)
   tasks/archive/          # archivierte Aufgaben (kein Löschen — nur Verschieben)
-  docs/DOC-*.md
+  docs/DOC-*.md           # freie Arbeitsnotizen
+  knowledge/KN-*.md       # Kunden-/Projekt-Wissen (Kategorien, optional projectId)
   attachments/            # optionale Binärdateien
 ```
 

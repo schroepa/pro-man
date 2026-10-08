@@ -13,6 +13,7 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 | # | Thema | Warum |
 |---|---|---|
 | 1 | **Alltag mit echtem Vault** | SWT-/Notion-Daten im Flow schärfen (Filter, Tags, Projekte) — Reibung aus dem echten Arbeiten |
+| 2 | **Epic B — Anforderungen** | Anforderungen an Projekten (später Assets); Knowledge-IDs aus A als Anker |
 
 ---
 
@@ -33,6 +34,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Wissensmodul (Epic A)**: `KnowledgeItem` + `knowledge/`, Kategorien/Templates, B3-Merge, Sidebar + Kunden-Sektion + ⌘K, i18n de/en, Beispiel-Vault
 - **Team-Vault Hardening v1**: Confirm-Dialog (Primary=Neu laden), Content-Digest, Atomic Writes, Banner mit Pfaden + „Später“
 - **Team-Vault (Soft Concurrent)**: Playbook [`docs/TEAM-VAULT.md`](./TEAM-VAULT.md); Session-Identität „Ich bin …“; Fingerprint/Stale-Banner + Save-Guard; Team-Setup-Hinweis — kein Sync-Server/CRDT
 - **Dashboard als Startseite (MVP)**: `currentView = "dashboard"` Default; Fokus-KPIs → Liste+Filter; Attention-Liste; Weiter Board/Liste/Favorit; Kanban ohne KPI-Leiste; Mobile-Nav Übersicht zuerst
