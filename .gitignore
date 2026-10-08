@@ -23,3 +23,4 @@ src/**/*.js.map
 # Local Notion / one-off imports (may contain client data)
 .import/
 vault-notion/
+.worktrees/
