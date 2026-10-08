@@ -1,0 +1,34 @@
+{
+  "clients": [
+    {
+      "id": "cli-acme",
+      "name": "Acme Corporation",
+      "code": "ACM"
+    },
+    {
+      "id": "cli-internal",
+      "name": "Intern",
+      "code": "INT"
+    }
+  ],
+  "projects": [
+    {
+      "id": "prj-web",
+      "clientId": "cli-acme",
+      "name": "Web Portal",
+      "code": "WEB"
+    },
+    {
+      "id": "prj-core",
+      "clientId": "cli-internal",
+      "name": "Core",
+      "code": "CORE"
+    }
+  ],
+  "members": [
+    {
+      "id": "mem-alice",
+      "name": "Alice"
+    }
+  ]
+}

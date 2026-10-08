@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Version** | 0.3.1 |
-| **Stack** | TypeScript, Vite 6, Vitest, happy-dom, axe-core |
+| **Stack** | TypeScript, Vite 6, Vitest, happy-dom, axe-core · optional Python-CLI `tools/` |
 | **UI** | Eigenes Token-System (kein Tailwind/Shadcn) |
 | **Typo** | Geist + Geist Mono (self-hosted, variable woff2) |
 | **i18n** | Deutsch / Englisch |
@@ -42,6 +42,17 @@ npm test
 npm run build
 ```
 
+Vault-Reports / Lint (optional, Python ≥3.11):
+
+```bash
+cd tools && python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+promantools report ../vault-example
+promantools lint ../vault-example
+```
+
+Details: [`tools/README.md`](./tools/README.md).
+
 Chrome/Edge empfohlen (File System Access API für Vault).
 
 Ordner verbinden: Sidebar → **Ordner verbinden** (nach Onboarding kompakt) → Ordner wählen (z. B. `vault-example/`). Beim ersten Start: Banner **Ordner verbinden** oder **Mit Beispieldaten starten**.
@@ -72,6 +83,7 @@ public/
   sw.js                   # PWA: hashed assets only (HTML never cached)
 vault-example/            # Beispiel-Vault (tasks/, docs/, knowledge/)
 docs/                     # Lebende Design- & Architekturdoku
+tools/                    # Optional: Python CLI (report + lint am Vault)
 ```
 
 ### Prinzipien

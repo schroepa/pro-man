@@ -21,6 +21,7 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 
 | Thema | Status | Notiz |
 |---|---|---|
+| **promantools Erweiterungen** | geparkt | Import-Brücken, Bulk-Cleanup, Timesheet-PDF/Excel, Knowledge-Seed — Basis `report`+`lint` liegt unter `tools/` |
 | **Multi-Device Sync** | ⏸️ geparkt | Mehrere Geräte gleichzeitig; braucht Sync-Schicht, Accounts/Transport, Konflikte |
 | **CRDT / Offline-Merge** | ⏸️ geparkt | Automatisches Zusammenführen paralleler Edits; hoher Komplexitätspreis, lokaler Vault-Vorteil bliebe erhalten nur mit sorgfältigem Design |
 | Notion-Import | geparkt | Einmal-Migration erledigt; kein Dauer-Feature |
@@ -34,6 +35,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **promantools MVP**: Python-CLI `tools/` — Vault-Report (Überfällig/Cycle/Zeit/Digest) + Lint (read-only)
 - **Wissensmodul (Epic A)**: `KnowledgeItem` + `knowledge/`, Kategorien/Templates, B3-Merge, Sidebar + Kunden-Sektion + ⌘K, i18n de/en, Beispiel-Vault
 - **Team-Vault Hardening v1**: Confirm-Dialog (Primary=Neu laden), Content-Digest, Atomic Writes, Banner mit Pfaden + „Später“
 - **Team-Vault (Soft Concurrent)**: Playbook [`docs/TEAM-VAULT.md`](./TEAM-VAULT.md); Session-Identität „Ich bin …“; Fingerprint/Stale-Banner + Save-Guard; Team-Setup-Hinweis — kein Sync-Server/CRDT

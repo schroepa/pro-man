@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
+- **promantools (Python CLI)**: Read-only Vault-Companion unter `tools/` — `report` (Überfällig, Cycle, Zeit, Wochen-Digest als Markdown/CSV) und `lint` (Frontmatter, Orphans, doppelte Issue-Keys, Wikilinks, Dependencies); siehe [`tools/README.md`](./tools/README.md)
 - **Wissensmodul (Epic A)**: Kunden-/projektgebundenes Wissen (`knowledge/*.md`) getrennt von Docs — Kategorien + Templates, B3-Merge (Kunde read-only in Projektansicht), Sidebar-Ansicht, Kunden-Sektion, ⌘K-Gruppe; Beispiel-Vault `vault-example/knowledge/`
 - **Pro-Man Branding**: Eigenes Logo (Lockup horizontal) in der Sidebar; Favicon (SVG/ICO/Apple Touch), PWA-Icons, Open-Graph-Bild; Schreibweise „Pro-Man“
 - **Team-Vault Hardening**: Confirm-Dialog (Primary=Neu laden), Content-Digest im Fingerprint, Atomic Writes (Temp→Replace), Banner mit betroffenen Pfaden + „Später“

@@ -36,6 +36,19 @@ Docs are **living files** and must match `main`:
 
 PR checklist: code + tests + docs in the same change when behaviour or design contracts move.
 
+## Python vault tools
+
+Optional companion under `tools/` (not part of the Vite app):
+
+```bash
+cd tools && python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pytest
+promantools lint ../vault-example
+```
+
+See [`tools/README.md`](./tools/README.md). Keep CLI read-only unless a future write command is explicitly scoped.
+
 ## Project structure
 
 ```
@@ -48,6 +61,7 @@ src/
   design/ ux/ a11y/ test/  # integrity & accessibility tests
   i18n/         # de / en strings
 docs/           # Living design & product docs
+tools/          # Optional Python CLI (report + lint)
 public/fonts/   # Self-hosted Geist variable woff2
 vault-example/  # Sample Obsidian-style vault
 ```
