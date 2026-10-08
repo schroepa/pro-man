@@ -2,6 +2,159 @@
    BACKOFFICE & ADMINISTRATION HUB STYLES (BORDERLESS ENTERPRISE)
    ========================================================================== */
 
+/* Vault health / report tab */
+.vault-health {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.vault-health-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.vault-health-summary.is-ok {
+  background: color-mix(in srgb, var(--status-done-solid) 12%, var(--color-bg-surface));
+}
+
+.vault-health-summary.is-warning {
+  background: color-mix(in srgb, var(--status-review-solid) 14%, var(--color-bg-surface));
+}
+
+.vault-health-summary.is-error {
+  background: color-mix(in srgb, var(--status-todo-solid, #c44) 14%, var(--color-bg-surface));
+}
+
+.vault-health-summary p {
+  margin: 0.25rem 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.vault-health-summary-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.vault-health-section .backoffice-section-title {
+  margin-bottom: var(--space-3);
+}
+
+.vault-health-empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.vault-health-table-wrap {
+  overflow-x: auto;
+}
+
+.vault-health-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.vault-health-table th,
+.vault-health-table td {
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  vertical-align: top;
+}
+
+.vault-health-table thead th {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  border-bottom: 1px solid var(--color-border-subtle, transparent);
+}
+
+.vault-health-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--color-bg-canvas) 55%, transparent);
+}
+
+.vault-health-pill {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+}
+
+.vault-health-pill-error {
+  background: color-mix(in srgb, #c44 18%, transparent);
+  color: var(--color-text-primary);
+}
+
+.vault-health-pill-warning {
+  background: color-mix(in srgb, var(--status-review-solid) 20%, transparent);
+  color: var(--color-text-primary);
+}
+
+.vault-health-link {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--color-primary-600);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  text-align: left;
+}
+
+.vault-health-link:hover {
+  text-decoration: underline;
+}
+
+.vault-health-muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.vault-health-digest-block + .vault-health-digest-block {
+  margin-top: var(--space-4);
+}
+
+.vault-health-digest-heading {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--space-2);
+}
+
+.vault-health-digest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.vault-health-digest-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-2);
+  align-items: baseline;
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 720px) {
+  .vault-health-digest-list li {
+    grid-template-columns: 1fr;
+  }
+}
+
 .backoffice-container {
   display: flex;
   flex-direction: column;

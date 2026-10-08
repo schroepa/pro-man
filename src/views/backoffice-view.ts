@@ -7,8 +7,15 @@ import { themeManager, PRESET_THEMES, ThemeConfig } from "../storage/theme-manag
 import { calculateConcentricRadius } from "../utils/squircle";
 import { showToast } from "../components/toast";
 import { t } from "../i18n";
+import {
+  computeVaultHealth,
+  downloadTextFile,
+  renderHealthCsv,
+  renderHealthMarkdown,
+  type VaultHealthSnapshot,
+} from "../utils/vault-health";
 
-type BackofficeTab = "clients" | "team" | "theme";
+type BackofficeTab = "clients" | "team" | "theme" | "vault";
 let currentTab: BackofficeTab = "clients";
 let feedbackMessage: string | null = null;
 let editingClientId: string | null = null;
@@ -25,7 +32,7 @@ export function renderBackofficeView(container: HTMLElement): void {
     }
     try {
       const tabHint = sessionStorage.getItem("proman_backoffice_tab");
-      if (tabHint === "team" || tabHint === "clients" || tabHint === "theme") {
+      if (tabHint === "team" || tabHint === "clients" || tabHint === "theme" || tabHint === "vault") {
         currentTab = tabHint;
         sessionStorage.removeItem("proman_backoffice_tab");
       }
@@ -39,14 +46,17 @@ export function renderBackofficeView(container: HTMLElement): void {
   const activeTheme = themeManager.getCurrentTheme();
   const members = store.getAllMembersIncludingArchived();
 
+  const vh = t().vaultHealth;
   const headerTitle =
     currentTab === "clients" ? "Backoffice & Verwaltung"
       : currentTab === "team" ? t().members.title
-        : "Farbsystem & Tintfield Manager";
+        : currentTab === "vault" ? vh.title
+          : "Farbsystem & Tintfield Manager";
   const headerSubtitle =
     currentTab === "clients" ? "Zentrale Kunden- & Projektorganisation (synchronisiert mit clients.json)"
       : currentTab === "team" ? t().members.subtitle
-        : "12-stufige Farbskalen (Neutrals & Brand) mit Live-Anwendung & Tintfield-Import";
+        : currentTab === "vault" ? vh.subtitle
+          : "12-stufige Farbskalen (Neutrals & Brand) mit Live-Anwendung & Tintfield-Import";
 
   const wrapper = document.createElement("div");
   wrapper.className = "backoffice-container";
@@ -62,7 +72,9 @@ export function renderBackofficeView(container: HTMLElement): void {
             ? TablerIcon.palette({ size: 22, strokeWidth: 2 })
             : currentTab === "team"
               ? TablerIcon.users({ size: 22, strokeWidth: 2 })
-              : TablerIcon.buildingStore({ size: 22, strokeWidth: 2 })}
+              : currentTab === "vault"
+                ? TablerIcon.listCheck({ size: 22, strokeWidth: 2 })
+                : TablerIcon.buildingStore({ size: 22, strokeWidth: 2 })}
         </div>
         <div>
           <h1 class="backoffice-title">${escapeHtml(headerTitle)}</h1>
@@ -79,6 +91,15 @@ export function renderBackofficeView(container: HTMLElement): void {
           <button id="toggle-new-member-btn" class="btn btn-primary">
             ${TablerIcon.plus({ size: 14, strokeWidth: 2.5 })}
             <span>${escapeHtml(t().members.addPerson)}</span>
+          </button>
+        ` : currentTab === "vault" ? `
+          <button type="button" id="vault-export-md" class="btn btn-secondary">
+            ${TablerIcon.download({ size: 14, strokeWidth: 2 })}
+            <span>${escapeHtml(vh.exportMd)}</span>
+          </button>
+          <button type="button" id="vault-export-csv" class="btn btn-secondary">
+            ${TablerIcon.download({ size: 14, strokeWidth: 2 })}
+            <span>${escapeHtml(vh.exportCsv)}</span>
           </button>
         ` : `
           <a href="https://tintfield.ptrckschrdtr.de/app" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="text-decoration: none;">
@@ -107,13 +128,19 @@ export function renderBackofficeView(container: HTMLElement): void {
         ${TablerIcon.palette({ size: 14, strokeWidth: 2 })}
         <span>Farbsystem & Tintfield</span>
       </button>
+      <button class="backoffice-tab-btn ${currentTab === "vault" ? "active" : ""}" data-tab="vault" role="tab" aria-selected="${currentTab === "vault"}">
+        ${TablerIcon.listCheck({ size: 14, strokeWidth: 2 })}
+        <span>${escapeHtml(vh.tab)}</span>
+      </button>
     </div>
 
     ${currentTab === "clients"
       ? renderClientsTabHTML(clients, allProjects, allTasks, allDocs)
       : currentTab === "team"
         ? renderTeamTabHTML(members)
-        : renderThemeTabHTML(activeTheme)}
+        : currentTab === "vault"
+          ? renderVaultHealthTabHTML()
+          : renderThemeTabHTML(activeTheme)}
   `;
 
   // Attach Sub-Tab Navigation
@@ -132,6 +159,8 @@ export function renderBackofficeView(container: HTMLElement): void {
     attachClientsEventListeners(wrapper, container);
   } else if (currentTab === "team") {
     attachTeamEventListeners(wrapper, container);
+  } else if (currentTab === "vault") {
+    attachVaultHealthListeners(wrapper);
   } else {
     attachThemeEventListeners(wrapper, container);
   }
@@ -1276,6 +1305,242 @@ function attachThemeEventListeners(wrapper: HTMLElement, container: HTMLElement)
 
   sliderOuter?.addEventListener("input", updateGeometryDemo);
   sliderPad?.addEventListener("input", updateGeometryDemo);
+}
+
+function buildVaultHealthSnapshot(): VaultHealthSnapshot {
+  const vh = t().vaultHealth;
+  return computeVaultHealth(
+    {
+      tasks: store.getAllRawTasks(),
+      archivedTasks: store.getArchivedTasks(),
+      clients: store.getClients(),
+      projects: store.getProjects(),
+      docs: store.getDocs(),
+    },
+    new Date(),
+    {
+      overdue: vh.digestOverdue,
+      dueThisWeek: vh.digestDueWeek,
+      inProgress: vh.digestInProgress,
+      doneThisWeek: vh.digestDoneWeek,
+    }
+  );
+}
+
+function renderVaultHealthTabHTML(): string {
+  const vh = t().vaultHealth;
+  const snap = buildVaultHealthSnapshot();
+  const summaryText = snap.errorCount + snap.warningCount === 0
+    ? vh.summaryOk
+    : vh.summaryIssues
+      .replace("{errors}", String(snap.errorCount))
+      .replace("{warnings}", String(snap.warningCount));
+  const overdueText = vh.summaryOverdue.replace("{n}", String(snap.overdue.length));
+  const statusClass = snap.errorCount > 0
+    ? "vault-health-summary is-error"
+    : snap.warningCount > 0
+      ? "vault-health-summary is-warning"
+      : "vault-health-summary is-ok";
+
+  const lintRows = snap.issues.length === 0
+    ? `<p class="vault-health-empty">${escapeHtml(vh.emptyLint)}</p>`
+    : `
+      <div class="vault-health-table-wrap">
+        <table class="vault-health-table">
+          <thead>
+            <tr>
+              <th>${escapeHtml(vh.colSeverity)}</th>
+              <th>${escapeHtml(vh.colCode)}</th>
+              <th>${escapeHtml(vh.colMessage)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${snap.issues.map(issue => `
+              <tr class="vault-health-row-${issue.severity}">
+                <td><span class="vault-health-pill vault-health-pill-${issue.severity}">${escapeHtml(issue.severity)}</span></td>
+                <td><code>${escapeHtml(issue.code)}</code></td>
+                <td>${escapeHtml(issue.message)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`;
+
+  const overdueRows = snap.overdue.length === 0
+    ? `<p class="vault-health-empty">${escapeHtml(vh.emptyOverdue)}</p>`
+    : `
+      <div class="vault-health-table-wrap">
+        <table class="vault-health-table">
+          <thead>
+            <tr>
+              <th>${escapeHtml(vh.colKey)}</th>
+              <th>${escapeHtml(vh.colTitle)}</th>
+              <th>${escapeHtml(vh.colDue)}</th>
+              <th>${escapeHtml(vh.colDays)}</th>
+              <th>${escapeHtml(vh.colStatus)}</th>
+              <th>${escapeHtml(vh.colClient)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${snap.overdue.map(row => `
+              <tr>
+                <td><button type="button" class="vault-health-link" data-open-task-key="${escapeAttr(row.key)}" title="${escapeAttr(vh.openTask)}">${escapeHtml(row.key)}</button></td>
+                <td>${escapeHtml(row.title)}</td>
+                <td>${escapeHtml(row.dueDate)}</td>
+                <td>${row.daysOverdue}</td>
+                <td>${escapeHtml(row.status)}</td>
+                <td>${escapeHtml(row.client)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`;
+
+  const cycleRows = snap.cycles.length === 0
+    ? `<p class="vault-health-empty">${escapeHtml(vh.emptyCycles)}</p>`
+    : `
+      <div class="vault-health-table-wrap">
+        <table class="vault-health-table">
+          <thead>
+            <tr>
+              <th>${escapeHtml(vh.colCycle)}</th>
+              <th>${escapeHtml(vh.colTasks)}</th>
+              <th>Todo</th>
+              <th>Progress</th>
+              <th>Review</th>
+              <th>Done</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${snap.cycles.map(c => `
+              <tr>
+                <td>${escapeHtml(c.cycle)}</td>
+                <td>${c.total}</td>
+                <td>${c.todo}</td>
+                <td>${c.inProgress}</td>
+                <td>${c.inReview}</td>
+                <td>${c.done}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`;
+
+  const timeRows = snap.timeRows.length === 0
+    ? `<p class="vault-health-empty">${escapeHtml(vh.emptyTime)}</p>`
+    : `
+      <div class="vault-health-table-wrap">
+        <table class="vault-health-table">
+          <thead>
+            <tr>
+              <th>${escapeHtml(vh.colClient)}</th>
+              <th>${escapeHtml(vh.colProject)}</th>
+              <th>${escapeHtml(vh.colHours)}</th>
+              <th>${escapeHtml(vh.colEstimate)}</th>
+              <th>${escapeHtml(vh.colTasks)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${snap.timeRows.map(r => `
+              <tr>
+                <td>${escapeHtml(r.client)}</td>
+                <td>${escapeHtml(r.project)}</td>
+                <td>${r.hours}</td>
+                <td>${r.estimateHours}</td>
+                <td>${r.taskCount}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`;
+
+  const digestHtml = snap.digest.map(section => `
+    <div class="vault-health-digest-block">
+      <h3 class="vault-health-digest-heading">${escapeHtml(section.heading)}</h3>
+      ${section.tasks.length === 0
+        ? `<p class="vault-health-empty">${escapeHtml(vh.emptyDigest)}</p>`
+        : `<ul class="vault-health-digest-list">
+            ${section.tasks.map(task => `
+              <li>
+                <button type="button" class="vault-health-link" data-open-task-key="${escapeAttr(task.key)}">${escapeHtml(task.key)}</button>
+                <span>${escapeHtml(task.title)}</span>
+                <span class="vault-health-muted">${escapeHtml(task.status)} · ${escapeHtml(task.dueDate)} · ${escapeHtml(task.client)}</span>
+              </li>
+            `).join("")}
+          </ul>`}
+    </div>
+  `).join("");
+
+  return `
+    <div class="vault-health" data-testid="vault-health-panel">
+      <div class="${statusClass}" role="status">
+        <div class="vault-health-summary-icon" aria-hidden="true">
+          ${snap.errorCount > 0
+            ? TablerIcon.alertTriangle({ size: 18 })
+            : TablerIcon.circleCheck({ size: 18 })}
+        </div>
+        <div>
+          <strong>${escapeHtml(summaryText)}</strong>
+          <p>${escapeHtml(overdueText)} · ${escapeHtml(vh.metaActive)} ${snap.activeCount} · ${escapeHtml(vh.metaArchived)} ${snap.archivedCount} · ${escapeHtml(vh.metaAsOf)} ${escapeHtml(snap.asOf)}</p>
+        </div>
+      </div>
+
+      <section class="backoffice-section vault-health-section" aria-labelledby="vh-lint">
+        <h2 id="vh-lint" class="backoffice-section-title">${escapeHtml(vh.sectionLint)}</h2>
+        ${lintRows}
+      </section>
+
+      <section class="backoffice-section vault-health-section" aria-labelledby="vh-overdue">
+        <h2 id="vh-overdue" class="backoffice-section-title">${escapeHtml(vh.sectionOverdue)}</h2>
+        ${overdueRows}
+      </section>
+
+      <section class="backoffice-section vault-health-section" aria-labelledby="vh-cycles">
+        <h2 id="vh-cycles" class="backoffice-section-title">${escapeHtml(vh.sectionCycles)}</h2>
+        ${cycleRows}
+      </section>
+
+      <section class="backoffice-section vault-health-section" aria-labelledby="vh-time">
+        <h2 id="vh-time" class="backoffice-section-title">${escapeHtml(vh.sectionTime)}</h2>
+        ${timeRows}
+      </section>
+
+      <section class="backoffice-section vault-health-section" aria-labelledby="vh-digest">
+        <h2 id="vh-digest" class="backoffice-section-title">${escapeHtml(vh.sectionDigest)}</h2>
+        ${digestHtml}
+      </section>
+    </div>
+  `;
+}
+
+function attachVaultHealthListeners(wrapper: HTMLElement): void {
+  const vh = t().vaultHealth;
+  wrapper.querySelector("#vault-export-md")?.addEventListener("click", () => {
+    const snap = buildVaultHealthSnapshot();
+    downloadTextFile(`proman-vault-report-${snap.asOf}.md`, renderHealthMarkdown(snap), "text/markdown;charset=utf-8");
+    showToast(vh.exported, "success");
+  });
+  wrapper.querySelector("#vault-export-csv")?.addEventListener("click", () => {
+    const snap = buildVaultHealthSnapshot();
+    downloadTextFile(`proman-vault-report-${snap.asOf}.csv`, renderHealthCsv(snap), "text/csv;charset=utf-8");
+    showToast(vh.exported, "success");
+  });
+  wrapper.querySelectorAll<HTMLButtonElement>("[data-open-task-key]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.openTaskKey;
+      if (!key) return;
+      const task = store.getAllRawTasks().find(t => t.issueKey === key || t.id === key)
+        || store.getArchivedTasks().find(t => t.issueKey === key || t.id === key);
+      if (!task) return;
+      store.selectedClientId = task.clientId || null;
+      store.selectedProjectId = task.projectId || null;
+      store.currentView = "list";
+      store.filterQuick = "all";
+      store.filterStatus = "all";
+      store.searchQuery = task.issueKey || task.id;
+      store.notify();
+    });
+  });
 }
 
 function escapeHtml(text: string): string {

@@ -198,6 +198,10 @@ export function renderDashboardView(
             <span>${escapeHtml(favProject.name)}</span>
           </button>
         ` : ""}
+        <button type="button" class="dashboard-continue-link" data-go="vault-health" title="${escapeHtml(i18n.dashboard.vaultHealthHint)}">
+          ${TablerIcon.listCheck({ size: 16 })}
+          <span>${i18n.dashboard.vaultHealthLink}</span>
+        </button>
       </div>
     </nav>
   `;
@@ -229,6 +233,13 @@ export function renderDashboardView(
     store.filterQuick = "all";
     store.filterStatus = "all";
     store.currentView = "list";
+    store.notify();
+  });
+  wrapper.querySelector<HTMLButtonElement>('[data-go="vault-health"]')?.addEventListener("click", () => {
+    try {
+      sessionStorage.setItem("proman_backoffice_tab", "vault");
+    } catch { /* ignore */ }
+    store.currentView = "backoffice";
     store.notify();
   });
   wrapper.querySelector<HTMLButtonElement>("[data-go-project]")?.addEventListener("click", (e) => {

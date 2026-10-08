@@ -42,16 +42,9 @@ npm test
 npm run build
 ```
 
-Vault-Reports / Lint (optional, Python ≥3.11):
+**Vault prüfen (ohne Terminal):** Backoffice → Tab **Prüfen & Bericht** (auch von Übersicht „Vault prüfen“ oder ⌘K). Markdown/CSV-Export per Button.
 
-```bash
-cd tools && python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-promantools report ../vault-example
-promantools lint ../vault-example
-```
-
-Details: [`tools/README.md`](./tools/README.md).
+Optional CLI (Python ≥3.11) für Automation: [`tools/README.md`](./tools/README.md).
 
 Chrome/Edge empfohlen (File System Access API für Vault).
 

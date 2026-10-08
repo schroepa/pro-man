@@ -35,6 +35,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Vault prüfen (In-App)**: Backoffice-Tab + Dashboard/⌘K-Einstieg; gleiche Report/Lint-Idee wie promantools, ohne Terminal
 - **promantools MVP**: Python-CLI `tools/` — Vault-Report (Überfällig/Cycle/Zeit/Digest) + Lint (read-only)
 - **Wissensmodul (Epic A)**: `KnowledgeItem` + `knowledge/`, Kategorien/Templates, B3-Merge, Sidebar + Kunden-Sektion + ⌘K, i18n de/en, Beispiel-Vault
 - **Team-Vault Hardening v1**: Confirm-Dialog (Primary=Neu laden), Content-Digest, Atomic Writes, Banner mit Pfaden + „Später“

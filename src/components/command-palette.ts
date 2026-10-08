@@ -381,6 +381,20 @@ export class CommandPalette {
         action: () => { store.currentView = "backoffice"; store.notify(); },
       },
       {
+        id: "view-vault-health",
+        label: show(i18n.vaultHealth.tab),
+        group: "views",
+        fields: [i18n.vaultHealth.tab, i18n.vaultHealth.title, "vault", "lint", "report", "prüfen", "bericht"],
+        score: 0,
+        action: () => {
+          try {
+            sessionStorage.setItem("proman_backoffice_tab", "vault");
+          } catch { /* ignore */ }
+          store.currentView = "backoffice";
+          store.notify();
+        },
+      },
+      {
         id: "view-calendar",
         label: show(i18n.views.calendar),
         group: "views",

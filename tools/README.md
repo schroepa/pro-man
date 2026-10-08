@@ -61,5 +61,5 @@ pytest
 ## Absicht / Nicht-Ziele
 
 - **Nur lesen** — kein Bulk-Cleanup, kein Import-Schreiben (kommt ggf. später).
-- Kein Ersatz für die TypeScript-App; Companion am Vault.
+- Companion am Vault für Automation/CI — **Alltags-UI** liegt in der App: Backoffice → **Prüfen & Bericht**.
 - Geplant später: Import-Brücken, Cleanup, Timesheet-PDF, Knowledge-Seed.

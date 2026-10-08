@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
+- **Vault prüfen & Bericht (In-App)**: Backoffice-Tab „Prüfen & Bericht“ — Integrität, Überfällig, Cycle, Zeit, Wochen-Digest; Markdown/CSV-Export per Klick; Einstieg von Übersicht und ⌘K (kein Terminal nötig)
 - **promantools (Python CLI)**: Read-only Vault-Companion unter `tools/` — `report` (Überfällig, Cycle, Zeit, Wochen-Digest als Markdown/CSV) und `lint` (Frontmatter, Orphans, doppelte Issue-Keys, Wikilinks, Dependencies); siehe [`tools/README.md`](./tools/README.md)
 - **Wissensmodul (Epic A)**: Kunden-/projektgebundenes Wissen (`knowledge/*.md`) getrennt von Docs — Kategorien + Templates, B3-Merge (Kunde read-only in Projektansicht), Sidebar-Ansicht, Kunden-Sektion, ⌘K-Gruppe; Beispiel-Vault `vault-example/knowledge/`
 - **Pro-Man Branding**: Eigenes Logo (Lockup horizontal) in der Sidebar; Favicon (SVG/ICO/Apple Touch), PWA-Icons, Open-Graph-Bild; Schreibweise „Pro-Man“
