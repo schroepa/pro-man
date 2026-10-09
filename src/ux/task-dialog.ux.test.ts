@@ -92,6 +92,9 @@ describe("UX — closed task dialog must not cover the mobile viewport", () => {
     expect(css).toMatch(/@media \(max-width:\s*1024px\)[\s\S]*width:\s*80vw/);
     expect(css).toMatch(/@media \(max-width:\s*768px\)[\s\S]*width:\s*92vw/);
     expect(css).toMatch(/motion-drawer-in/);
+    expect(css).toMatch(/dialog\.task-dialog\s*\{[\s\S]*?border-radius:\s*0/);
+    expect(css).not.toMatch(/dialog\.task-dialog\s*\{[\s\S]*?corner-shape:/);
+    expect(css).toMatch(/\.form-group--description\s*\{[\s\S]*?flex:\s*0\s+0\s+auto/);
     expect(css).not.toMatch(
       /@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog\s*\{[\s\S]*display:\s*flex/,
     );

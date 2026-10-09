@@ -197,7 +197,7 @@ Light-Variante nur auf hellem Grund, Dark-Variante nur auf dunklem. Bildmarke mi
 
 ### 7.3 Dialog / Forms
 
-- Task-Drawer: rechts angedockt (`inset: 0 0 0 auto`, `100dvh`), Elevated + Overlay-Shadow, Slide-in (`motion-drawer-in`); Scrim bleibt. Breite: Desktop `66.666vw` (⅔), ≤1024px `80vw`, ≤768px `92vw`, ≤640px Fullscreen.
+- Task-Drawer: rechts angedockt (`inset: 0 0 0 auto`, `100dvh`, `border-radius: 0`), Elevated + Overlay-Shadow, Slide-in (`motion-drawer-in`); Scrim bleibt. Breite: Desktop `66.666vw` (⅔), ≤1024px `80vw`, ≤768px `92vw`, ≤640px Fullscreen. Beschreibung wächst mit Inhalt (`flex: 0 0 auto`); Body scrollt — kein Flex-Shrink-Overflow.
 - Essentials zuerst (Titel, Status, Priorität, Fällig, **Beschreibung** als `md-live-field--task`), Meta-Rest in `<details class="task-more-details">`.
 - Sheet-Header: Issue-Key + Status-Chip (mobil sichtbar halten).
 - Flex-Column nur bei `dialog.task-dialog[open]`; geschlossen immer `display: none` (sonst Fullscreen-Weißfläche auf iPhone). Mobil (≤640px): Fullscreen-Sheet (gleiche Höhe, `border-radius: 0`).

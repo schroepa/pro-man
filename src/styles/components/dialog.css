@@ -14,12 +14,11 @@ dialog.task-dialog {
   max-height: 100dvh;
   background-color: var(--color-bg-elevated);
   border: none;
-  border-radius: var(--radius-2xl) 0 0 var(--radius-2xl);
+  border-radius: 0;
   box-shadow: var(--shadow-overlay);
   padding: 0;
   overflow: hidden;
   z-index: 1000;
-  corner-shape: squircle;
 }
 
 /* Laptop / large tablet: claim more width while board still peeks */
@@ -214,22 +213,25 @@ dialog.task-dialog .dialog-footer {
   box-shadow: 0 -1px 0 var(--neutral-4, rgba(0, 0, 0, 0.08));
 }
 
-/* Prominent description — primary reading surface in the drawer */
+/* Prominent description — size to content; drawer body scrolls (no flex-shrink trap) */
 .form-group--description {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .md-live-field--task {
-  flex: 1;
-  min-height: 180px;
+  width: 100%;
+  min-width: 0;
 }
 
 .md-live-field--task .md-live-view {
   min-height: 160px;
+  height: auto;
   padding: var(--space-4);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
+  overflow: hidden; /* contain markers; height grows with content */
 }
 
 .md-live-field--task .md-live-source {
