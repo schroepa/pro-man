@@ -164,7 +164,12 @@ dialog.task-dialog[open]::backdrop {
 .task-add-member-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: var(--space-2);
+}
+
+.task-add-member-panel > .form-row-2 {
+  align-items: end;
 }
 
 .kind-toggle {
@@ -220,8 +225,13 @@ dialog.task-dialog .dialog-footer {
   min-width: 0;
 }
 
+/*
+ * NN/g: body text ~50–75 cpl; 66ch is the classic comfortable measure.
+ * Keep the reading column left-aligned; form grids still use full drawer width.
+ */
 .md-live-field--task {
   width: 100%;
+  max-width: 66ch;
   min-width: 0;
 }
 
@@ -279,6 +289,14 @@ dialog.task-dialog .dialog-footer {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: var(--space-3);
+  align-items: start;
+}
+
+/* Compact widths: 3→2 before stacking — keeps related fields scannable (NN/g recognition) */
+@media (max-width: 900px) {
+  .form-row-3 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 640px) {

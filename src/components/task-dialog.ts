@@ -175,7 +175,7 @@ export class TaskDialog {
             <input type="text" id="task-input-title" class="input" required value="${escapeHtml(task.title)}" placeholder="${escapeHtml(t().tasks.titlePlaceholder)}" />
           </div>
 
-          <div class="form-row-2">
+          <div class="form-row-3">
             <div class="form-group">
               <span class="form-label">${t().filters.status}</span>
               <div id="task-select-status-mount"></div>
@@ -185,11 +185,11 @@ export class TaskDialog {
               <span class="form-label">${t().filters.priority}</span>
               <div id="task-select-priority-mount"></div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label" for="task-input-due">${t().tasks.dueDate}</label>
-            <input type="date" id="task-input-due" class="input" value="${task.dueDate}" />
+            <div class="form-group">
+              <label class="form-label" for="task-input-due">${t().tasks.dueDate}</label>
+              <input type="date" id="task-input-due" class="input" value="${task.dueDate}" />
+            </div>
           </div>
 
           <div class="form-group form-group--description">
@@ -202,7 +202,7 @@ export class TaskDialog {
             <div class="task-more-details-body">
               <p class="task-essentials-hint">${t().tasks.essentialsHint}</p>
 
-              <div class="form-row-2">
+              <div class="form-row-3">
                 <div class="form-group">
                   <span class="form-label">${t().filters.client}</span>
                   <div id="task-select-client-mount"></div>
@@ -212,34 +212,35 @@ export class TaskDialog {
                   <span class="form-label">${t().filters.project}</span>
                   <div id="task-select-project-mount"></div>
                 </div>
+
+                <div class="form-group">
+                  <span class="form-label">${t().tasks.assignee}</span>
+                  <div id="task-select-assignee-mount"></div>
+                </div>
               </div>
 
-              <div class="form-group">
-                <span class="form-label">${t().tasks.assignee}</span>
-                <div id="task-select-assignee-mount"></div>
-                <div id="task-add-member-panel" class="task-add-member-panel" ${this.showAddMemberForm ? "" : "hidden"}>
-                  <p class="task-essentials-hint">${t().members.addPersonHint}</p>
-                  <div class="form-row-2">
-                    <div class="form-group">
-                      <label class="form-label" for="new-member-name">${t().members.fieldName}</label>
-                      <input type="text" id="new-member-name" class="input" placeholder="${escapeHtml(t().members.namePlaceholder)}" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label" for="new-member-role">${t().members.fieldRole}</label>
-                      <input type="text" id="new-member-role" class="input" placeholder="${escapeHtml(t().members.rolePlaceholder)}" />
-                    </div>
+              <div id="task-add-member-panel" class="task-add-member-panel" ${this.showAddMemberForm ? "" : "hidden"}>
+                <p class="task-essentials-hint">${t().members.addPersonHint}</p>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label class="form-label" for="new-member-name">${t().members.fieldName}</label>
+                    <input type="text" id="new-member-name" class="input" placeholder="${escapeHtml(t().members.namePlaceholder)}" />
                   </div>
-                  <div class="form-row-2">
-                    <div class="form-group">
-                      <label class="form-label" for="new-member-email">${t().members.fieldEmail}</label>
-                      <input type="email" id="new-member-email" class="input" />
-                    </div>
-                    <div class="form-group">
-                      <span class="form-label">${t().members.fieldKind}</span>
-                      <div class="kind-toggle" role="group" aria-label="${t().members.fieldKind}">
-                        <button type="button" class="kind-toggle-btn is-active" data-kind="external">${t().members.kindExternal}</button>
-                        <button type="button" class="kind-toggle-btn" data-kind="internal">${t().members.kindInternal}</button>
-                      </div>
+                  <div class="form-group">
+                    <label class="form-label" for="new-member-role">${t().members.fieldRole}</label>
+                    <input type="text" id="new-member-role" class="input" placeholder="${escapeHtml(t().members.rolePlaceholder)}" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="new-member-email">${t().members.fieldEmail}</label>
+                    <input type="email" id="new-member-email" class="input" />
+                  </div>
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <span class="form-label">${t().members.fieldKind}</span>
+                    <div class="kind-toggle" role="group" aria-label="${t().members.fieldKind}">
+                      <button type="button" class="kind-toggle-btn is-active" data-kind="external">${t().members.kindExternal}</button>
+                      <button type="button" class="kind-toggle-btn" data-kind="internal">${t().members.kindInternal}</button>
                     </div>
                   </div>
                   <div class="task-add-member-actions">
@@ -249,7 +250,7 @@ export class TaskDialog {
                 </div>
               </div>
 
-              <div class="form-row-2">
+              <div class="form-row-3">
                 <div class="form-group">
                   <label class="form-label" for="task-input-start">${t().tasks.startDate}</label>
                   <input type="date" id="task-input-start" class="input" value="${task.startDate}" />
@@ -259,14 +260,14 @@ export class TaskDialog {
                   <label class="form-label" for="task-input-estimate">${t().tasks.estimateHours}</label>
                   <input type="number" id="task-input-estimate" class="input" min="0" step="0.25" value="${task.estimateHours ?? ""}" placeholder="2" />
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label class="form-label" for="task-input-milestone">${t().tasks.milestone}</label>
-                <label class="milestone-switch-card" for="task-input-milestone">
-                  <span class="milestone-switch-label">${t().tasks.markMilestone}</span>
-                  <input type="checkbox" id="task-input-milestone" ${task.isMilestone ? "checked" : ""} />
-                </label>
+                <div class="form-group">
+                  <label class="form-label" for="task-input-milestone">${t().tasks.milestone}</label>
+                  <label class="milestone-switch-card" for="task-input-milestone">
+                    <span class="milestone-switch-label">${t().tasks.markMilestone}</span>
+                    <input type="checkbox" id="task-input-milestone" ${task.isMilestone ? "checked" : ""} />
+                  </label>
+                </div>
               </div>
 
               <div class="form-row-2">

@@ -27,6 +27,18 @@ describe("UX — task dialog select mounts", () => {
     expect(src).toContain("firstTaskToast");
   });
 
+  it("groups short essentials and meta fields in three-column rows", () => {
+    const src = readSrc("components/task-dialog.ts");
+    expect(src).toContain("form-row-3");
+    expect(src).toMatch(/form-row-3[\s\S]*task-select-status-mount[\s\S]*task-select-priority-mount[\s\S]*task-input-due/);
+    expect(src).toMatch(/form-row-3[\s\S]*task-select-client-mount[\s\S]*task-select-project-mount[\s\S]*task-select-assignee-mount/);
+    expect(src).toMatch(/form-row-3[\s\S]*task-input-start[\s\S]*task-input-estimate[\s\S]*task-input-milestone/);
+    // Inline add-person panel stays full-width (outside the assignee cell)
+    const assigneeMount = src.indexOf('id="task-select-assignee-mount"');
+    const addPanel = src.indexOf('id="task-add-member-panel"');
+    expect(addPanel).toBeGreaterThan(assigneeMount);
+  });
+
   it("keeps description in essentials (outside more-details accordion)", () => {
     const src = readSrc("components/task-dialog.ts");
     const descIdx = src.indexOf('id="task-desc-mount"');
@@ -36,6 +48,11 @@ describe("UX — task dialog select mounts", () => {
     expect(descIdx).toBeLessThan(detailsIdx);
     expect(src).toContain("form-group--description");
     expect(src).toContain("md-live-field--task");
+  });
+
+  it("constrains description measure for readable line length", () => {
+    const css = readSrc("styles/components/dialog.css");
+    expect(css).toMatch(/\.md-live-field--task\s*\{[\s\S]*?max-width:\s*66ch/);
   });
 
   it("mounts a live Markdown description field", () => {
