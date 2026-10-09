@@ -232,19 +232,31 @@ export class VaultStorage {
       const saved = await getSavedHandle();
       if (!saved) return false;
 
-      const handle = saved as any;
-      let status = await handle.queryPermission({ mode: "readwrite" });
-      if (status === "prompt") {
-        status = await handle.requestPermission({ mode: "readwrite" });
+      // Never call requestPermission here — it needs a user gesture.
+      // If permission is not already granted, keep the handle pending so the
+      // UI can offer "Zugriff erlauben" instead of looking disconnected.
+      const handle = saved as FileSystemDirectoryHandle & {
+        queryPermission?: (desc: { mode: string }) => Promise<PermissionState>;
+      };
+      let status: PermissionState = "prompt";
+      try {
+        if (typeof handle.queryPermission === "function") {
+          status = await handle.queryPermission({ mode: "readwrite" });
+        }
+      } catch {
+        status = "prompt";
       }
+
       if (status === "granted") {
         this.dirHandle = saved;
         this.pendingHandle = null;
         rememberVaultName(saved.name);
         return true;
       }
+
       this.pendingHandle = saved;
       this.dirHandle = null;
+      rememberVaultName(saved.name);
       return false;
     } catch {
       return false;

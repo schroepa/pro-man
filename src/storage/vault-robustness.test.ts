@@ -56,6 +56,101 @@ describe("Vault permission helpers", () => {
     expect(access).toBe("denied");
     expect(vault.connectionState).toBe("permission_needed");
   });
+
+  it("tryRestore keeps permission_needed when boot has no user gesture", async () => {
+    const vault = new VaultStorage();
+    (vault as unknown as { isSupported: boolean }).isSupported = true;
+
+    const requestPermission = vi.fn().mockRejectedValue(
+      Object.assign(new Error("User activation is required to request permissions."), {
+        name: "SecurityError",
+      })
+    );
+    const fakeHandle = {
+      name: "TeamVault",
+      queryPermission: vi.fn().mockResolvedValue("prompt"),
+      requestPermission,
+    };
+
+    const memory = new Map<string, unknown>();
+    vi.stubGlobal("indexedDB", {
+      open: () => {
+        const db = {
+          objectStoreNames: { contains: (n: string) => n === "handles" || memory.has("__created__") },
+          createObjectStore: () => {
+            memory.set("__created__", true);
+          },
+          transaction: (_store: string, _mode: string) => {
+            const tx: {
+              objectStore: (name: string) => {
+                get: (key: string) => { result?: unknown; onsuccess: ((ev?: unknown) => void) | null; onerror: ((ev?: unknown) => void) | null };
+                put: (value: unknown, key: string) => void;
+                delete: (key: string) => void;
+              };
+              oncomplete: ((ev?: unknown) => void) | null;
+              onerror: ((ev?: unknown) => void) | null;
+              error: null;
+            } = {
+              objectStore: () => ({
+                get: (key: string) => {
+                  const req: {
+                    result?: unknown;
+                    onsuccess: ((ev?: unknown) => void) | null;
+                    onerror: ((ev?: unknown) => void) | null;
+                  } = { onsuccess: null, onerror: null };
+                  queueMicrotask(() => {
+                    req.result = memory.get(key) ?? null;
+                    req.onsuccess?.(undefined);
+                  });
+                  return req;
+                },
+                put: (value: unknown, key: string) => {
+                  memory.set(key, value);
+                },
+                delete: (key: string) => {
+                  memory.delete(key);
+                },
+              }),
+              oncomplete: null,
+              onerror: null,
+              error: null,
+            };
+            queueMicrotask(() => tx.oncomplete?.(undefined));
+            return tx;
+          },
+        };
+        const req: {
+          result: typeof db;
+          onupgradeneeded: ((ev?: unknown) => void) | null;
+          onsuccess: ((ev?: unknown) => void) | null;
+          onerror: ((ev?: unknown) => void) | null;
+          error: null;
+        } = {
+          result: db,
+          onupgradeneeded: null,
+          onsuccess: null,
+          onerror: null,
+          error: null,
+        };
+        queueMicrotask(() => {
+          if (!memory.has("__created__")) req.onupgradeneeded?.(undefined);
+          memory.set("__created__", true);
+          req.onsuccess?.(undefined);
+        });
+        return req;
+      },
+    });
+
+    memory.set("vault_dir_handle", fakeHandle);
+
+    const ok = await vault.tryRestore();
+    expect(ok).toBe(false);
+    expect(requestPermission).not.toHaveBeenCalled();
+    expect(vault.connectionState).toBe("permission_needed");
+    expect(vault.vaultName).toBe("TeamVault");
+
+    vi.unstubAllGlobals();
+  });
 });
 
 describe("Client/project code normalization", () => {

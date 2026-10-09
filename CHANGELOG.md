@@ -4,6 +4,9 @@ Alle nennenswerten Änderungen an ProMan.
 
 ## [Unreleased]
 
+### Fixes
+- **Vault-Restore nach Reload**: Beim Start wird `requestPermission` nicht mehr ohne User-Gesture aufgerufen — gespeicherter Ordner bleibt als „Zugriff erlauben“ sichtbar statt still als offline zu verschwinden
+
 ### Features
 - **Conversion-Landing**: Überarbeitete Marketing-LP unter `/de/` und `/en/` — Unified Narrative (Solo + kleines Team), schlanker SaaS-Vergleich, CSS Product-Mocks, Dual-CTAs App + Docs; Brand-Lockups + OG-Image; Hero Breathing-Dots (Hex-Grid, radiale Welle, Maus-Ursprung, ≤4px, Auslaufen unten)
 - **Marketing-Landing & Tutorials**: Landing unter `/de/` und `/en/`, App unter `/app/`; User-Docs aus Markdown (`content/docs/`) mit Hub und 4 Tutorials je Locale; PWA-Scope `/app/`
