@@ -88,6 +88,9 @@ describe("UX — closed task dialog must not cover the mobile viewport", () => {
     // Full-height drawer flex must be gated on [open] — bare display:flex overrides UA hide on iPhone
     expect(css).toMatch(/dialog\.task-dialog\[open\]\s*\{[\s\S]*?display:\s*flex/);
     expect(css).toMatch(/inset:\s*0\s+0\s+0\s+auto/);
+    expect(css).toMatch(/width:\s*66\.666vw/);
+    expect(css).toMatch(/@media \(max-width:\s*1024px\)[\s\S]*width:\s*80vw/);
+    expect(css).toMatch(/@media \(max-width:\s*768px\)[\s\S]*width:\s*92vw/);
     expect(css).toMatch(/motion-drawer-in/);
     expect(css).not.toMatch(
       /@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog\s*\{[\s\S]*display:\s*flex/,

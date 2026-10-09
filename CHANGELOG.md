@@ -24,7 +24,7 @@ Alle nennenswerten Änderungen an ProMan.
 - **Docs Live-Markdown**: Docs-Editor nutzt dieselbe Notion-artige Fläche wie die Task-Beschreibung (Klick zum Bearbeiten, Auto-Grow, formatiert nach Blur); Edit/Preview-Tabs entfernt; Wikilinks bleiben klickbar
 
 ### Improvements
-- **Task-Drawer**: Tasks öffnen als rechter Drawer über die volle Viewport-Höhe (statt zentriertem Modal); Beschreibung ist Essential mit größerer Lesefläche
+- **Task-Drawer**: Tasks öffnen als rechter Drawer über die volle Viewport-Höhe (statt zentriertem Modal); Breite Desktop ⅔ · Tablet 80–92% · Mobil Fullscreen; Beschreibung ist Essential mit größerer Lesefläche
 - **Board-Karten Beschreibung**: Snippet zeigt Plain Text ohne Markdown-Zeichen (`###`, `**`, Listenmarker, …)
 - **Team-Vault Regressionstests**: Soft Concurrent Freshness/Write-Guard/Banner + Session-Identität absichern (`mockVaultFreshness`, 21 Tests)
 

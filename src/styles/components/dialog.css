@@ -7,8 +7,9 @@ dialog.task-dialog {
   position: fixed;
   inset: 0 0 0 auto;
   margin: 0;
-  width: min(560px, 100vw);
-  max-width: 560px;
+  /* Desktop: 2/3 viewport — primary reading + edit surface */
+  width: 66.666vw;
+  max-width: 100vw;
   height: 100dvh;
   max-height: 100dvh;
   background-color: var(--color-bg-elevated);
@@ -19,6 +20,20 @@ dialog.task-dialog {
   overflow: hidden;
   z-index: 1000;
   corner-shape: squircle;
+}
+
+/* Laptop / large tablet: claim more width while board still peeks */
+@media (max-width: 1024px) {
+  dialog.task-dialog {
+    width: 80vw;
+  }
+}
+
+/* Compact tablet / large phone landscape */
+@media (max-width: 768px) {
+  dialog.task-dialog {
+    width: 92vw;
+  }
 }
 
 /* Author `display` must not override the UA closed-dialog rule (iPhone blank screen). */
