@@ -28,7 +28,7 @@ Neue Nutzer in der Zielgruppe (Solo + kleines Studio/Agentur) überzeugen und zu
 
 ## Section flow
 
-1. **Hero** — Brand dominant, Outcome-Headline, Lead, Dual-CTA (App + Tutorials), Chrome-Hinweis; ein Product-Frame (Kanban-Mock); subtiler interaktiver Vault-Graph (Canvas, Maus-Magnet, Cluster Tasks/Docs/Wissen; `prefers-reduced-motion` → statisch)
+1. **Hero** — Brand dominant, Outcome-Headline, Lead, Dual-CTA (App + Tutorials), Chrome-Hinweis; ein Product-Frame (Kanban-Mock); Breathing-Dots (Hex-Grid, radiale Rounded-Square-Welle, Maus = Ursprung, ≤4px, Auslaufen unten; keine Linien; leiser als Codrops-Demo; `prefers-reduced-motion` → statisch)
 2. **Problem** (`#interest`) — Tool-Chaos → ein lokaler Workspace; 3 Punkte
 3. **Vergleich** (`#compare`) — 4 Kontrastzeilen vs. typisches SaaS (Account, Datenhoheit, Ordner, Team ohne Sync-Server)
 4. **Tour** (`#tour`) — 3 Szenen mit CSS-UI-Mocks (Board, Vault, Team-Share)

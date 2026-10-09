@@ -5,7 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Features
-- **Conversion-Landing**: Überarbeitete Marketing-LP unter `/de/` und `/en/` — Unified Narrative (Solo + kleines Team), schlanker SaaS-Vergleich, CSS Product-Mocks, Dual-CTAs App + Docs; Brand-Lockups + OG-Image; subtiler interaktiver Vault-Graph im Hero (Maus-Magnet, `prefers-reduced-motion`)
+- **Conversion-Landing**: Überarbeitete Marketing-LP unter `/de/` und `/en/` — Unified Narrative (Solo + kleines Team), schlanker SaaS-Vergleich, CSS Product-Mocks, Dual-CTAs App + Docs; Brand-Lockups + OG-Image; Hero Breathing-Dots (Hex-Grid, radiale Welle, Maus-Ursprung, ≤4px, Auslaufen unten)
 - **Marketing-Landing & Tutorials**: Landing unter `/de/` und `/en/`, App unter `/app/`; User-Docs aus Markdown (`content/docs/`) mit Hub und 4 Tutorials je Locale; PWA-Scope `/app/`
 - **Für KI teilen**: Backoffice → Prüfen & Bericht — ein Markdown-Briefing (Schema, offene Tasks, Docs-/Wissen-Index, Wochen-Digest) zum Pasten an Claude/Cursor
 - **Lokaler MCP-Server**: `proman-mcp` / `promantools mcp` unter `tools/` — list/get/create/update Tasks & Docs, Report, Lint; Vault via `PROMAN_VAULT` (optional `pip install -e ".[mcp]"`)
