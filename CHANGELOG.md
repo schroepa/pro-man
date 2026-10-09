@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an ProMan.
 ## [Unreleased]
 
 ### Fixes
+- **Kanban Drag & Drop**: Status-Verschieben bleibt sichtbar, auch wenn der Vault-Write fehlschlägt (Fallback + Notify); nach Drag kein versehentliches Task-Dialog-Öffnen
 - **Vault-Restore nach Reload**: Beim Start wird `requestPermission` nicht mehr ohne User-Gesture aufgerufen — gespeicherter Ordner bleibt als „Zugriff erlauben“ sichtbar statt still als offline zu verschwinden
 
 ### Features

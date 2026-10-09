@@ -237,15 +237,19 @@ export function renderKanbanBoard(
 
       list.addEventListener("drop", async (e) => {
         e.preventDefault();
+        e.stopPropagation();
         section.classList.remove("drag-over");
         list.querySelectorAll<HTMLElement>(".task-card").forEach(c => c.classList.remove("drag-target-above", "drag-target-below"));
 
         const taskId = e.dataTransfer?.getData("text/plain");
-        if (taskId) {
-          const currentIds = colTasks.map(task => task.id).filter(id => id !== taskId);
-          const targetIdx = Math.max(0, Math.min(dropTargetIndex, currentIds.length));
-          currentIds.splice(targetIdx, 0, taskId);
+        if (!taskId) return;
+        const currentIds = colTasks.map(task => task.id).filter(id => id !== taskId);
+        const targetIdx = Math.max(0, Math.min(dropTargetIndex < 0 ? currentIds.length : dropTargetIndex, currentIds.length));
+        currentIds.splice(targetIdx, 0, taskId);
+        try {
           await store.reorderTasks(col.id, currentIds);
+        } catch (err) {
+          console.error("Kanban drop failed", err);
         }
       });
 

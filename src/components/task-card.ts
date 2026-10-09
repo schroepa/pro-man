@@ -143,10 +143,23 @@ export function createTaskCard(
     }
   });
 
-  card.addEventListener("click", () => onOpen(task.id));
+  let suppressClickAfterDrag = false;
+
+  card.addEventListener("click", (e) => {
+    if (suppressClickAfterDrag) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onOpen(task.id);
+  });
 
   card.addEventListener("dragstart", (e) => {
-    e.dataTransfer?.setData("text/plain", task.id);
+    if (e.dataTransfer) {
+      e.dataTransfer.setData("text/plain", task.id);
+      e.dataTransfer.effectAllowed = "move";
+    }
+    suppressClickAfterDrag = true;
     card.setAttribute("aria-grabbed", "true");
     card.classList.add("dragging");
     announcer.announce(`${task.title}`);
@@ -155,6 +168,10 @@ export function createTaskCard(
   card.addEventListener("dragend", () => {
     card.setAttribute("aria-grabbed", "false");
     card.classList.remove("dragging");
+    // Browsers often synthesize a click after dragend — ignore it briefly.
+    window.setTimeout(() => {
+      suppressClickAfterDrag = false;
+    }, 100);
   });
 
   card.addEventListener("keydown", (e) => {

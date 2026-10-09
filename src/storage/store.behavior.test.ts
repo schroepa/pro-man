@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { store, deriveCodeFromName } from "./store";
 import { makeTask, resetStoreMaps, seedClientProject, storeInternals, stubVaultWrites } from "../test/helpers";
 
@@ -119,6 +119,23 @@ describe("subtasks block Done", () => {
     await store.updateTaskStatus(task.id, "done");
     expect(storeInternals().tasks.get(task.id)).toBeUndefined();
     expect(storeInternals().archivedTasks.get(task.id)?.status).toBe("done");
+  });
+
+  it("reorderTasks still moves status when vault save throws", async () => {
+    const task = makeTask({ id: "T-DRAG", status: "todo", order: 0 });
+    storeInternals().tasks.set(task.id, task);
+    storeInternals().storage.saveTask = async () => {
+      throw new Error("vault write failed");
+    };
+
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    await store.reorderTasks("in-progress", ["T-DRAG"]);
+
+    expect(storeInternals().tasks.get("T-DRAG")?.status).toBe("in-progress");
+    store.notifySync();
+    expect(listener).toHaveBeenCalled();
   });
 });
 

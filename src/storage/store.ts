@@ -1717,12 +1717,22 @@ export class AppStore {
           if (!task) continue;
           if (status === "done") {
             const archived = this.autoArchivePayload(task, { order: i });
-            await this.moveActiveTaskToArchive(archived);
+            try {
+              await this.moveActiveTaskToArchive(archived);
+            } catch {
+              reportVaultError(this.storage);
+            }
           } else {
             task.order = i;
             task.status = status;
             task.updatedAt = new Date().toISOString();
-            await this.storage.saveTask(task);
+            try {
+              await this.storage.saveTask(task);
+            } catch {
+              // Fallback already written inside saveTask — keep in-memory move
+              // so Kanban DnD still remounts instead of appearing to do nothing.
+              reportVaultError(this.storage);
+            }
           }
         }
       },
@@ -1740,6 +1750,7 @@ export class AppStore {
     };
 
     await this.executeCommand(cmd);
+    await this.afterVaultWrite();
     for (const id of newlyDoneIds) {
       this.toastUnblocked(id);
       const done = this.archivedTasks.get(id);
@@ -1920,11 +1931,19 @@ export class AppStore {
       execute: async () => {
         if (newStatus === "done") {
           const archived = this.autoArchivePayload(snapshot);
-          await this.moveActiveTaskToArchive(archived);
+          try {
+            await this.moveActiveTaskToArchive(archived);
+          } catch {
+            reportVaultError(this.storage);
+          }
         } else {
           task.status = newStatus;
           task.updatedAt = new Date().toISOString();
-          await this.storage.saveTask(task);
+          try {
+            await this.storage.saveTask(task);
+          } catch {
+            reportVaultError(this.storage);
+          }
         }
       },
       undo: async () => {
@@ -1939,12 +1958,17 @@ export class AppStore {
         } else {
           task.status = oldStatus;
           task.updatedAt = snapshot.updatedAt;
-          await this.storage.saveTask(task);
+          try {
+            await this.storage.saveTask(task);
+          } catch {
+            reportVaultError(this.storage);
+          }
         }
       },
     };
 
     await this.executeCommand(cmd);
+    await this.afterVaultWrite();
     if (becameDone) {
       this.toastUnblocked(taskId);
       await this.spawnRecurringInstance({ ...snapshot, status: "done" });
