@@ -27,6 +27,17 @@ describe("UX — task dialog select mounts", () => {
     expect(src).toContain("firstTaskToast");
   });
 
+  it("keeps description in essentials (outside more-details accordion)", () => {
+    const src = readSrc("components/task-dialog.ts");
+    const descIdx = src.indexOf('id="task-desc-mount"');
+    const detailsIdx = src.indexOf('class="task-more-details"');
+    expect(descIdx).toBeGreaterThan(-1);
+    expect(detailsIdx).toBeGreaterThan(-1);
+    expect(descIdx).toBeLessThan(detailsIdx);
+    expect(src).toContain("form-group--description");
+    expect(src).toContain("md-live-field--task");
+  });
+
   it("mounts a live Markdown description field", () => {
     const src = readSrc("components/task-dialog.ts");
     expect(src).toContain("MarkdownLiveField");
@@ -71,11 +82,13 @@ describe("UX — motion tokens available for snappy feedback", () => {
 });
 
 describe("UX — closed task dialog must not cover the mobile viewport", () => {
-  it("hides closed dialogs and only applies mobile sheet display when open", () => {
+  it("hides closed dialogs and only applies drawer/sheet flex when open", () => {
     const css = readSrc("styles/components/dialog.css");
     expect(css).toMatch(/dialog\.task-dialog:not\(\[open\]\)\s*\{[\s\S]*?display:\s*none/);
-    // Full-height sheet flex must be gated on [open] — bare display:flex overrides UA hide on iPhone
-    expect(css).toMatch(/@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog\[open\]\s*\{[\s\S]*display:\s*flex/);
+    // Full-height drawer flex must be gated on [open] — bare display:flex overrides UA hide on iPhone
+    expect(css).toMatch(/dialog\.task-dialog\[open\]\s*\{[\s\S]*?display:\s*flex/);
+    expect(css).toMatch(/inset:\s*0\s+0\s+0\s+auto/);
+    expect(css).toMatch(/motion-drawer-in/);
     expect(css).not.toMatch(
       /@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog\s*\{[\s\S]*display:\s*flex/,
     );

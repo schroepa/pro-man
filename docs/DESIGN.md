@@ -2,7 +2,7 @@
 
 > **Lebende Spezifikation.** Diese Datei wird bei jeder relevanten Design-/Token-/UI-Änderung aktualisiert. Quelle der Wahrheit für Tokens: `src/styles/tokens.css`. Tests: `src/design/design-integrity.test.ts`.
 
-Stand: **v0.3.1** (Warm Obsidian + Geist)
+Stand: **v0.3.1** (Warm Obsidian + Geist; Task-Drawer rechts)
 
 ---
 
@@ -197,9 +197,10 @@ Light-Variante nur auf hellem Grund, Dark-Variante nur auf dunklem. Bildmarke mi
 
 ### 7.3 Dialog / Forms
 
-- Task-Dialog: Elevated + Overlay-Shadow; Essentials zuerst (Titel, Status, Priorität, Fällig), Rest in `<details class="task-more-details">`.
+- Task-Drawer: rechts angedockt (`inset: 0 0 0 auto`, ~560px, `100dvh`), Elevated + Overlay-Shadow, Slide-in (`motion-drawer-in`); Scrim bleibt.
+- Essentials zuerst (Titel, Status, Priorität, Fällig, **Beschreibung** als `md-live-field--task`), Meta-Rest in `<details class="task-more-details">`.
 - Sheet-Header: Issue-Key + Status-Chip (mobil sichtbar halten).
-- Mobil-Sheet (≤640px): `display: flex` nur bei `dialog.task-dialog[open]`; geschlossen immer `display: none` (sonst Fullscreen-Weißfläche auf iPhone).
+- Flex-Column nur bei `dialog.task-dialog[open]`; geschlossen immer `display: none` (sonst Fullscreen-Weißfläche auf iPhone). Mobil (≤640px): Fullscreen-Sheet (gleiche Höhe, `border-radius: 0`).
 - Inputs: `min-height: 32px`, Subtle-Hintergrund.
 - Milestone-Switch: **gleiche** Höhe/Padding/Radius wie `.input`.
 - Date-Picker-Icons: Mask + `--color-text-secondary` (nicht OS-`color-scheme`-Ghosts).

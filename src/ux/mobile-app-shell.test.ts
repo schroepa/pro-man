@@ -101,7 +101,8 @@ describe("Mobile app shell", () => {
 
   it("CSS hardens dialog sheet, kanban stack, and bottom nav at mobile breakpoints", () => {
     const dialog = readSrc("styles/components/dialog.css");
-    expect(dialog).toMatch(/@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog[\s\S]*100dvh/);
+    expect(dialog).toMatch(/dialog\.task-dialog[\s\S]*100dvh/);
+    expect(dialog).toMatch(/@media \(max-width:\s*640px\)[\s\S]*dialog\.task-dialog\[open\][\s\S]*border-radius:\s*0/);
     expect(dialog).toMatch(/dialog\.task-dialog \.dialog-footer[\s\S]*sticky/);
 
     const layout = readSrc("styles/components/layout.css");

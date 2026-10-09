@@ -36,6 +36,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Task-Drawer**: Task-Detail als rechter Full-Height-Drawer; Beschreibung als Essential mit größerer Lesefläche
 - **Landing + Docs**: Conversion-Landing DE/EN (Unified Narrative + SaaS-Vergleich + Product-Mocks), Tutorials unter `/de/docs/` & `/en/docs/`, SPA unter `/app/`, PWA-Scope angepasst
 - **KI-Zugang**: [`docs/AI.md`](./AI.md); In-App **Für KI teilen**; lokaler MCP (`proman-mcp`) mit Read/Write Tasks+Docs
 - **Vault prüfen (In-App)**: Backoffice-Tab + Dashboard/⌘K-Einstieg; gleiche Report/Lint-Idee wie promantools, ohne Terminal

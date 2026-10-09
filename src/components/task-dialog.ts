@@ -192,6 +192,11 @@ export class TaskDialog {
             <input type="date" id="task-input-due" class="input" value="${task.dueDate}" />
           </div>
 
+          <div class="form-group form-group--description">
+            <label class="form-label" id="task-desc-label" for="task-textarea-desc">${t().tasks.description}</label>
+            <div id="task-desc-mount"></div>
+          </div>
+
           <details class="task-more-details" ${this.moreDetailsOpen ? "open" : ""}>
             <summary class="task-more-details-summary">${t().tasks.moreDetails}</summary>
             <div class="task-more-details-body">
@@ -297,11 +302,6 @@ export class TaskDialog {
                     ${allTasks.map(tItem => `<option value="${escapeHtml(tItem.id)}">${escapeHtml(tItem.id)} — ${escapeHtml(tItem.title)}</option>`).join("")}
                   </datalist>
                 </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" id="task-desc-label" for="task-textarea-desc">${t().tasks.description}</label>
-                <div id="task-desc-mount"></div>
               </div>
 
               <div class="attachments-section">
@@ -625,7 +625,8 @@ export class TaskDialog {
       value,
       placeholder: t().tasks.descriptionPlaceholder,
       editHint: t().tasks.descriptionMarkdownHint,
-      minRows: 3,
+      className: "md-live-field--task",
+      minRows: 8,
     });
     mount.replaceChildren(this.descriptionField.getElement());
   }
