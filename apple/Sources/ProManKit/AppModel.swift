@@ -141,10 +141,39 @@ public final class AppModel {
     }
 
     public func updateTaskStatus(id: String, status: String) throws {
-        guard var task = snapshot.tasks.first(where: { $0.id == id }) else { return }
-        try DomainRules.validateStatusChange(task, newStatus: status)
-        task.status = status
-        try saveTask(task)
+        try reorderTask(id: id, toStatus: status, beforeId: nil)
+    }
+
+    /// Moves a task into `status` and sets column order. `beforeId == nil` appends at the end.
+    public func reorderTask(id: String, toStatus status: String, beforeId: String?) throws {
+        guard !isReadOnly else { return }
+        guard let moving = snapshot.tasks.first(where: { $0.id == id }) else { return }
+        try DomainRules.validateStatusChange(moving, newStatus: status)
+
+        pushUndo()
+        var columnPeers = snapshot.tasks
+            .filter { $0.status == status && $0.id != id }
+            .sorted { $0.order < $1.order }
+            .map(\.id)
+
+        if let beforeId, let idx = columnPeers.firstIndex(of: beforeId) {
+            columnPeers.insert(id, at: idx)
+        } else if beforeId == nil {
+            columnPeers.append(id)
+        } else {
+            // beforeId not in column (edge) → append
+            columnPeers.append(id)
+        }
+
+        let now = ISO8601DateFormatter().string(from: Date())
+        for (index, taskId) in columnPeers.enumerated() {
+            guard var task = snapshot.tasks.first(where: { $0.id == taskId }) else { continue }
+            task.status = status
+            task.order = index
+            task.updatedAt = now
+            try vault.save(task: task, archived: false)
+        }
+        try reload()
     }
 
     public func archiveTask(id: String) throws {

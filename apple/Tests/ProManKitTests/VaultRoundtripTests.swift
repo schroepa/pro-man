@@ -121,6 +121,27 @@ final class VaultRoundtripTests: XCTestCase {
         XCTAssertFalse(DomainRules.wouldCreateCycle(tasks: tasks, taskId: "b", newDependencies: []))
     }
 
+    func testReorderTaskChangesOrderAndStatus() throws {
+        let temp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("proman-reorder-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: temp) }
+        try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
+
+        let store = VaultStore(bookmarkStore: VaultBookmarkStore())
+        try store.open(url: temp)
+        try store.save(clientsFile: ClientsFile())
+        try store.save(task: Task(id: "A", title: "A", status: "todo", order: 0))
+        try store.save(task: Task(id: "B", title: "B", status: "todo", order: 1))
+        try store.save(task: Task(id: "C", title: "C", status: "in-progress", order: 0))
+        let model = AppModel(vault: store)
+        try model.openForTesting(url: temp)
+
+        try model.reorderTask(id: "C", toStatus: "todo", beforeId: "B")
+        let todo = model.snapshot.tasks.filter { $0.status == "todo" }.sorted { $0.order < $1.order }
+        XCTAssertEqual(todo.map(\.id), ["A", "C", "B"])
+        XCTAssertEqual(todo.map(\.order), [0, 1, 2])
+    }
+
     func testFingerprintChangesOnEdit() throws {
         let temp = FileManager.default.temporaryDirectory
             .appendingPathComponent("proman-fp-\(UUID().uuidString)", isDirectory: true)
