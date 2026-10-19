@@ -1,15 +1,15 @@
 # ProMan
 
-**Local-First Project Management** — Kanban, Liste, Gantt, Kalender, Docs, Wissen und Backoffice. Speicherung als Markdown (Obsidian-kompatibel) über die File System Access API. Vanilla TypeScript + Vite, kein Backend, keine Telemetrie.
+**Local-First Project Management** — Kanban, Liste, Gantt, Kalender, Docs, Wissen und Backoffice. Speicherung als Markdown (Obsidian-kompatibel) über die File System Access API. Vanilla TypeScript + Vite, kein Backend, keine Telemetrie. Optional **native Mac- & iPhone-Apps** (SwiftUI) am selben Vault.
 
 | | |
 |---|---|
 | **Version** | 0.3.1 |
-| **Stack** | TypeScript, Vite 6, Vitest, happy-dom, axe-core · optional Python-CLI `tools/` |
-| **UI** | Eigenes Token-System (kein Tailwind/Shadcn) |
+| **Stack** | TypeScript, Vite 6, Vitest, happy-dom, axe-core · optional Python-CLI `tools/` · optional Apple Apps [`apple/`](./apple/) |
+| **UI** | Eigenes Token-System (kein Tailwind/Shadcn) · Native: macOS/iOS HIG |
 | **Typo** | Geist + Geist Mono (self-hosted, variable woff2) |
 | **i18n** | Deutsch / Englisch |
-| **Lizenz-Daten** | Lokal im Browser / Vault auf der Festplatte |
+| **Lizenz-Daten** | Lokal im Browser / Vault auf der Festplatte / native Apps (Bookmark) |
 
 > **Lebende Dokumentation:** `README.md`, `docs/*`, `CHANGELOG.md`, `CONTRIBUTING.md` und `SECURITY.md` werden bei relevanten Änderungen am Code mitgepflegt. Stand der Doku = Stand des Repos.
 
@@ -20,7 +20,7 @@
 1. [Schnellstart](#schnellstart)
 2. [Architektur](#architektur)
 3. [Features](#features)
-4. [Vault & Persistenz](#vault--persistenz) → Team: [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md) · KI: [`docs/AI.md`](./docs/AI.md)
+4. [Vault & Persistenz](#vault--persistenz) → Schema: [`docs/VAULT-SCHEMA.md`](./docs/VAULT-SCHEMA.md) · Team: [`docs/TEAM-VAULT.md`](./docs/TEAM-VAULT.md) · KI: [`docs/AI.md`](./docs/AI.md) · Native: [`apple/README.md`](./apple/README.md)
 5. [Issue-Keys](#issue-keys)
 6. [Design-System](#design-system) → detailliert in [`docs/DESIGN.md`](./docs/DESIGN.md)
 7. [Roadmap](#roadmap) → [`docs/ROADMAP.md`](./docs/ROADMAP.md)
@@ -74,9 +74,12 @@ site/shared/              # Marketing/Docs Shell (CSS/JS)
 src/                      # App (main, views, storage, styles, i18n, …)
 public/                   # fonts, sw.js, brand, PWA icons
 vault-example/            # Beispiel-Vault
-docs/                     # Entwickler-Doku (Design, Roadmap, …)
+docs/                     # Entwickler-Doku (Design, Roadmap, Vault-Schema, …)
 tools/                    # Optional: Python CLI + MCP
+apple/                    # Native Mac + iPhone (ProManKit + Xcode)
 ```
+
+**Native Apps:** Xcode → [`apple/ProMan.xcodeproj`](./apple/ProMan.xcodeproj) (Scheme `ProMan` / `ProMan-iOS`). Tests: `cd apple && swift test`. Store: [`docs/apple/APP-STORE.md`](./docs/apple/APP-STORE.md).
 
 ### Prinzipien
 

@@ -26,3 +26,11 @@ src/**/*.js.map
 .import/
 vault-notion/
 .worktrees/
+
+# Apple / Xcode
+apple/.build/
+apple/*.xcodeproj/project.xcworkspace/xcuserdata/
+apple/*.xcodeproj/xcuserdata/
+**/DerivedData/
+*.xcuserstate
+

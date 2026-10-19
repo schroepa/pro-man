@@ -1,0 +1,70 @@
+name: ProMan
+options:
+  bundleIdPrefix: app.proman
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "0.3.1"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_STYLE: Automatic
+packages:
+  ProManKit:
+    path: .
+targets:
+  ProMan:
+    type: application
+    platform: macOS
+    sources:
+      - path: Apps/ProMan
+    dependencies:
+      - package: ProManKit
+        product: ProManKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.proman.ProMan
+        PRODUCT_NAME: ProMan
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Apps/ProMan/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Apps/ProMan/ProMan.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        COMBINE_HIDPI_IMAGES: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+  ProMan-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Apps/ProMan
+    dependencies:
+      - package: ProManKit
+        product: ProManKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.proman.ProMan
+        PRODUCT_NAME: ProMan
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Apps/ProMan/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Apps/ProMan/ProMan.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        SUPPORTS_MACCATALYST: NO
+schemes:
+  ProMan:
+    build:
+      targets:
+        ProMan: all
+    run:
+      config: Debug
+  ProMan-iOS:
+    build:
+      targets:
+        ProMan-iOS: all
+    run:
+      config: Debug

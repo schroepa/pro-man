@@ -12,9 +12,11 @@ Priorisiert nach Hebel für Stabilität und Alltagstauglichkeit:
 
 | # | Thema | Warum |
 |---|---|---|
-| 1 | **Alltag mit echtem Vault** | SWT-/Notion-Daten im Flow schärfen (Filter, Tags, Projekte) — Reibung aus dem echten Arbeiten |
-| 2 | **MCP v1.1** | Knowledge-Tools, Archivieren, Briefing-Tool am MCP; Host-Configs dokumentiert |
-| 3 | **Epic B — Anforderungen** | Anforderungen an Projekten (später Assets); Knowledge-IDs aus A als Anker |
+| 1 | **Mac App Store Upload** | Signing/Team-ID, Screenshots, TestFlight → Review ([`docs/apple/APP-STORE.md`](./apple/APP-STORE.md)) |
+| 2 | **Alltag mit echtem Vault** | SWT-/Notion-Daten im Flow schärfen (Filter, Tags, Projekte) — Reibung aus dem echten Arbeiten |
+| 3 | **MCP v1.1** | Knowledge-Tools, Archivieren, Briefing-Tool am MCP; Host-Configs dokumentiert |
+| 4 | **Epic B — Anforderungen** | Anforderungen an Projekten (später Assets); Knowledge-IDs aus A als Anker |
+| 5 | **iOS App Store + Schreiben** | Read-first liegt; Schreiben/UX-Feinschliff + Store-Listing iPhone |
 
 ---
 
@@ -36,6 +38,7 @@ Wenn Multi-Device/CRDT wieder aktuell wird: eigenes Spike-Doc unter `docs/`, Kri
 
 ## Done (kürzlich)
 
+- **Native Apple Apps**: Xcode-Projekt `apple/ProMan.xcodeproj`, ProManKit + Mac/iOS Targets, Vault-Schema-Vertrag [`docs/VAULT-SCHEMA.md`](./VAULT-SCHEMA.md)
 - **Task-Drawer**: Task-Detail als rechter Full-Height-Drawer; Beschreibung als Essential mit größerer Lesefläche
 - **Landing + Docs**: Conversion-Landing DE/EN (Unified Narrative + SaaS-Vergleich + Product-Mocks), Tutorials unter `/de/docs/` & `/en/docs/`, SPA unter `/app/`, PWA-Scope angepasst
 - **KI-Zugang**: [`docs/AI.md`](./AI.md); In-App **Für KI teilen**; lokaler MCP (`proman-mcp`) mit Read/Write Tasks+Docs

@@ -4,6 +4,9 @@ Alle nennenswerten Änderungen an ProMan.
 
 ## [Unreleased]
 
+### Features
+- **Native Apple Apps (Mac + iPhone)**: SwiftUI-Apps unter [`apple/`](./apple/) mit shared `ProManKit` (Vault-Bookmark, Serializer, Domänenregeln). Mac-HIG-Shell mit Dashboard/Kanban/Liste/Gantt/Kalender/Docs/Wissen/Kunde/Backoffice, ⌘K, Export CSV/ICS, Soft-Concurrent-Banner. iPhone-Target mit Read-first. Web-App bleibt parallel am selben Vault. Store-Checkliste: [`docs/apple/APP-STORE.md`](./docs/apple/APP-STORE.md)
+
 ### Fixes
 - **Kanban Drag & Drop**: Status-Verschieben bleibt sichtbar, auch wenn der Vault-Write fehlschlägt (Fallback + Notify); nach Drag kein versehentliches Task-Dialog-Öffnen
 - **Vault-Restore nach Reload**: Beim Start wird `requestPermission` nicht mehr ohne User-Gesture aufgerufen — gespeicherter Ordner bleibt als „Zugriff erlauben“ sichtbar statt still als offline zu verschwinden
