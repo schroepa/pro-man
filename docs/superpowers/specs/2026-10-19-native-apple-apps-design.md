@@ -26,6 +26,11 @@ ProMan als native SwiftUI-Apps im App Store (Mac zuerst, iPhone danach), ohne Br
 - `apple/Apps/ProMan` — SwiftUI Shell (macOS + iOS Targets)
 - Vertrag: Vault-Markdown + `clients.json` (siehe README / dieses Repo)
 
+## Look & Feel (festgelegt)
+
+- HIG-Chrome (Split View, Toolbar, Menüs) + Custom Surfaces/Brand/Icons
+- **Typografie: Systemfont (SF Pro / SF Mono)** — kein Geist aus der Web-App
+
 ## Qualität
 
 - Kein stiller Fallback ohne Vault

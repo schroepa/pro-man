@@ -9,6 +9,7 @@ SwiftUI-Apps für **macOS** und **iPhone**, die denselben Local-First-Vault nutz
 | **Schemes** | `ProMan` (Mac) · `ProMan-iOS` (iPhone) |
 | **Bundle ID** | `app.proman.ProMan` |
 | **Preis** | Kostenlos (keine IAP) |
+| **Typo** | System (SF Pro / SF Mono) — bewusst kein Geist aus der Web-App |
 
 ## Voraussetzungen
 

@@ -7,6 +7,9 @@ import UIKit
 #endif
 
 /// ProMan visual tokens for native apps — HIG chrome, Warm Obsidian / Tintfield surfaces.
+///
+/// Typography: **system font (SF Pro / SF Mono)** — not Geist from the web app.
+/// Keeps Dynamic Type, platform weight metrics, and native control alignment.
 enum ProManTheme {
     static let brandLight = Color(hex: 0xC25E1A)
     static let brandDark = Color(hex: 0xE07A38)
