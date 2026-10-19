@@ -1,8 +1,5 @@
 import SwiftUI
 import ProManKit
-#if os(macOS)
-import AppKit
-#endif
 
 struct KanbanView: View {
     @Environment(AppModel.self) private var model
@@ -31,7 +28,7 @@ struct KanbanView: View {
             .padding(16)
             .frame(minHeight: 560, alignment: .top)
         }
-        .background(KanbanPalette.windowBackground)
+        .background(ProManTheme.canvas)
     }
 
     private func columnTitle(_ status: DefaultTaskStatus) -> String {
@@ -45,10 +42,10 @@ struct KanbanView: View {
 
     private func columnAccent(_ status: DefaultTaskStatus) -> Color {
         switch status {
-        case .todo: return Color(red: 0.55, green: 0.58, blue: 0.64)
-        case .inProgress: return Color(red: 0.20, green: 0.48, blue: 0.96)
-        case .inReview: return Color(red: 0.72, green: 0.42, blue: 0.95)
-        case .done: return Color(red: 0.18, green: 0.68, blue: 0.42)
+        case .todo: return ProManTheme.statusTodo
+        case .inProgress: return ProManTheme.statusProgress
+        case .inReview: return ProManTheme.statusReview
+        case .done: return ProManTheme.statusDone
         }
     }
 }
@@ -91,8 +88,8 @@ struct KanbanColumn: View {
         .frame(width: 300)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(KanbanPalette.columnBackground)
+            RoundedRectangle(cornerRadius: ProManTheme.radiusLg, style: .continuous)
+                .fill(ProManTheme.subtle.opacity(0.85))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -210,10 +207,10 @@ struct KanbanCard: View {
 
     private var priorityColor: Color {
         switch task.priority {
-        case .urgent: return Color(red: 0.90, green: 0.22, blue: 0.27)
-        case .high: return Color(red: 0.95, green: 0.55, blue: 0.15)
-        case .normal: return Color(red: 0.35, green: 0.55, blue: 0.95)
-        case .low: return Color(red: 0.55, green: 0.58, blue: 0.64)
+        case .urgent: return ProManTheme.priorityUrgent
+        case .high: return ProManTheme.priorityHigh
+        case .normal: return ProManTheme.priorityNormal
+        case .low: return ProManTheme.priorityLow
         }
     }
 
@@ -284,14 +281,10 @@ struct KanbanCard: View {
             .padding(.vertical, 12)
         }
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(KanbanPalette.cardBackground)
+            RoundedRectangle(cornerRadius: ProManTheme.radiusMd, style: .continuous)
+                .fill(ProManTheme.surface)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.06), radius: 3, x: 0, y: 1)
+        .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 1)
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 3)
         .padding(.bottom, 8)
     }
@@ -306,9 +299,9 @@ struct KanbanCard: View {
     private var dueStyle: Color {
         let today = ISO8601DateFormatter().string(from: Date()).prefix(10)
         if task.status != DefaultTaskStatus.done.rawValue, task.dueDate < String(today) {
-            return Color(red: 0.90, green: 0.22, blue: 0.27)
+            return ProManTheme.priorityUrgent
         }
-        return .secondary
+        return ProManTheme.textSecondary
     }
 }
 
@@ -320,37 +313,11 @@ private struct FlowTags: View {
             ForEach(tags, id: \.self) { tag in
                 Text(tag)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ProManTheme.textSecondary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.primary.opacity(0.06)))
+                    .background(Capsule().fill(ProManTheme.muted.opacity(0.8)))
             }
         }
-    }
-}
-
-private enum KanbanPalette {
-    static var windowBackground: Color {
-        #if os(macOS)
-        Color(nsColor: .windowBackgroundColor)
-        #else
-        Color(.systemGroupedBackground)
-        #endif
-    }
-
-    static var columnBackground: Color {
-        #if os(macOS)
-        Color(nsColor: .controlBackgroundColor).opacity(0.72)
-        #else
-        Color(.secondarySystemGroupedBackground)
-        #endif
-    }
-
-    static var cardBackground: Color {
-        #if os(macOS)
-        Color(nsColor: .textBackgroundColor)
-        #else
-        Color(.systemBackground)
-        #endif
     }
 }

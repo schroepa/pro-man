@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		00E2D8DA59ACAA23907E79F4 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B5181B7C68475E5980C0C0F /* TaskDetailView.swift */; };
 		0373F170D7F6A9EC8B1E816E /* ClientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A7BB8A28F8E29AB79AB48A /* ClientDetailView.swift */; };
+		268AC89A3584B795E112BF6D /* ProManIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18BD3566A782C65EEB91786 /* ProManIcon.swift */; };
 		2E0A737AD686C54DC9F15EC5 /* CommandPaletteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B8DB6ED03499FC04E23655 /* CommandPaletteView.swift */; };
 		2FD71385B8B1627D354C0CE0 /* ProManApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A72F3EA2CCE1AC33B7987F /* ProManApp.swift */; };
 		35912A14A03E5C2F7AB30558 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF14944D8563743D3F1257A /* RootView.swift */; };
@@ -22,6 +23,7 @@
 		4EA4A7C987993599CD28DF18 /* ProManKit in Frameworks */ = {isa = PBXBuildFile; productRef = 883F09C82FC152A6729A6338 /* ProManKit */; };
 		51F8FE37203E8CAEBA59F59C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF14944D8563743D3F1257A /* RootView.swift */; };
 		60F24E7DD56B425C1C5F7AB1 /* ProManKit in Frameworks */ = {isa = PBXBuildFile; productRef = DB949F2C2EF9A7ED76DC6EE7 /* ProManKit */; };
+		6DBCABF1AC4E0E94334D894E /* ProManTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8138AD8B2B9E088CAB12374 /* ProManTheme.swift */; };
 		7610850FEB309EBCEAECF28D /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2130942D51C47C70AFB2489B /* DashboardView.swift */; };
 		7F663864336A500DD5CD2192 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B5181B7C68475E5980C0C0F /* TaskDetailView.swift */; };
 		840C874E4028548B1078D2F7 /* GanttView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35CE59AFD68001A396D59267 /* GanttView.swift */; };
@@ -29,11 +31,13 @@
 		8F229FF14C34325F4640AFD9 /* ExportSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC19433A01B6B491A387E386 /* ExportSupport.swift */; };
 		912CF5BC477087DDE769AA0B /* GanttView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35CE59AFD68001A396D59267 /* GanttView.swift */; };
 		98A956AD51BE63B32547FFF9 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B9291475A084C48C0F8D57 /* SidebarView.swift */; };
+		A70CAEC4E7C47894085C5EC3 /* ProManIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18BD3566A782C65EEB91786 /* ProManIcon.swift */; };
 		A89FECD2F215E4F262BA2B17 /* BackofficeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB2B141482F8BA258C76C304 /* BackofficeView.swift */; };
 		A9419757EAC9AF9991B7E9A8 /* DocsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2558816CB609A3107E275365 /* DocsView.swift */; };
 		AE1913C90F758E5EDF3D62B2 /* ListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81D43A40AF0A1964C50C74D /* ListView.swift */; };
 		BD6297080FC27E99CA5B3D63 /* ClientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A7BB8A28F8E29AB79AB48A /* ClientDetailView.swift */; };
 		BF4245647B0A9627FC0C08DA /* KnowledgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9218FF0489CBDD1259E1D286 /* KnowledgeView.swift */; };
+		CC36501658B2106DDF40721D /* ProManTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8138AD8B2B9E088CAB12374 /* ProManTheme.swift */; };
 		D35E2E1A9F343AFB95E38677 /* ListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81D43A40AF0A1964C50C74D /* ListView.swift */; };
 		D40F442E276C1215C3ED702E /* ProManApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A72F3EA2CCE1AC33B7987F /* ProManApp.swift */; };
 		D54338BD1400D38B5C6FA38E /* KanbanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A68E29D5E9B5656430C9003B /* KanbanView.swift */; };
@@ -50,7 +54,7 @@
 		28B8DB6ED03499FC04E23655 /* CommandPaletteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPaletteView.swift; sourceTree = "<group>"; };
 		2CE23354ADC34F813DD06E8A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		35CE59AFD68001A396D59267 /* GanttView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GanttView.swift; sourceTree = "<group>"; };
-		43736168649CE9C5E54941BE /* ProMan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProMan.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		43736168649CE9C5E54941BE /* ProMan-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "ProMan-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B9291475A084C48C0F8D57 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		52B26FC7598C83A70925F45D /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		54B34289B85CDDD2D4C8A047 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -64,7 +68,9 @@
 		CB2B141482F8BA258C76C304 /* BackofficeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackofficeView.swift; sourceTree = "<group>"; };
 		CEF075DA73215E3A97BA0B8B /* ProMan.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProMan.entitlements; sourceTree = "<group>"; };
 		D2A7BB8A28F8E29AB79AB48A /* ClientDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientDetailView.swift; sourceTree = "<group>"; };
+		E18BD3566A782C65EEB91786 /* ProManIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProManIcon.swift; sourceTree = "<group>"; };
 		E81D43A40AF0A1964C50C74D /* ListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListView.swift; sourceTree = "<group>"; };
+		F8138AD8B2B9E088CAB12374 /* ProManTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProManTheme.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,10 +101,18 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
+		23EA790EEA5E735CB4F11BBC /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				E18BD3566A782C65EEB91786 /* ProManIcon.swift */,
+			);
+			path = Icons;
+			sourceTree = "<group>";
+		};
 		259A9111290E15D0C2B0922A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				43736168649CE9C5E54941BE /* ProMan.app */,
+				43736168649CE9C5E54941BE /* ProMan-iOS.app */,
 				5858AA9AB780F89EA148C901 /* ProMan.app */,
 			);
 			name = Products;
@@ -113,6 +127,14 @@
 			);
 			sourceTree = "<group>";
 		};
+		8F5E2992187F3B7386BE9781 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				F8138AD8B2B9E088CAB12374 /* ProManTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
 		B13F48D04FC705EC1F0B749A /* ProMan */ = {
 			isa = PBXGroup;
 			children = (
@@ -122,6 +144,8 @@
 				CEF075DA73215E3A97BA0B8B /* ProMan.entitlements */,
 				A7A72F3EA2CCE1AC33B7987F /* ProManApp.swift */,
 				BEF14944D8563743D3F1257A /* RootView.swift */,
+				23EA790EEA5E735CB4F11BBC /* Icons */,
+				8F5E2992187F3B7386BE9781 /* Theme */,
 				FDF5E6946F116E2BDAB9C767 /* Views */,
 			);
 			path = ProMan;
@@ -194,7 +218,7 @@
 				883F09C82FC152A6729A6338 /* ProManKit */,
 			);
 			productName = "ProMan-iOS";
-			productReference = 43736168649CE9C5E54941BE /* ProMan.app */;
+			productReference = 43736168649CE9C5E54941BE /* ProMan-iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -204,7 +228,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2710;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					05817FD82C9D0A6A24420C43 = {
 						ProvisioningStyle = Automatic;
@@ -273,6 +297,8 @@
 				BF4245647B0A9627FC0C08DA /* KnowledgeView.swift in Sources */,
 				D35E2E1A9F343AFB95E38677 /* ListView.swift in Sources */,
 				D40F442E276C1215C3ED702E /* ProManApp.swift in Sources */,
+				268AC89A3584B795E112BF6D /* ProManIcon.swift in Sources */,
+				CC36501658B2106DDF40721D /* ProManTheme.swift in Sources */,
 				35912A14A03E5C2F7AB30558 /* RootView.swift in Sources */,
 				98A956AD51BE63B32547FFF9 /* SidebarView.swift in Sources */,
 				00E2D8DA59ACAA23907E79F4 /* TaskDetailView.swift in Sources */,
@@ -295,6 +321,8 @@
 				FA27F149D6EA7D7D1982566C /* KnowledgeView.swift in Sources */,
 				AE1913C90F758E5EDF3D62B2 /* ListView.swift in Sources */,
 				2FD71385B8B1627D354C0CE0 /* ProManApp.swift in Sources */,
+				A70CAEC4E7C47894085C5EC3 /* ProManIcon.swift in Sources */,
+				6DBCABF1AC4E0E94334D894E /* ProManTheme.swift in Sources */,
 				51F8FE37203E8CAEBA59F59C /* RootView.swift in Sources */,
 				469896A8CB221042D8E90F0D /* SidebarView.swift in Sources */,
 				7F663864336A500DD5CD2192 /* TaskDetailView.swift in Sources */,
@@ -313,10 +341,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Apps/ProMan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = app.proman.ProMan;
 				PRODUCT_NAME = ProMan;
 				SDKROOT = iphoneos;
@@ -331,17 +356,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Apps/ProMan/ProMan.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Apps/ProMan/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ProMan;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.proman.ProMan;
 				PRODUCT_NAME = ProMan;
 				SDKROOT = macosx;
@@ -384,11 +403,9 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -403,7 +420,6 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
@@ -419,10 +435,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Apps/ProMan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = app.proman.ProMan;
 				PRODUCT_NAME = ProMan;
 				SDKROOT = iphoneos;
@@ -437,17 +450,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Apps/ProMan/ProMan.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Apps/ProMan/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ProMan;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.proman.ProMan;
 				PRODUCT_NAME = ProMan;
 				SDKROOT = macosx;
@@ -490,11 +497,9 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -516,7 +521,6 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;

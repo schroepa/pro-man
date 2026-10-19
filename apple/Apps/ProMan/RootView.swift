@@ -80,7 +80,9 @@ struct RootView: View {
                     StaleVaultBanner()
                 }
                 destinationView
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .background(ProManTheme.canvas)
             .navigationTitle(model.destination.title)
             #if os(macOS)
             .toolbar {
@@ -91,25 +93,28 @@ struct RootView: View {
                     Button {
                         showCommandPalette = true
                     } label: {
-                        Label("Suche", systemImage: "magnifyingglass")
+                        ProManIconView(icon: .search, size: 15)
                     }
-                    .help("⌘K")
+                    .help("Suche ⌘K")
                     Button {
                         showNewTask = true
                     } label: {
-                        Label("Neue Aufgabe", systemImage: "plus")
+                        ProManIconView(icon: .plus, size: 15)
                     }
+                    .help("Neue Aufgabe")
                     .disabled(model.isReadOnly)
                     Button {
                         model.checkStale()
                         try? model.reload()
                     } label: {
-                        Label("Neu laden", systemImage: "arrow.clockwise")
+                        ProManIconView(icon: .refresh, size: 15)
                     }
+                    .help("Neu laden")
                 }
             }
             #endif
         }
+        .tint(ProManTheme.brand)
         .sheet(isPresented: $showCommandPalette) {
             CommandPaletteView(isPresented: $showCommandPalette)
         }
@@ -175,14 +180,14 @@ struct ConnectVaultView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "folder.badge.questionmark")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
+            ProManIconView(icon: .folder, size: 48, lineWidth: 1.5)
+                .foregroundStyle(ProManTheme.brand)
             Text("Vault verbinden")
                 .font(.largeTitle.bold())
+                .foregroundStyle(ProManTheme.textPrimary)
             Text("Wähle deinen Vault-Ordner (z. B. in iCloud Drive). Ohne Vault startet die App nicht mit leeren Ersatzdaten.")
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(ProManTheme.textSecondary)
                 .frame(maxWidth: 420)
             if model.connectionState == .permissionNeeded {
                 Text("Der gespeicherte Vault braucht erneut Zugriff.")
@@ -202,6 +207,7 @@ struct ConnectVaultView: View {
         }
         .padding(40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ProManTheme.canvas)
     }
 }
 

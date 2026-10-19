@@ -9,6 +9,7 @@ Alle nennenswerten Änderungen an ProMan.
 
 ### Improvements
 - **Native Kanban**: echte Karten (Prioritätsstreifen, Key, Tags, Fällig, Checklisten) statt reiner Textspalten; Drag & Drop zum Verschieben zwischen Spalten und zum manuellen Neuordnen innerhalb einer Spalte (`order` im Vault)
+- **Native Theme + Sidebar UX**: ProMan-Tokens (Warm Obsidian / Copper), Tabler-ähnliche Custom-Icons, Sidebar mit Default/Hover/Active wie in der Web-App (sichtbarer Systemstatus)
 
 ### Fixes
 - **Kanban Drag & Drop**: Status-Verschieben bleibt sichtbar, auch wenn der Vault-Write fehlschlägt (Fallback + Notify); nach Drag kein versehentliches Task-Dialog-Öffnen
