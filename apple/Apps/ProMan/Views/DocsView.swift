@@ -10,8 +10,14 @@ struct DocsView: View {
         NavigationSplitView {
             List(model.snapshot.docs, selection: $selectedId) { doc in
                 Text(doc.title)
+                    .font(ProManTheme.body(13, weight: .medium))
+                    .foregroundStyle(ProManTheme.textPrimary)
                     .tag(doc.id)
+                    .listRowBackground(
+                        (selectedId == doc.id ? ProManTheme.surface : Color.clear)
+                    )
             }
+            .promanScrollContent()
             .navigationTitle("Docs")
             .toolbar {
                 Button {
@@ -21,7 +27,7 @@ struct DocsView: View {
                     try? model.saveDoc(doc)
                     selectedId = id
                 } label: {
-                    Image(systemName: "plus")
+                    ProManIconView(icon: .plus, size: 14)
                 }
                 .disabled(model.isReadOnly)
             }
@@ -37,16 +43,27 @@ struct DocsView: View {
                         set: { doc.content = $0; draft = doc }
                     ))
                     .frame(minHeight: 240)
-                    Button("Speichern") {
-                        try? model.saveDoc(doc)
-                    }
-                    .disabled(model.isReadOnly)
+                    .font(ProManTheme.body(14))
+                    Button("Speichern") { try? model.saveDoc(doc) }
+                        .disabled(model.isReadOnly)
                 }
-                .padding()
+                .formStyle(.grouped)
+                .scrollContentBackground(.hidden)
+                .background(ProManTheme.surface)
+                .tint(ProManTheme.brand)
             } else {
-                ContentUnavailableView("Doc wählen", systemImage: "doc.text")
+                ContentUnavailableView {
+                    Label {
+                        Text("Doc wählen").foregroundStyle(ProManTheme.textPrimary)
+                    } icon: {
+                        ProManIconView(icon: .fileText, size: 28)
+                            .foregroundStyle(ProManTheme.textMuted)
+                    }
+                }
+                .promanCanvas()
             }
         }
+        .tint(ProManTheme.brand)
         .onChange(of: selectedId) { _, id in
             draft = model.snapshot.docs.first { $0.id == id }
         }

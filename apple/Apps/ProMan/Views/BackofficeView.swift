@@ -15,10 +15,20 @@ struct BackofficeView: View {
                     Text("Hell").tag("light")
                     Text("Dunkel").tag("dark")
                 }
+                Text("Surfaces folgen Warm Obsidian; Akzent ist Copper. Typografie ist SF Pro.")
+                    .font(ProManTheme.body(11))
+                    .foregroundStyle(ProManTheme.textMuted)
             }
             Section("Kunden") {
                 ForEach(model.snapshot.clientsFile.clients) { client in
-                    LabeledContent(client.name, value: client.code ?? client.id)
+                    LabeledContent {
+                        Text(client.code ?? client.id)
+                            .font(ProManTheme.mono(11))
+                            .foregroundStyle(ProManTheme.textSecondary)
+                    } label: {
+                        Text(client.name)
+                            .foregroundStyle(ProManTheme.textPrimary)
+                    }
                 }
                 HStack {
                     TextField("Neuer Kunde", text: $newClientName)
@@ -30,7 +40,7 @@ struct BackofficeView: View {
                         file.clients.append(Client(
                             id: "cli-\(UUID().uuidString.prefix(6).lowercased())",
                             name: name,
-                            color: "#3b82f6",
+                            color: "#c25e1a",
                             code: code
                         ))
                         try? model.saveClients(file)
@@ -42,6 +52,7 @@ struct BackofficeView: View {
             Section("Team & Personen") {
                 ForEach(model.snapshot.clientsFile.members ?? []) { member in
                     Text(member.name)
+                        .foregroundStyle(ProManTheme.textPrimary)
                 }
                 HStack {
                     TextField("Neue Person", text: $newMemberName)
@@ -63,7 +74,12 @@ struct BackofficeView: View {
                 }
             }
             Section("Vault") {
-                LabeledContent("Pfad", value: model.snapshot.rootURL?.path ?? "—")
+                LabeledContent("Pfad") {
+                    Text(model.snapshot.rootURL?.path ?? "—")
+                        .font(ProManTheme.mono(10))
+                        .foregroundStyle(ProManTheme.textSecondary)
+                        .lineLimit(2)
+                }
                 LabeledContent("Tasks", value: "\(model.snapshot.tasks.count)")
                 LabeledContent("Docs", value: "\(model.snapshot.docs.count)")
                 LabeledContent("Wissen", value: "\(model.snapshot.knowledge.count)")
@@ -76,12 +92,15 @@ struct BackofficeView: View {
                     set: { model.isReadOnly = $0 }
                 ))
                 Text("Schreiben kannst du jederzeit freischalten — der Vault bleibt derselbe.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(ProManTheme.body(11))
+                    .foregroundStyle(ProManTheme.textMuted)
             }
             #endif
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(ProManTheme.canvas)
+        .tint(ProManTheme.brand)
         .preferredColorScheme(scheme)
     }
 

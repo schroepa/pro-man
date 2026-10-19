@@ -89,11 +89,11 @@ struct KanbanColumn: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .background(
             RoundedRectangle(cornerRadius: ProManTheme.radiusLg, style: .continuous)
-                .fill(ProManTheme.subtle.opacity(0.85))
+                .fill(ProManTheme.subtle)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(isTargeted ? accent.opacity(0.7) : Color.primary.opacity(0.06), lineWidth: isTargeted ? 2 : 1)
+            RoundedRectangle(cornerRadius: ProManTheme.radiusLg, style: .continuous)
+                .strokeBorder(isTargeted ? accent.opacity(0.8) : Color.clear, lineWidth: isTargeted ? 2 : 0)
         )
         .dropDestination(for: String.self) { ids, _ in
             guard let id = ids.first else { return false }
@@ -109,14 +109,15 @@ struct KanbanColumn: View {
                 .fill(accent)
                 .frame(width: 8, height: 8)
             Text(title)
-                .font(.system(.headline, design: .default).weight(.semibold))
+                .font(ProManTheme.body(13, weight: .semibold))
+                .foregroundStyle(ProManTheme.textPrimary)
             Spacer()
             Text("\(tasks.count)")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(ProManTheme.mono(11, weight: .semibold))
+                .foregroundStyle(ProManTheme.textSecondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Capsule().fill(Color.primary.opacity(0.06)))
+                .background(Capsule().fill(ProManTheme.muted.opacity(0.7)))
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -226,11 +227,11 @@ struct KanbanCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(task.displayKey)
-                        .font(.caption.weight(.semibold).monospaced())
-                        .foregroundStyle(.secondary)
+                        .font(ProManTheme.mono(11, weight: .semibold))
+                        .foregroundStyle(ProManTheme.textMuted)
                     Spacer(minLength: 0)
                     Text(task.priority.rawValue)
-                        .font(.caption2.weight(.semibold))
+                        .font(ProManTheme.body(10, weight: .semibold))
                         .foregroundStyle(priorityColor)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 2)
@@ -238,37 +239,36 @@ struct KanbanCard: View {
                 }
 
                 Text(task.title)
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.primary)
+                    .font(ProManTheme.body(14, weight: .semibold))
+                    .foregroundStyle(ProManTheme.textPrimary)
                     .lineLimit(3)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if !snippet.isEmpty {
                     Text(snippet)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(ProManTheme.body(12))
+                        .foregroundStyle(ProManTheme.textSecondary)
                         .lineLimit(2)
                 }
 
                 HStack(spacing: 8) {
                     if let clientName {
-                        Label(clientName, systemImage: "building.2")
-                            .labelStyle(.titleAndIcon)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                        Text(clientName)
+                            .font(ProManTheme.body(10))
+                            .foregroundStyle(ProManTheme.textMuted)
                             .lineLimit(1)
                     }
                     Spacer(minLength: 0)
                     if !task.dueDate.isEmpty {
-                        Label(task.dueDate, systemImage: "calendar")
-                            .font(.caption2.monospaced())
+                        Text(task.dueDate)
+                            .font(ProManTheme.mono(10))
                             .foregroundStyle(dueStyle)
                     }
                     if !task.subtasks.isEmpty {
-                        Label("\(doneSubtasks)/\(task.subtasks.count)", systemImage: "checklist")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                        Text("\(doneSubtasks)/\(task.subtasks.count)")
+                            .font(ProManTheme.mono(10))
+                            .foregroundStyle(ProManTheme.textMuted)
                     }
                 }
 
@@ -280,12 +280,7 @@ struct KanbanCard: View {
             .padding(.trailing, 12)
             .padding(.vertical, 12)
         }
-        .background(
-            RoundedRectangle(cornerRadius: ProManTheme.radiusMd, style: .continuous)
-                .fill(ProManTheme.surface)
-        )
-        .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 1)
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 3)
+        .promanCard()
         .padding(.bottom, 8)
     }
 

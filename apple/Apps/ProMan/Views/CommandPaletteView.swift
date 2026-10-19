@@ -22,20 +22,49 @@ struct CommandPaletteView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("Suchen…", text: $query)
-                .textFieldStyle(.plain)
-                .font(.title3)
-                .padding()
-                .focused($focused)
-            Divider()
-            List(results) { item in
-                Button {
-                    select(item)
-                } label: {
-                    Label(item.title, systemImage: item.symbol)
-                }
+            HStack(spacing: 10) {
+                ProManIconView(icon: .search, size: 18)
+                    .foregroundStyle(ProManTheme.textMuted)
+                TextField("Suchen…", text: $query)
+                    .textFieldStyle(.plain)
+                    .font(ProManTheme.body(17))
+                    .foregroundStyle(ProManTheme.textPrimary)
+                    .focused($focused)
             }
+            .padding(16)
+            .background(ProManTheme.elevated)
+
+            Rectangle()
+                .fill(ProManTheme.muted.opacity(0.5))
+                .frame(height: 1)
+
+            ScrollView {
+                LazyVStack(spacing: 2) {
+                    ForEach(results) { item in
+                        Button {
+                            select(item)
+                        } label: {
+                            HStack(spacing: 10) {
+                                ProManIconView(icon: item.icon, size: 15)
+                                    .foregroundStyle(ProManTheme.textSecondary)
+                                Text(item.title)
+                                    .font(ProManTheme.body(13, weight: .medium))
+                                    .foregroundStyle(ProManTheme.textPrimary)
+                                    .lineLimit(1)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 9)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(8)
+            }
+            .background(ProManTheme.elevated)
         }
+        .promanElevated()
         #if os(macOS)
         .frame(width: 520, height: 420)
         #endif
@@ -49,12 +78,10 @@ struct CommandPaletteView: View {
         case .task(let t):
             model.selectedTaskId = t.id
             model.destination = .list
-        case .doc(let d):
+        case .doc:
             model.destination = .docs
-            _ = d
-        case .knowledge(let k):
+        case .knowledge:
             model.destination = .knowledge
-            _ = k
         case .client(let c):
             model.selectedClientId = c.id
             model.destination = .client
@@ -90,13 +117,13 @@ private enum PaletteItem: Identifiable {
         }
     }
 
-    var symbol: String {
+    var icon: ProManIcon {
         switch self {
-        case .destination: return "arrow.right.circle"
-        case .task: return "checklist"
-        case .doc: return "doc"
-        case .knowledge: return "lightbulb"
-        case .client: return "building.2"
+        case .destination(let d): return .forDestination(d)
+        case .task: return .listDetails
+        case .doc: return .fileText
+        case .knowledge: return .sparkles
+        case .client: return .briefcase
         }
     }
 

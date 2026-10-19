@@ -24,6 +24,12 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>ProMan kann einen Vault-Ordner auf dem Schreibtisch öffnen.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>ProMan liest und schreibt deinen lokalen Vault-Ordner (Markdown-Dateien).</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>ProMan kann einen Vault-Ordner in Downloads öffnen.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchScreen</key>
@@ -34,11 +40,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>ProMan liest und schreibt deinen lokalen Vault-Ordner (Markdown-Dateien).</string>
-	<key>NSDesktopFolderUsageDescription</key>
-	<string>ProMan kann einen Vault-Ordner auf dem Schreibtisch öffnen.</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>ProMan kann einen Vault-Ordner in Downloads öffnen.</string>
 </dict>
 </plist>

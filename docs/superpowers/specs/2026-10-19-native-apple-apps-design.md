@@ -28,8 +28,11 @@ ProMan als native SwiftUI-Apps im App Store (Mac zuerst, iPhone danach), ohne Br
 
 ## Look & Feel (festgelegt)
 
-- HIG-Chrome (Split View, Toolbar, Menüs) + Custom Surfaces/Brand/Icons
-- **Typografie: Systemfont (SF Pro / SF Mono)** — kein Geist aus der Web-App
+- HIG-Chrome (Split View, Toolbar, Menüs, System-Dialoge) + Custom Surfaces/Brand/Icons
+- Surfaces aus `docs/DESIGN.md` via `ProManTheme` (Warm Obsidian + Copper)
+- Zero-Border-Ruhe; Elevation nur bei Karten / Floating UI (`promanCard` / `promanElevated`)
+- Light/Dark an System (optional Override im Backoffice)
+- **Typografie: Systemfont (SF Pro / SF Mono)** — kein Geist aus der Web-App; Mono nur Keys/Daten
 
 ## Qualität
 

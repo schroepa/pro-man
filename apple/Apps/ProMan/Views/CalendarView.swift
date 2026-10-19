@@ -10,44 +10,66 @@ struct CalendarView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 12) {
             HStack {
-                Button { shiftMonth(-1) } label: { Image(systemName: "chevron.left") }
+                Button { shiftMonth(-1) } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(ProManTheme.textSecondary)
                 Spacer()
-                Text(monthTitle).font(.title2.bold())
+                Text(monthTitle)
+                    .font(ProManTheme.body(18, weight: .bold))
+                    .foregroundStyle(ProManTheme.textPrimary)
                 Spacer()
-                Button { shiftMonth(1) } label: { Image(systemName: "chevron.right") }
+                Button { shiftMonth(1) } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(ProManTheme.textSecondary)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
                 ForEach(["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], id: \.self) { d in
-                    Text(d).font(.caption.bold()).foregroundStyle(.secondary)
+                    Text(d)
+                        .font(ProManTheme.body(11, weight: .semibold))
+                        .foregroundStyle(ProManTheme.textMuted)
+                        .frame(maxWidth: .infinity)
                 }
                 ForEach(daysInMonth, id: \.self) { day in
                     let key = dayKey(day)
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 3) {
                         Text("\(Calendar.current.component(.day, from: day))")
-                            .font(.caption)
+                            .font(ProManTheme.mono(11, weight: .medium))
+                            .foregroundStyle(ProManTheme.textSecondary)
                         ForEach(tasksByDay[key] ?? []) { task in
                             Text(task.title)
-                                .font(.caption2)
+                                .font(ProManTheme.body(10, weight: .medium))
+                                .foregroundStyle(ProManTheme.textPrimary)
                                 .lineLimit(1)
-                                .padding(2)
-                                .background(.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 3))
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(ProManTheme.brand.opacity(0.12), in: RoundedRectangle(cornerRadius: 3, style: .continuous))
                                 .onTapGesture {
                                     model.selectedTaskId = task.id
                                     model.destination = .list
                                 }
                         }
                     }
-                    .frame(maxWidth: .infinity, minHeight: 64, alignment: .topLeading)
-                    .padding(4)
-                    .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 6))
+                    .padding(6)
+                    .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
+                    .promanSurface(radius: ProManTheme.radiusSm)
                 }
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
         }
+        .promanCanvas()
     }
 
     private var monthTitle: String {
@@ -62,7 +84,6 @@ struct CalendarView: View {
         guard let interval = cal.dateInterval(of: .month, for: month) else { return [] }
         var days: [Date] = []
         var d = interval.start
-        // Pad to Monday
         let weekday = cal.component(.weekday, from: d)
         let mondayOffset = (weekday + 5) % 7
         if let startPad = cal.date(byAdding: .day, value: -mondayOffset, to: d) {

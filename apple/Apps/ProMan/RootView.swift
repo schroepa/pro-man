@@ -215,15 +215,20 @@ struct StaleVaultBanner: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        HStack {
+        HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(ProManTheme.priorityHigh)
             Text("Vault wurde extern geändert.")
+                .font(ProManTheme.body(13, weight: .medium))
+                .foregroundStyle(ProManTheme.textPrimary)
             Spacer()
             Button("Später") { model.staleFingerprint = nil }
+                .foregroundStyle(ProManTheme.textSecondary)
             Button("Neu laden") { try? model.acceptRemoteReload() }
                 .buttonStyle(.borderedProminent)
+                .tint(ProManTheme.brand)
         }
-        .padding(10)
-        .background(.yellow.opacity(0.25))
+        .padding(12)
+        .background(ProManTheme.priorityHigh.opacity(0.12))
     }
 }

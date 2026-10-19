@@ -9,34 +9,58 @@ struct GanttView: View {
     }
 
     var body: some View {
-        if rangedTasks.isEmpty {
-            ContentUnavailableView("Keine Termine", systemImage: "chart.bar.xaxis", description: Text("Aufgaben mit Start-/Fälligkeitsdatum erscheinen hier."))
-        } else {
-            List(rangedTasks) { task in
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(task.title).font(.headline)
-                    Text("\(task.startDate.isEmpty ? "—" : task.startDate) → \(task.dueDate.isEmpty ? "—" : task.dueDate)")
-                        .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
-                    GeometryReader { geo in
-                        let progress = barProgress(for: task)
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(.quaternary)
-                            Capsule()
-                                .fill(Color.accentColor.opacity(0.75))
-                                .frame(width: max(8, geo.size.width * progress))
+        Group {
+            if rangedTasks.isEmpty {
+                ContentUnavailableView {
+                    Label {
+                        Text("Keine Termine")
+                            .foregroundStyle(ProManTheme.textPrimary)
+                    } icon: {
+                        ProManIconView(icon: .timeline, size: 28)
+                            .foregroundStyle(ProManTheme.textMuted)
+                    }
+                } description: {
+                    Text("Aufgaben mit Start-/Fälligkeitsdatum erscheinen hier.")
+                        .foregroundStyle(ProManTheme.textSecondary)
+                }
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 10) {
+                        ForEach(rangedTasks) { task in
+                            Button {
+                                model.selectedTaskId = task.id
+                                model.destination = .list
+                            } label: {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(task.title)
+                                        .font(ProManTheme.body(14, weight: .semibold))
+                                        .foregroundStyle(ProManTheme.textPrimary)
+                                    Text("\(task.startDate.isEmpty ? "—" : task.startDate) → \(task.dueDate.isEmpty ? "—" : task.dueDate)")
+                                        .font(ProManTheme.mono(11))
+                                        .foregroundStyle(ProManTheme.textMuted)
+                                    GeometryReader { geo in
+                                        let progress = barProgress(for: task)
+                                        ZStack(alignment: .leading) {
+                                            Capsule().fill(ProManTheme.muted.opacity(0.8))
+                                            Capsule()
+                                                .fill(ProManTheme.brand.opacity(0.85))
+                                                .frame(width: max(8, geo.size.width * progress))
+                                        }
+                                    }
+                                    .frame(height: 8)
+                                }
+                                .padding(14)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .promanCard()
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
-                    .frame(height: 10)
-                }
-                .padding(.vertical, 4)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    model.selectedTaskId = task.id
-                    model.destination = .list
+                    .padding(20)
                 }
             }
         }
+        .promanCanvas()
     }
 
     private func barProgress(for task: Task) -> CGFloat {

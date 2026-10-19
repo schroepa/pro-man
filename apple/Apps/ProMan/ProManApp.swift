@@ -8,11 +8,14 @@ import AppKit
 @main
 struct ProManApp: App {
     @State private var model = AppModel()
+    @AppStorage("proman.colorScheme") private var colorSchemePreference = "system"
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(model)
+                .tint(ProManTheme.brand)
+                .preferredColorScheme(preferredScheme)
                 .task {
                     #if os(iOS)
                     model.isReadOnly = true
@@ -50,6 +53,14 @@ struct ProManApp: App {
             }
         }
         #endif
+    }
+
+    private var preferredScheme: ColorScheme? {
+        switch colorSchemePreference {
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil
+        }
     }
 }
 

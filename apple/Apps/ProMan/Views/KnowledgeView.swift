@@ -9,14 +9,20 @@ struct KnowledgeView: View {
     var body: some View {
         NavigationSplitView {
             List(model.snapshot.knowledge, selection: $selectedId) { item in
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(item.title)
+                        .font(ProManTheme.body(13, weight: .medium))
+                        .foregroundStyle(ProManTheme.textPrimary)
                     Text(item.category.rawValue)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(ProManTheme.body(11))
+                        .foregroundStyle(ProManTheme.textMuted)
                 }
                 .tag(item.id)
+                .listRowBackground(
+                    (selectedId == item.id ? ProManTheme.surface : Color.clear)
+                )
             }
+            .promanScrollContent()
             .navigationTitle("Wissen")
             .toolbar {
                 Button {
@@ -33,7 +39,7 @@ struct KnowledgeView: View {
                     try? model.saveKnowledge(item)
                     selectedId = id
                 } label: {
-                    Image(systemName: "plus")
+                    ProManIconView(icon: .plus, size: 14)
                 }
                 .disabled(model.isReadOnly)
             }
@@ -55,14 +61,27 @@ struct KnowledgeView: View {
                         set: { item.content = $0; draft = item }
                     ))
                     .frame(minHeight: 240)
+                    .font(ProManTheme.body(14))
                     Button("Speichern") { try? model.saveKnowledge(item) }
                         .disabled(model.isReadOnly)
                 }
-                .padding()
+                .formStyle(.grouped)
+                .scrollContentBackground(.hidden)
+                .background(ProManTheme.surface)
+                .tint(ProManTheme.brand)
             } else {
-                ContentUnavailableView("Eintrag wählen", systemImage: "lightbulb")
+                ContentUnavailableView {
+                    Label {
+                        Text("Eintrag wählen").foregroundStyle(ProManTheme.textPrimary)
+                    } icon: {
+                        ProManIconView(icon: .sparkles, size: 28)
+                            .foregroundStyle(ProManTheme.textMuted)
+                    }
+                }
+                .promanCanvas()
             }
         }
+        .tint(ProManTheme.brand)
         .onChange(of: selectedId) { _, id in
             draft = model.snapshot.knowledge.first { $0.id == id }
         }

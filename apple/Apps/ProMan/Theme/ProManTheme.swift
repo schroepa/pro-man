@@ -10,6 +10,9 @@ import UIKit
 ///
 /// Typography: **system font (SF Pro / SF Mono)** — not Geist from the web app.
 /// Keeps Dynamic Type, platform weight metrics, and native control alignment.
+///
+/// Surfaces follow Zero-Border rest UI: hierarchy via canvas → sidebar → surface → elevated;
+/// hairline/shadow only on cards and floating chrome.
 enum ProManTheme {
     static let brandLight = Color(hex: 0xC25E1A)
     static let brandDark = Color(hex: 0xE07A38)
@@ -73,6 +76,15 @@ enum ProManTheme {
     static let radiusLg: CGFloat = 14
     static let navRowHeight: CGFloat = 32
 
+    /// Issue keys, dates, dense data.
+    static func mono(_ size: CGFloat = 12, weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight, design: .monospaced)
+    }
+
+    static func body(_ size: CGFloat = 13, weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight)
+    }
+
     private static func adaptive(light: Color, dark: Color) -> Color {
         #if os(macOS)
         Color(nsColor: NSColor(name: nil, dynamicProvider: { appearance in
@@ -93,5 +105,49 @@ extension Color {
         let g = Double((hex >> 8) & 0xFF) / 255
         let b = Double(hex & 0xFF) / 255
         self.init(.sRGB, red: r, green: g, blue: b, opacity: opacity)
+    }
+}
+
+extension View {
+    /// App content plane (behind lists/boards).
+    func promanCanvas() -> some View {
+        background(ProManTheme.canvas)
+    }
+
+    /// Resting interactive surface — no border.
+    func promanSurface(radius: CGFloat = ProManTheme.radiusMd) -> some View {
+        background(
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .fill(ProManTheme.surface)
+        )
+    }
+
+    /// Card / floating elevation (only elevated UI).
+    func promanCard(radius: CGFloat = ProManTheme.radiusMd) -> some View {
+        background(
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .fill(ProManTheme.surface)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 2, x: 0, y: 1)
+        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+    }
+
+    /// Floating chrome (command palette, popovers).
+    func promanElevated(radius: CGFloat = ProManTheme.radiusLg) -> some View {
+        background(
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .fill(ProManTheme.elevated)
+        )
+        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.12), radius: 24, x: 0, y: 12)
+        .overlay(
+            RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    func promanScrollContent() -> some View {
+        scrollContentBackground(.hidden)
+            .background(ProManTheme.canvas)
     }
 }

@@ -17,39 +17,114 @@ struct ClientDetailView: View {
     }
 
     var body: some View {
-        if let client {
-            List {
-                Section("Kunde") {
-                    LabeledContent("Name", value: client.name)
-                    LabeledContent("Code", value: client.code ?? "—")
-                    if let description = client.description {
-                        Text(description)
-                    }
-                }
-                Section("Projekte") {
-                    ForEach(projects) { project in
-                        Button {
-                            model.selectedProjectId = project.id
-                            model.destination = .kanban
-                        } label: {
-                            Label(project.name, systemImage: "folder")
+        Group {
+            if let client {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(client.name)
+                                .font(ProManTheme.body(24, weight: .bold))
+                                .foregroundStyle(ProManTheme.textPrimary)
+                            if let code = client.code {
+                                Text(code)
+                                    .font(ProManTheme.mono(12, weight: .semibold))
+                                    .foregroundStyle(ProManTheme.brand)
+                            }
+                            if let description = client.description {
+                                Text(description)
+                                    .font(ProManTheme.body(13))
+                                    .foregroundStyle(ProManTheme.textSecondary)
+                            }
+                        }
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .promanCard()
+
+                        sectionBlock(title: "Projekte") {
+                            if projects.isEmpty {
+                                Text("Keine Projekte")
+                                    .foregroundStyle(ProManTheme.textMuted)
+                            }
+                            ForEach(projects) { project in
+                                Button {
+                                    model.selectedProjectId = project.id
+                                    model.destination = .kanban
+                                } label: {
+                                    HStack {
+                                        ProManIconView(icon: .folder, size: 14)
+                                        Text(project.name)
+                                            .font(ProManTheme.body(13, weight: .medium))
+                                        Spacer()
+                                    }
+                                    .foregroundStyle(ProManTheme.textPrimary)
+                                    .padding(12)
+                                    .promanSurface(radius: ProManTheme.radiusSm)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        sectionBlock(title: "Wissen") {
+                            if knowledge.isEmpty {
+                                Text("Keine Einträge")
+                                    .foregroundStyle(ProManTheme.textMuted)
+                            }
+                            ForEach(knowledge) { item in
+                                Text(item.title)
+                                    .font(ProManTheme.body(13))
+                                    .foregroundStyle(ProManTheme.textPrimary)
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .promanSurface(radius: ProManTheme.radiusSm)
+                            }
+                        }
+
+                        HStack(spacing: 10) {
+                            actionChip("Board", icon: .layoutKanban) { model.destination = .kanban }
+                            actionChip("Docs", icon: .fileText) { model.destination = .docs }
+                            actionChip("Wissen", icon: .sparkles) { model.destination = .knowledge }
                         }
                     }
+                    .padding(20)
                 }
-                Section("Wissen") {
-                    ForEach(knowledge) { item in
-                        Text(item.title)
+            } else {
+                ContentUnavailableView {
+                    Label {
+                        Text("Kunde wählen").foregroundStyle(ProManTheme.textPrimary)
+                    } icon: {
+                        ProManIconView(icon: .briefcase, size: 28)
+                            .foregroundStyle(ProManTheme.textMuted)
                     }
-                }
-                Section("Aktionen") {
-                    Button("Board öffnen") { model.destination = .kanban }
-                    Button("Docs öffnen") { model.destination = .docs }
-                    Button("Wissen öffnen") { model.destination = .knowledge }
+                } description: {
+                    Text("Wähle einen Kunden in der Sidebar.")
+                        .foregroundStyle(ProManTheme.textSecondary)
                 }
             }
-            .navigationTitle(client.name)
-        } else {
-            ContentUnavailableView("Kunde wählen", systemImage: "building.2", description: Text("Wähle einen Kunden in der Sidebar."))
         }
+        .promanCanvas()
+    }
+
+    private func sectionBlock<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(ProManTheme.textMuted)
+                .tracking(0.4)
+            content()
+        }
+    }
+
+    private func actionChip(_ title: String, icon: ProManIcon, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                ProManIconView(icon: icon, size: 13)
+                Text(title).font(ProManTheme.body(12, weight: .semibold))
+            }
+            .foregroundStyle(ProManTheme.brand)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .promanSurface(radius: ProManTheme.radiusSm)
+        }
+        .buttonStyle(.plain)
     }
 }

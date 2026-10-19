@@ -19,6 +19,7 @@ struct TaskDetailView: View {
                     get: { draft.issueKey ?? "" },
                     set: { draft.issueKey = $0.isEmpty ? nil : $0 }
                 ))
+                .font(ProManTheme.mono(12))
                 Picker("Status", selection: $draft.status) {
                     ForEach([
                         DefaultTaskStatus.todo.rawValue,
@@ -31,7 +32,9 @@ struct TaskDetailView: View {
                     ForEach(TaskPriority.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                 }
                 TextField("Start", text: $draft.startDate)
+                    .font(ProManTheme.mono(12))
                 TextField("Fällig", text: $draft.dueDate)
+                    .font(ProManTheme.mono(12))
                 TextField("Cycle", text: Binding(
                     get: { draft.cycle ?? "" },
                     set: { draft.cycle = $0.isEmpty ? nil : $0 }
@@ -52,6 +55,7 @@ struct TaskDetailView: View {
             Section("Beschreibung") {
                 TextEditor(text: $draft.description)
                     .frame(minHeight: 120)
+                    .font(ProManTheme.body(13))
             }
             Section("Checkliste") {
                 ForEach($draft.subtasks) { $sub in
@@ -71,9 +75,13 @@ struct TaskDetailView: View {
             }
             Section("Kommentare") {
                 ForEach(draft.comments ?? []) { c in
-                    VStack(alignment: .leading) {
-                        Text("\(c.author) · \(c.createdAt)").font(.caption).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(c.author) · \(c.createdAt)")
+                            .font(ProManTheme.mono(10))
+                            .foregroundStyle(ProManTheme.textMuted)
                         Text(c.body)
+                            .font(ProManTheme.body(13))
+                            .foregroundStyle(ProManTheme.textPrimary)
                     }
                 }
                 HStack {
@@ -94,10 +102,8 @@ struct TaskDetailView: View {
                 }
             }
             Section {
-                Button("Speichern") {
-                    try? model.saveTask(draft)
-                }
-                .disabled(model.isReadOnly)
+                Button("Speichern") { try? model.saveTask(draft) }
+                    .disabled(model.isReadOnly)
                 Button("Duplizieren") {
                     var copy = draft
                     copy.id = "TASK-\(UUID().uuidString.prefix(8).uppercased())"
@@ -114,9 +120,12 @@ struct TaskDetailView: View {
                 .disabled(model.isReadOnly)
             }
         }
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(ProManTheme.surface)
+        .tint(ProManTheme.brand)
         .onChange(of: model.selectedTaskId) { _, _ in
             if let task = model.selectedTask { draft = task }
         }
-        .padding()
     }
 }
